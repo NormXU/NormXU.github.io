@@ -49,6 +49,38 @@
         <div class="row">
 		<div class="container">
 		<p>
+		<h6>June 8th</h6>
+		<p class="mb-5">
+			&nbsp &nbsp &nbsp &nbsp • 今天开始才算正式开始暑研！一开始我以为我的任务是做路径规划，今天问清楚了才知道，我的任务是做检测是否有Collision。因为为卫星做切割的刀片必须是从起始到终点的一个线性路径，若这个线性路径上存在障碍，则返回False，否则返回True。
+			这么一看这个任务还是可以去做做试试的。达芬奇机器人与UR5之间的关系是：达芬奇机器人的屏幕是一个虚拟的摄像机，提供一个虚拟的视觉角度。他可以操作UR5端的刀片进行移动，简单的说就是手柄和游戏里的小人儿，达芬奇机器人可以控制视角和小人儿移动。这一块儿的代码已经写完，我的任务就是找出需要用到的topic，进行订阅。
+			<br />
+			&nbsp &nbsp &nbsp &nbsp • 那件事儿终于尘埃落定了，最好的结果。下学期继续当CA！老师真的是时时刻刻都在为我考虑，连面试的时候面试官对我的刁难的回复都替我想好了。西蒙老师真的是个优秀的教育者
+		    <br />
+			&nbsp &nbsp &nbsp &nbsp •PS4 HK商店疯狂打折，入了P5和Gravity Rush2。但是我究竟有没有时间玩儿呢……手里现在《怪猎》，《尼尔》，《黑旗》，《P5》，《重力2》。一款都没玩完。渐渐发现买游戏比玩儿游戏有意思。我都花钱买游戏了，难道还要我花时间玩儿游戏吗？
+		</p>
+		
+		<h6>June 7th</h6>
+		<p class="mb-5">
+			&nbsp &nbsp &nbsp &nbsp • 霍夫变换的代码终于写完了。写了这两道题后，感觉自己的Python水平有所进步
+			<br />
+			&nbsp &nbsp &nbsp &nbsp • 下午继续编霍夫变换，折腾了半天出不出来对的结果。于是决定暂时搁浅，进入Harris角点的编写。看了看Harris角点的原理，有几个疑点：PPT上所谓的Gaussian Derivative究竟是个啥？R函数究竟咋构造？
+		</p>
+		
+		<p>
+		<h6>June 6th</h6>
+		<p class="mb-5">
+			&nbsp &nbsp &nbsp &nbsp • CV作业第一题终于找到Bug了。原因在于我在设置array的时候，使用的数据类型是np.uint8，由于特征过多，导致溢出！也就是超过255后，特征的label又从1开始标记了，难怪会分不开！所以以后建立0 array的时候，用uint32最好啊！
+			<pre><code class="language-python">labeled_image = np.zeros(binary_image.shape[:2],np.uint32)
+# 之前用的是np.uint8，导致label数目溢出</code></pre>	
+		<br />
+		    &nbsp &nbsp &nbsp &nbsp • 复习了一下用霍夫变换识别直线。
+		<br />
+		    &nbsp &nbsp &nbsp &nbsp • 今天依然没有碰暑研，老师也没回复邮件	
+		<br />
+		    &nbsp &nbsp &nbsp &nbsp • 晚上老师终于回复邮件了，周五早上去学校，让他教教我	
+		</p>
+		</p>
+		<p>
 		<h6>June 5th</h6>
 		</p>
           
@@ -58,6 +90,9 @@
 			<!--<pre><code class="language-python">p { color: red }</code></pre>-->
 			
 		    <br />
+			
+			&nbsp &nbsp &nbsp &nbsp • CV作业又出问题了！学会用Jupyter Notebook插断点了，现在我不知道为啥会出现连片的标记这个Bug……明明前一副图还好好的！！！
+			<br />
 			&nbsp &nbsp &nbsp &nbsp • lambda, sorted(), filter(), map()熟悉使用. Python3中，filter()和map()返回list object类
 			<pre><code class="language-python">print(map(lambda x: x**2, [1,2,3,4,5]))
 # [1,4,9,16,25]
