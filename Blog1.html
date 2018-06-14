@@ -12,6 +12,7 @@
 
     <!-- Bootstrap core CSS -->
     <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+	<link href="themes/prism.css" rel="stylesheet" />
 
     <!-- Custom fonts for this template -->
     <link href="vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
@@ -29,6 +30,7 @@
 </head>
 
 <body id="page-top">  
+	<script src="prism.js"></script>
 	<!-- Navigation -->
     <nav class="navbar navbar-expand-lg bg-secondary fixed-top text-uppercase" id="mainNav">
       <div class="container">
@@ -50,13 +52,12 @@
 		<small>May 30th</small>
 		</p>
           <p>
-			<h6>conda info --envs <br />
-			activate base <br />
-			pip install ipykernel <br />
-			python -m ipykernel install --user <br />
-			<br />
-			conda install -c conda-forge nodejs  <br />
-			</h6>
+			<pre><code class="language-python">conda info --envs
+activate base
+pip install ipykernel
+python -m ipykernel install --user
+conda install -c conda-forge nodejs
+</code></pre>
 		  </p> 
          </div>
           

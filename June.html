@@ -49,9 +49,37 @@
         <div class="row">
 		<div class="container">
 		<p>
+		<h6>June 14th</h6>
+		<p class="mb-5">
+			&nbsp &nbsp &nbsp &nbsp • 下午脑洞全开，通过计算ComputeCartisianPath是否到达指定的Point来判断沿途是否有障碍物，并将判断结果发布出去。雏形已经完成，明天可以交差了。
+			
+			<br />
+			&nbsp &nbsp &nbsp &nbsp • 周日搬家，再见了Cresmont
+			</p>
+		
+		<h6>June 13th</h6>
+		<p class="mb-5">
+			&nbsp &nbsp &nbsp &nbsp • 完成了ROS Communication Node，订阅Node等乱七八糟的编程
+			<br />
+			&nbsp &nbsp &nbsp &nbsp • Harris角点基于NCC的角点匹配，完成了一半
+			</p>
+		<h6>June 12th</h6>
+		<p class="mb-5">
+			&nbsp &nbsp &nbsp &nbsp • 今天通过Trajectory，知道了Cartesian Path的每一个点所对应的Joint值。接下来就是验证在该Joint Variable下是否Collision Free。我觉得可以通过模仿Assignment3来实现。
+			<br />
+			&nbsp &nbsp &nbsp &nbsp • 终于把Harris角点的程序写完了……我不亏是拖延症晚期患者……但还是存在着一些为题。比如PPT上写的Second Moment Matrix。这尼玛是个啥……查遍全网没有一个用这个说法的……
+			<br />
+			&nbsp &nbsp &nbsp &nbsp • 《重力2》到啦！物流好快！给赞！！
+			</p>
+			
 		<h6>June 11th</h6>
 		<p class="mb-5">
 			&nbsp &nbsp &nbsp &nbsp • 终于通过改Tutorial的代码，把机器人end-effector在Cartisian Space 下沿着直线行走的效果给做出来了。下一阶段就是如何从这个Cartisian Path中验证每一步是否Collision Free。感觉这个方向没问题！
+			<br />
+			&nbsp &nbsp &nbsp &nbsp • Harris角点，我终于搞懂啥叫Gaussian Derivative了。要通过Python写出离散的高斯窗口，最好的方法是用mgrid[].mgrid[]:当步长是实数时，表示间隔；当步长是复数时，表示插入的点数。
+			<pre><code class="language-python">y, x = mgrid[-size:size+1, -size:size+1]
+kernel = exp( -(x**2 + y**2)/(2 * size**2) ) 
+</code></pre>	
 			</p>
 		<h6>June 10th</h6>
 		<p class="mb-5">
