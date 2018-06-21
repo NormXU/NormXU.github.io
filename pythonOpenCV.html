@@ -49,23 +49,26 @@
         <div class="row">
 		<div class="container">
 		<p>
-		<h6>June 18th</h6>
+		<h6>June 18th 20th</h6>
 		<p class="mb-5">
 			
 			<br />
 		
-			<pre><code class="language-python"> #单像素操作
-image.item((0,0)) #读取  image.setitem((0,0),128) #重新赋值  image[0,0] 查看指定位置通道值
-print(img.item(150,120,0)) 150,120 第1通道的值
-img.itemset( (150,170,0), 255) 在150,170 第一通道赋值255
+			<pre><code class="language-python"> ############################################################
+#单像素操作
+image.item((0,0)) #读取  
+image.setitem((0,0),128) #重新赋值  
+image[0,0] #查看指定位置通道值
+print(img.item(150,120,0)) #150,120 第1通道的值
+img.itemset( (150,170,0), 255) #在150,170 第一通道赋值255
 
-
+############################################################
 #初始化np.array
 np.array( np.mat('1 2;3 4'))
 cv2.imread('__', 1) #读取origin
 cv2.imread('__', 0) #读取灰度图像
 
-
+############################################################
 #性质
 img.dtype  
 img.shape #输出宽 高 通道数
@@ -76,16 +79,18 @@ b, g, r = cv2.split(src) #把一个图形按照通道分开
 img = cv2.merge( (b, g, r) ) #把图像合并 或者写成
 cv2,merge( (b, g, r), src )
 
-
+############################################################
 #二维图像一维化 & 重构
 byteArray = bytearray( image )   
 grayImage = grayImage.array(ByteArray).reshape(height, width)
 
-
+############################################################
 # 随机数
-os.urandom(120000)  生成12000个随机数    np.random.randint(0,256,120000) 在0到256之间生成120000个随机数
+os.urandom(120000)  #生成12000个随机数   
+np.random.randint(0,256,120000) #在0到256之间生成120000个随机数
 
 
+############################################################
 # 显示图像
 import cv2
 cv2.namedWindow('MyWindow')
@@ -98,13 +103,18 @@ from pylab import *
 from PIL import Image
 figure()
 gray()
+axis('off')
 imshow(match_img)
 #-----------------------------------
 plt.imshow(gray)
 plt.title('___')
 plt.show
-
-
+#-----------------------------------
+#并列显示
+combine_img = np.concatenate((img1, img2), axis = 1)
+#对图像进行resize
+img1 = cv2.resize(img1, (1000, 700), interpolation=cv2.INTER_CUBIC)
+############################################################
 #Python装饰器
 class Student(object):
      @property
@@ -122,24 +132,69 @@ class Student(object):
  s.score = 60 #setter
  s.score      #property
  
- 
+ ############################################################
  #基本Python操作
- prinnt("%s:%s" %(self.name, self.score) )
+ print("%s:%s" %(self.name, self.score) )
  
  #类定义
- class Student(object):
+ class Teenager(object):
 	pass
- $类继承
- class Teenager(Student):
+ #类继承
+ class Student(Teenager):
 	pass
+	
+ #判断
+ np.where( 输入数组, yes, no) #输入数组的元素为真时，返回第二个参数，为假时，返回第三个参数
+ src = np.where( src > 200, 0, 1);
+ #-----------------------------------
+ img[dst>0.01*dst.max()] = [0, 0, 255] #把所有dst值大于阈值的元素置为[0, 0, 255]
  
- 
+ #换行
+ dst = \
+ np.where( cv2.resize(mask, (w1,h1),
+                          interpolation = \
+						  0
+ #append
+ X = []
+ X.append( element ) 
+ ############################################################
  #卷积操作
  from scipy import ndimage
  k3 = ndimage.convolve(img, kernel)
- 
+ #-----------------------------------
  cv2.filter(src, -1, kernel, dst)
  #-1表示cv2.CV_8U 为8位无符号整型数
+ 
+ ############################################################
+ #二值化，灰度化系列操作
+ ret, thresh = cv2.threshold( cv2.cvtColor(img.copy(), cv2.COLOR_BGR2GRAY), 127, 255, cv2.THRESH_BINARY )
+ 
+ #创建全0的画布，一行操作
+ mask = np.zeros( img.shape[:2], np.uint8 )
+ 
+ #创建全1的画布，一行操作
+ kernel = np.ones((3,3), np.uint8)
+ 
+ ############################################################
+ #做标记
+ #画矩形
+ img = cv2.rectangle( img, (x,y), (x+w, y+h), (0, 255, 0), 2) #左上角是(x,y)，右下角是(x+w, y+h), 线性是2，颜色是(0,255,0)
+ #画圆形
+ img = cv2.circle( img, center, radius, (0, 255, 0), 2) #圆心，半径, 线性是2，颜色是(0,255,0)
+ #画点
+ plot([p[1] for p in corner_coordinate],[p[0] for p in corner_coordinate],'r*')
+
+ 
+ 
+ ############################################################
+ #数据类型变换
+ radius = int(radius)
+ #-----------------------------------
+ radius = radius.astype(np.uint8)
+ #-----------------------------------
+ radius = np.uint32(np.around(radius))
+ #-----------------------------------
+ radius = radius.astype('uint8')
 </code></pre>	
 			</p>
 			
