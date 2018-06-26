@@ -49,12 +49,55 @@
         <div class="row">
 		<div class="container">
 		<p>
-		<h6>June 18th 20th</h6>
+		<h6>June 25th</h6>
 		<p class="mb-5">
-			
-			<br />
 		
-			
+		<b>单线程:</b> <br />
+		ros::spin();  所有调用程序从ros::spin()开始调用，直到节点关闭，ros::spin()才有返回值。ros::spin()一旦运行起来便不会退出返回，直到shunt down。
+		ros::spinOnce()，单线程另一种形式，主动周期性调用。
+		回调函数是一直等待在回调队列中，只要条件满足便会发生回调。而ros::spin()的作用，便是创造线程给回调函数去执行，这样多线程就不会影响其他的作业。
+		<br />
+		<br />
+		<b>多线程:</b> <br />
+		对于只订阅1个topic的node,ros::spin()进入接收循环。每当有订阅的topic发布时，则进订阅topic的回调函数进行处理与操作。但是当一个节点要接收和处理许多topic，并且这些数据产生的频率各不相同的时候，如果在其中一个回调函数里耗费太长的时间，会导致其他的回调函数阻塞，从而使数据丢失。这是便需要使用多线程来保证数据的流程性。
+		 <pre><code class="language-c++">
+ros::NodeHandle nh;
+ros::AsyncSpinner spinner(1);
+spinner.start() //线程开始
+ros::waitForShuntdown() //该线程在销毁时自动停止
+		</code></pre>
+		在本项目中，创建多线程是因为move_group.move()这个函数是一个 Plan and execute a trajectory. This call is always blocking, therefore, it requires an asynchronous spinner to be started
+		
+			<br />
+			<br />
+		<b>MoveIt!:</b> <br />
+		moveit::planning_interface::MoveGroupInterface xxx('name')通过MoveGroup的API来对机器人实现操作，具体的初始化方法是把planning group的名字作为变量传入。<br />
+		moveit::planning_interface::PlanningSceneInterface xxx; 通过这个API，在virtual world中加入或移除obstacles<br />
+		
+		move_group.getCurrentState()返回moveit::core::RobotStatePtr 类型的指针
+		
+        <pre><code class="language-html">
+< xacro:include filename="(find cutter_description)/urdf/ur10.xacro > #类似于头文件
+< xacro:cutter frame_name="tool0" > #类似于创建新的实例
+		</code></pre>
+
+		<b>srdf file:</b> <br />
+		在srdf文件中，可定义机器人disable_collision, end_effector, virtual_joints等设置 <br />
+		virtual joint的作用是：定义robot link与外界参考坐标系之间的关系。 <br />
+		disable_collisions link1, link2, reason="Adjacent"， 当计划忽略两个link之间的self-collision的时候，可以用<disable_collisions>这个tag，并指明忽略的原因。 <br />
+		<br />
+		<pre><code class="language-html">
+< group > name = "manipulator"
+	< chain > base_link = "base_link" tip_link = "cutter"
+< /group >
+		</code></pre>
+		
+		< chain >是用来表示kinematic chain in the robot。其中,base_link是相对于chain固定的link; tip_link是the1 last link of the chain
+		
+		<br />
+		<br />
+		<b>computeCartesianPath:</b> <br />
+		实际上它会调用一个service，名字叫cartesian_path_service_
 			</p>
 			
 		
