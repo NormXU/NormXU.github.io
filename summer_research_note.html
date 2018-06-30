@@ -48,8 +48,8 @@
         <hr class="star-dark mb-5">
         <div class="row">
 		<div class="container">
-		<p>
-		<h6>June 25th</h6>
+		
+		
 		<p class="mb-5">
 		
 		<b>单线程:</b> <br />
@@ -101,9 +101,48 @@ ros::waitForShuntdown() //该线程在销毁时自动停止
 			</p>
 			
 		
-		  
-		  
-         </div>
+		
+		<b>为何使用joint_state_publisher? joint_state_publisher与robot_state_publisher之间的关系：</b> <br />
+joint_state_publisher就相当于一个aggregate。robot_state_publisher对机器人的每一个关节发布single message;当你有多个关节，且每一个关节都在发布joint message的时候，joint_state_publisher就起到了作用。joint_state_publisher subscribes to all the individual topics and combines them。 
+robot_state_publisher使用URDF文件在robot_description中规定的参数和集合joint_states对每个关节发布的message计算forward kinematic，并通过tf进行发布。
+joint_state_publisher发布的消息类型是sensor_msgs/JointState。这个节点读取robot_description中的参数，找到所有未固定的关节（也就是可动的节点），并根据JointState的值对其进行设定。	
+	<br />
+	<br />
+	<b>如何通过urdf with robot_state_publisher，来使机器人移动。</b> <br />
+		http://wiki.ros.org/urdf/Tutorials/Using%20urdf%20with%20robot_state_publisher <br />
+		向/joint_states 发布消息类型为sensor_msgs/JointState的msg，就可以使机器人按照预定角度顺序进行移动。
+<pre><code class="language-html5">
+< node name="joint_state_publisher" pkg = "joint_state_publisher" type = "joint_state_publisher">
+  < rosparam name="/source_list">[/move_group/fake_controller_joint_states]</rosparam>
+</ node>
+</code></pre>
+<br />
+<b>Parameter Server</b> <br />
+Node通过Parameter Server来存储于取回参数值，主要用于configuration parameters。参数类型都应该是globally viewable。<br />
+在这里，< rosparam >这个tag表明可将后面接着的topic存储在Parameter Server上。当< rosparam >放于< node> tag中间的时候，这个parameter就可以看作是一个private name 		
+         
+<br />
+Robot State is an object that contains all the current position/velocity/acceleration data	<br /> /joint_states订阅的是真实机器人的position，并发布在rviz中	 
+<br />	
+
+<pre><code class="language-html">
+< node name="joint_state_publisher" pkg = "joint_state_publisher" type="joint_state_publisher" >
+	< param name="/use_gui" value="false" />
+	< param name="/rate" value="1" />
+< /node> <br />	
+注意：当把/use_gui置为true的时候，可以出现一个调节各个关节的gui界面。/rate则是用来规定publisher的发布频率
+</code></pre>
+		 
+		 
+		 
+		 
+		 
+		 
+		 
+		 
+		 
+		 
+		 </div>
           
 		  <!-- <h4 class="text-uppercase mb-4">Location</h4> -->
  		  

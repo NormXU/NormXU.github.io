@@ -48,8 +48,34 @@
         <hr class="star-dark mb-5">
         <div class="row">
 		<div class="container">
+		<h6>June 29th</h6>
+		<p class="mb-5">
+			&nbsp &nbsp &nbsp &nbsp • 今天解决的第一个问题就是joint_state的问题。/joint_states 与 /move_group 的订阅关系如图：
+			最后解决是用了一个特别智障的方法: 把/joint_state的/rate改的特别小，比如用1Hz。但是这样也可能会让/robot_state的更新频率过慢，从而导致roslaunch发生失败。解决方法是只要多试几次就好了
+			&nbsp &nbsp &nbsp &nbsp • 暑研做到现在，基本上做的也都差不多了。老师也很满意我的工作。接下来希望自己能沉下心好好自学Udemy上购买的课程。
+			
+		</p>
 		
+		<h6>June 27th</h6>
+		<p class="mb-5">
+			&nbsp &nbsp &nbsp &nbsp • 实现了查看第一个碰撞点的功能。暂时感觉没什么可以更新的功能了，等周五老师检查，布置任务吧。
+		</p>
 		
+		<h6>June 26th</h6>
+		<p class="mb-5">
+			&nbsp &nbsp &nbsp &nbsp • 今天通过向joint_state发布命令，终于实现了机器人按照角度进行移动(execute)这个功能了。唯一剩下的问题就是，似乎有一个不为人知的节点一直在给joint_state的6个角度发布0，以至于我的机器人时常闪现到Home Position。但总的来说，上周五我给自己定的目标已经完成了。接下来，也就是明天：我想把ur10_moveit_config的相关launch file都换成自己的，不使用universial robot的。
+			<br />
+			&nbsp &nbsp &nbsp &nbsp • 拖更好久的Harris 角点匹配终于完成了！！见图！！
+			<img class="img-fluid mb-5" src="img/dairy/1.jpg" alt="">
+			接下来的Python任务是：根据matched features，使用RANSAC算法，来计算最合适的仿射变换矩阵，已达到除去outliers的目的。
+			<br />
+			&nbsp &nbsp &nbsp &nbsp • 今天又免费吃了一顿Fresh Food Cafe！！霍普金斯校园内是不是提前进入社会主义阶段了？！吃饭都不要钱？？！！
+		</p>	
+			
+		<h6>June 25th</h6>
+		<p class="mb-5">
+			&nbsp &nbsp &nbsp &nbsp • 25号这一天我没有记日记，所以干得啥事儿就都迁移到26号来写吧。反正我记得这一天也没敢出啥大事儿
+		</p>
 		
 		<h6>June 24th</h6>
 		<p class="mb-5">
@@ -59,7 +85,7 @@
 		
 		<h6>June 23th</h6>
 		<p class="mb-5">
-			&nbsp &nbsp &nbsp &nbsp • 今天一天啥都没干。去马冰姐家睡了一天，玩了一天。
+			&nbsp &nbsp &nbsp &nbsp • 今天一天啥都没干。去马冰姐家睡了一天，玩了一天。人家待我是真的好，我真是不知道该如何报达他们！
 		
 		</p>
 			

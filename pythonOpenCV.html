@@ -71,7 +71,7 @@ cv2.imread('__', 0) #读取灰度图像
 ############################################################
 #性质
 img.dtype  
-img.shape #输出宽 高 通道数
+img.shape #输出宽(行数) 高(列数) 通道数
 img.size  #输出总像素数
 img1 = img2.copy()
 
@@ -153,10 +153,23 @@ class Student(object):
  dst = \
  np.where( cv2.resize(mask, (w1,h1),
                           interpolation = \
-						  0
+						  0))
+			
  #append
+ # 1. 给list append 单个element
  X = []
  X.append( element ) 
+ # 2. 给list append 一个 list
+ X = [1, 2, 3]
+ X.extend( [7, 8] )
+ # 3.给array([])增加一个元素
+ X = np.array([1, 3, 4, 4])
+ X = np.append( X, [100] )
+ 
+ # 匿名函数
+ def Dosomething(f, x):
+		return f(x)
+ print(Dosomething(lambda: x**2, 2))
  ############################################################
  #卷积操作
  from scipy import ndimage
@@ -195,6 +208,14 @@ class Student(object):
  radius = np.uint32(np.around(radius))
  #-----------------------------------
  radius = radius.astype('uint8')
+ 
+ 
+ ############################################################
+ #常用头文件操作
+ %matplotlib inline
+ import matplotlib.pyplot as plt
+ import numpy as np
+ import pandas as pd
 </code></pre>	
 			</p>
 			
