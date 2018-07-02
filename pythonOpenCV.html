@@ -88,7 +88,15 @@ grayImage = grayImage.array(ByteArray).reshape(height, width)
 # 随机数
 os.urandom(120000)  #生成12000个随机数   
 np.random.randint(0,256,120000) #在0到256之间生成120000个随机数
-
+np.random.uniform(-10, 10, 10000) #在-10到10之间产生10000个uniform distribution的数据
+np.random.normal(mu, sigma, 10000) #产生正态分布，产生10000个数据
+#-----------------------------------
+from pylab import randn
+X = randn(500)
+#-----------------------------------
+random.seed(0) #随机撒点
+ageDecade = random.choice([20,30,40,50,60,70]) #从list中随机选择一个数字
+random.random() #随机产生数据
 
 ############################################################
 # 显示图像
@@ -170,6 +178,19 @@ class Student(object):
  def Dosomething(f, x):
 		return f(x)
  print(Dosomething(lambda: x**2, 2))
+ 
+ #return 遍历
+ def xmean(X):
+	xmean = mean(X)
+	return [xi - xmean for xi in X]
+	
+	
+ #for 循环后面的_
+ #1.ignore the index
+ for _ in range(100):
+	#不考虑循环的变量，只是让循环进行100次
+ 
+ 
  ############################################################
  #卷积操作
  from scipy import ndimage
@@ -210,12 +231,44 @@ class Student(object):
  radius = radius.astype('uint8')
  
  
+ 
+ ############################################################
+ #常用matplotLib操作
+ %matplotlib inline
+ import matplotlib.pyplot as plt
+ 
+ plt.plot(x, y)
+ plt.show()
+ 
+ plt.xlabel('time')
+ plt.ylabel('my overall health')
+ 
+ #设置轴
+ axes = plt.axes()
+ axes.set_xlim([-5,5]) #设置区间
+ axes.set_ylim([0,1.0])
+ axes.set_xticks([-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5])
+ axes.grid() #开启网格
+ 
+ # 有趣的操作
+ plt.xkcd()  #开启漫画风格滤镜
+ plt.rcdefaults() #关闭漫画风格滤镜
+ 
+ 
+ # Scatter Plot
+ plt.scatter(X, Y)
+ plt.show()
+ 
  ############################################################
  #常用头文件操作
  %matplotlib inline
  import matplotlib.pyplot as plt
  import numpy as np
  import pandas as pd
+ import cv2
+ from pylab import *
+ from PIL import Image
+ 
 </code></pre>	
 			</p>
 			

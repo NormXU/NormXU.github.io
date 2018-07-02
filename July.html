@@ -8,7 +8,7 @@
     <meta name="author" content="">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
 	
-    <title>ROS and Shell Script command</title>
+    <title>Nuo Xu's Personal Website</title>
 
     <!-- Bootstrap core CSS -->
     <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
@@ -44,112 +44,19 @@
       <div class="container">
 	    <br />
 		<br />
-        <h2 class="text-center text-secondary mb-0">ROS and Shell Script command</h2>
+        <h2 class="text-center text-uppercase text-secondary mb-0">June</h2>
         <hr class="star-dark mb-5">
         <div class="row">
 		<div class="container">
-		<p>
 		
-		<p class="mb-5">
-			
-		多多积累Linux Shell Command，有朝一日变成像Simon一样熟练运用
-		<div class="container">
-			<div class="row">
-				<div class="col-lg-6 ml-auto">
-<pre><code class="language-C">
-chmod +x day1.sh  	#将shell 文件变为可执行文件     
-ls -l  				# view the current permission on a file 
-rm day1.sh 			#删除文件day1.sh
-cat day1.sh  		#read the content of shell file
-pwd  				#present working directory
-
-# set variable in shell script
-SKILL="script"   	# 注意，等号周围没有空格
-#使用variable的时候，可按照以下例子
-if [[ "${UID}" -eq 0 ]]
-then
-	echo "xxxx"
-else
-	echo "xxx"
-fi
-
-su 				 	#switch usr account, 通过输入exit 来退出
-
-#!/bin/bash     	#预设shell运行的路径
-
-catkin_make --pkg package_name # Rebuild a Single catkin Pkg
-
-
-
-</code></pre>
-				</div>
-				
-				
-				
-	<div class="col-lg-6 ml-auto">
-<pre><code class="language-C"> 
-# tf tutorial
-
-// 查看rqt_tree
-rosrun rqt_tf_tree rqt_tf_tree
-
-rosrun tf view_frames #生成tf相关树
-evince frames.pdf # To View the frame tree
-
-static tf::TransformBroadcaster br;
-tf::StampedTransform transform;
-br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "world", turtle_name));
-//发布当前时间戳下的transform
-
-listener.lookupTransform("/turtle2", "/turtle1", ros::Time(0), transform);
-//查看当前时间戳ros::Time(0)的transform,所计算的是 transform from frame /turtle1 to frame /turtle2。time 0 means "the latest available" transform in the buffer.
-lookupTransform是用来获得the latest available transforms in tf tree.
-实际上，我们可以在指定的时间获取transform，并不一定非要获得最新的transform in tf tree
-
-
-while (node.ok()){
-    transform.setOrigin( tf::Vector3(0.0, 2.0, 0.0) );
-    transform.setRotation( tf::Quaternion(0, 0, 0, 1) );
-    br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "turtle1", "carrot1"));
-    rate.sleep();
-  }
-  
-这就是加入一个新的坐标系的方法.transform规定了旋转与平移量，br.sendTransform()有规定了这个transformation是在哪一个时刻谁相对于谁的
-
-  
-// C++ 下 try catch 的用法
-
-try{
-    可能出现异常的语句;
-}
-catch(异常种类1 异常变量名1){
-    处理第一种异常的语句;
-}
-catch(异常种类2 异常变量名2){
-    处理第二种异常的语句;
-}
-
-//具体实例:
-try{
-      listener.lookupTransform("/turtle2", "/turtle1",  
-                               ros::Time(0), transform);
-    }
-    catch (tf::TransformException ex){
-      ROS_ERROR("%s",ex.what());
-      ros::Duration(1.0).sleep();
-    }
-
-
-</code></pre>
-				</div>
-				
-			</div>	
-		</div>
+		
+		<h6>July 1st</h6>
+         
+			<p class="mb-5">
+			&nbsp &nbsp &nbsp &nbsp • 从今天起，我终于开始了我的读书大业了。没做，人在闲的时候就应该多读读书，学习新知识。这个暑假能刷完两本专业书就是胜利！
+		    &nbsp &nbsp &nbsp &nbsp • 下午去实验室折腾了一下路径的问题。Uhmm，现在cutter算是可以切到东西了。接下来的任务是：看看能不能用代码把obstacle加入到move_plan_scene里面，写一个节点，把trajectory的joint state作为节点信息发布出去。周二和Simon还有一个大神有约，说是要什么visualize……我已经跟不上这群大神们的节奏了。
+			&nbsp &nbsp &nbsp &nbsp • 六月终于过去了。七月份开始了！再坚持33日，暑研就结束了！！！
 			</p>
-			
-			
-			
-		
 		  
 		  
          </div>
