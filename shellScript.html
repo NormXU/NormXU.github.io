@@ -55,7 +55,7 @@
 		多多积累Linux Shell Command，有朝一日变成像Simon一样熟练运用
 		<div class="container">
 			<div class="row">
-				<div class="col-lg-6 ml-auto">
+				<div class="col-lg-12 ml-auto">
 <pre><code class="language-C">
 chmod +x day1.sh  	#将shell 文件变为可执行文件     
 ls -l  				# view the current permission on a file 
@@ -79,14 +79,35 @@ su 				 	#switch usr account, 通过输入exit 来退出
 
 catkin_make --pkg package_name # Rebuild a Single catkin Pkg
 
+# remove a package called  “my_catkin_package” from your  “~/catkin_ws/src” directory
+cd ~/catkin_ws/src
+\rm -rf my_catkin_package
+# remove all file built by catkin_make
+\rm -rf devel build install
 
 
+# grep: mainly used for finding string and file
+
+grep "what you want to search" "file name"
+例如: grep "hello" hello.cpp 
+
+grep -i "hello" hello.cpp  # 不考虑大小写，继续进行search
+
+grep -n "hello" hello.cpp  # print the line numbers
+
+grep -n "hello" *  # search string "hello" in all the files in this folder
+
+grep -r shapes * #在所有文件中查找shapes这个关键字所在的位置
+
+#When you search for boo, grep will match fooboo, boo123, barfoo35 and more. You can force the grep command to select only 
+those lines containing matches that form whole words i.e. match only boo word:
+grep -rw "boo" file #r是切到某目录了下面后只搜索含有boo的line,不管boo123这种部分含有boo的line
 </code></pre>
 				</div>
 				
 				
 				
-	<div class="col-lg-6 ml-auto">
+	<div class="col-lg-12 ml-auto">
 <pre><code class="language-C"> 
 # tf tutorial
 
@@ -102,7 +123,8 @@ br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "world", turt
 //发布当前时间戳下的transform
 
 listener.lookupTransform("/turtle2", "/turtle1", ros::Time(0), transform);
-//查看当前时间戳ros::Time(0)的transform,所计算的是 transform from frame /turtle1 to frame /turtle2。time 0 means "the latest available" transform in the buffer.
+//查看当前时间戳ros::Time(0)的transform,所计算的是 transform from frame /turtle1 to frame /turtle2。
+//time 0 means "the latest available" transform in the buffer.
 lookupTransform是用来获得the latest available transforms in tf tree.
 实际上，我们可以在指定的时间获取transform，并不一定非要获得最新的transform in tf tree
 
@@ -138,9 +160,101 @@ try{
       ROS_ERROR("%s",ex.what());
       ros::Duration(1.0).sleep();
     }
-
-
 </code></pre>
+	<br />
+// Actionlib Tutorial<br />
+Action Specification<br />
+<b>Goal</b> 由ActionServer送至ActionClient，表明where the robot should move to in the world<br />
+<b>FeedBack</b> robot's current pose alone the path，表明当前完成的进度<br />
+<b>Result</b> 当整个进度都完成后，只发送一次
+<br /><br /><br />
+保持电脑与机器人的同步性很重要，因为tf等pkg都要盖时间戳的。An easy way to keep your computers synchronized is to install the Ubuntu chrony package on both your desktop and your robot。
+<br />
+ sudo apt-get install chrony<br />
+ <br />
+<b>odometry</b> <br />
+Knowing the diameter of the wheels and the distance between them, encoder ticks can be converted to the distance traveled in meters or the angle rotated in radians. To compute speed, these values are simply divided by
+the time interval between measurements. This internal motion data is collectively known as odometry.
+<br /><br />
+<b>amcl</b><br />
+Once a map of the environment is available, ROS provides the  amcl package (adaptive Monte Carlo localization) for automatically localizing the robot based on its current scan and odometry data. This allows the operator to point and click on any location on a map and the robot will find its way there while avoiding obstacles. 
+<pre><code class="language-python">
+import tf
+
+
+self.tf_listener = tf.TransformListener()
+# TransformListener这个对象是用来时刻监听来自tf的transform data; 
+# 由于tf需要一些时间来fill up the listener's buffer, 所以常常在后面跟着rospy.sleep(2) 
+
+self.tf_listener.waitForTransform(self.odom_frame,'/base_footprint', rospy.Time(), rospy.Duration(1.0))
+# tf provides a nice tool that will wait until a transform becomes available.
+
+
+def get_odom(self):
+	# Get the current transform between the odom and base frames
+	try:
+	#listener for a specific transformation at current time
+	(trans, rot) = self.tf_listener.lookupTransform(self.odom_frame, self.base_frame, rospy.Time(0)) 
+	except (tf.Exception, tf.ConnectivityException, tf.LookupException):
+	rospy.loginfo("TF Exception")
+	return
+
+	return (Point(*trans), quat_to_angle(Quaternion(*rot)))
+	
+# The  * in front of the  trans and  rot variables is Python's notation for passing a list of numbers to a 
+# function and we use it here since  trans is a list of x, y, and z coordinates while 
+# rot is a list of x, y, z and w quaternion components.
+
+using *arg passing args to a function will make python unpack the values in arg and pass it to the function.
+>>> def printer(*args):
+		print args
+
+
+>>> printer(2,3,4)
+(2, 3, 4)
+>>> printer(*range(2, 5)) # *把range(2,5)分解为2,3,4；并且依次打印
+(2, 3, 4)
+>>> printer(range(2, 5))
+([2, 3, 4],)
+
+# Parameter Server 
+angular_speed = rospy.get_param("~angular_speed", 0.7)      # radians per second
+# angular_speed 是私有parameter，get_param()从服务器上取出来这个参数，并赋值
+	</code></pre>	
+	
+<h6>move_base</h6>
+move_base pkg是使用ROS action来实现让机器人到达指定的导航地点的程序。actions provide feedback as progress is made toward the goal. This means we no longer have to query the odometry topic ourselves to find out if we have arrived at the desired location.
+uses the  MoveBaseActionGoal  message type for specifying the goal<br />
+.yaml文件是用于设定参数的：包括机器人的参数，障碍物的参数等，这些参数都是调用move_base这个pkg所必须的。<br />
+<pre><code class="language-CSS">
+< launch><br />
+
+  < node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen" clear_params="true">
+    < rosparam file="$(find rbx1_nav)/config/fake/costmap_common_params.yaml" command="load" ns="global_costmap" />
+    < rosparam file="$(find rbx1_nav)/config/fake/costmap_common_params.yaml" command="load" ns="local_costmap" />
+    < rosparam file="$(find rbx1_nav)/config/fake/local_costmap_params.yaml" command="load" />
+    < rosparam file="$(find rbx1_nav)/config/fake/global_costmap_params.yaml" command="load" />
+    < rosparam file="$(find rbx1_nav)/config/fake/base_local_planner_params.yaml" command="load" />
+  < /node><br />
+  <br />
+< /launch>
+</code></pre>
+<br /><br />
+
+载入地图<br />
+<pre><code class="language-CSS">
+< launch>
+# Run the map server with a blank map
+< node name="map_server" pkg="map_server" type="map_server" args="$(find rbx1_nav)/maps/blank_map.yaml"/>
+
+# Launch move_base and load all navigation parameters
+< include file="$(find rbx1_nav)/launch/fake_move_base.launch" />
+
+# Run a static transform between /odom and /map
+< node pkg="tf" type="static_transform_publisher" name="odom_map_broadcaster" args="0 0 0 0 0 0 /odom /map 100" />
+< /launch><br />
+</code></pre>
+
 				</div>
 				
 			</div>	

@@ -217,7 +217,10 @@ class Student(object):
  img = cv2.circle( img, center, radius, (0, 255, 0), 2) #圆心，半径, 线性是2，颜色是(0,255,0)
  #画点
  plot([p[1] for p in corner_coordinate],[p[0] for p in corner_coordinate],'r*')
-
+ #画直线
+ xp.linespace(0,7,100)
+ plt.plot(xp,y,c='r') #plot the line with red color
+ plt.show()
  
  
  ############################################################
@@ -268,6 +271,29 @@ class Student(object):
  import cv2
  from pylab import *
  from PIL import Image
+ 
+ 
+ 
+ ############################################################
+ # Linear Regression
+ from scipy import stats
+ slope, intercept, r_value, p_value, std_err = stats.linregress(x, y)
+ r_value**2 means how your curve fits your training data
+ 
+ # Polynomial Regression
+ x = np.array(pageSpeeds)
+ y = np.array(purchaseAmount)
+ p4 = np.poly1d(np.polyfit(x, y, 4)) #try with a 4th degree polynomial
+ 
+ # r**2值计算
+ from sklearn.metrics import r2_score
+ r2 = r2_score(数据集，拟合的预测数据)
+ 
+ # multivariate Regression
+ 
+ 
+ 
+ 
  
 </code></pre>	
 			</p>
