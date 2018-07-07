@@ -48,7 +48,32 @@
         <hr class="star-dark mb-5">
         <div class="row">
 		<div class="container">
-		<h6>July 3st</h6>
+		
+		
+		<h6>July 7th</h6>
+			<p class="mb-5">
+			&nbsp &nbsp &nbsp &nbsp • 说好的周六不工作，结果今天一下午把昨天Simon布置给我的任务全部完成了。明天抽空去趟实验室，把我今天写的东西整合到实验室的电脑上试试，顺便试试我的卡现在还有木有access了。
+			<br />
+			&nbsp &nbsp &nbsp &nbsp • 总得来说，我能完成的这么快，都是站在巨人Balaz的肩膀上。学会了json.h的使用，json file的格式，subscriber.shutdown()，include其他路径下头文件的方法，和Windows下的Python Script在Ubuntu下运行的方法。
+			</p>
+			
+		<h6>July 6th</h6>
+			<p class="mb-5">
+			&nbsp &nbsp &nbsp &nbsp • 由于之前的版本，trajectory waypoints每一个都是hand-coded，而整个系统的Path都是通过Json file来定义trajectory waypoints的，所以接下来的任务是用一个回调函数来实现trajectory waypoints的定义。
+			<br />
+			&nbsp &nbsp &nbsp &nbsp • 今天第一次（误）参加彼得的组会，直接和大老板面对面交流。大老板询问了我的进度，于是我紧张的汇报了一下。我谨慎的样子弄得Simon忍不住笑了。估计他把我想象成日本武士对主公毕恭毕敬的样子了吧。
+			</p>
+			
+		<h6>July 5th</h6>
+         
+			<p class="mb-5">
+			&nbsp &nbsp &nbsp &nbsp • 周三周四这两天没有任何实质性进展。周四把周三在PC上写的json file script拷贝到dvrk的电脑上跑了跑，可以用
+			<br />
+		    &nbsp &nbsp &nbsp &nbsp • 今天和B大神见了面，问清了.ply .model blender 和simple.cpp之间的关系；另外听B大神的意思，原始格式的json file好像不能用，必须得按照他给的PathIO来写jsonfile，才能完美实现对接。但即便如此，我还是不清楚我接下来应该做的任务。今天收到了Simon的邮件，说是要拿到yaml文件，根据yaml文件来把
+			Obstacle加入到MoveIt! 里面。咋做？我不知道啊。
+			</p>
+			
+		<h6>July 3rd</h6>
          
 			<p class="mb-5">
 			&nbsp &nbsp &nbsp &nbsp • 暑研进展到现在，只剩下这么几个问题以待解决：1、如何把我写的东西与其他的代码糅合在一起？2、如何根据另一个大神写的gl_painter来加入障碍物？这个障碍物的属性要根据json file来规定，也就是我要写一段代码，实现从json file中提取obstacle的属性，然后把它加入到我的moveit planning Scene当中；具体怎么做我现在也毫无头绪。

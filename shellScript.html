@@ -102,6 +102,8 @@ grep -r shapes * #在所有文件中查找shapes这个关键字所在的位置
 #When you search for boo, grep will match fooboo, boo123, barfoo35 and more. You can force the grep command to select only 
 those lines containing matches that form whole words i.e. match only boo word:
 grep -rw "boo" file #r是切到某目录了下面后只搜索含有boo的line,不管boo123这种部分含有boo的line
+
+catkin_make -j 1
 </code></pre>
 				</div>
 				
@@ -226,7 +228,7 @@ angular_speed = rospy.get_param("~angular_speed", 0.7)      # radians per second
 move_base pkg是使用ROS action来实现让机器人到达指定的导航地点的程序。actions provide feedback as progress is made toward the goal. This means we no longer have to query the odometry topic ourselves to find out if we have arrived at the desired location.
 uses the  MoveBaseActionGoal  message type for specifying the goal<br />
 .yaml文件是用于设定参数的：包括机器人的参数，障碍物的参数等，这些参数都是调用move_base这个pkg所必须的。<br />
-<pre><code class="language-CSS">
+<pre><code class="language-css">
 < launch><br />
 
   < node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen" clear_params="true">
@@ -238,6 +240,34 @@ uses the  MoveBaseActionGoal  message type for specifying the goal<br />
   < /node><br />
   <br />
 < /launch>
+</code></pre>
+  <br />
+  
+<h6>move_base and actionlib</h6>
+<pre><code class="language-python">
+# define a  SimpleActionClient which will send goals to the  move_base action server.
+ self.move_base = actionlib.SimpleActionClient("move_base", MoveBaseAction) #定义简答的MoveActionClient，名字为"move_base"
+ 
+# wait for 60 seconds 
+ self.move_base.wait_for_server(rospy.Duration(60))
+ 
+# define a goal
+  goal = MoveBaseGoal()
+# 更加详细的定义
+  goal.target_pose.header.frame_id = ‘xx’
+  goal.target_pose.header.stamp = rospy.Time.now()
+  goal.target_pose.pose = xxxPose
+  
+# 向MoveBaseAction server 发送goal
+  self.move_base.send_goal(goal)
+ 
+# 时刻检查移动状态 
+  state = self.move_base.get_state()
+  if state == GoalStatus.SUCCEEDED:
+	rospy.loginfo("Goal succeeded!")
+
+# 清楚原服务器上的parameters   
+ rosparam delete /move_base
 </code></pre>
 <br /><br />
 

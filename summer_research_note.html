@@ -76,7 +76,7 @@ ros::waitForShuntdown() //该线程在销毁时自动停止
 		
 		move_group.getCurrentState()返回moveit::core::RobotStatePtr 类型的指针
 		
-        <pre><code class="language-html">
+        <pre><code class="language-yaml">
 < xacro:include filename="(find cutter_description)/urdf/ur10.xacro > #类似于头文件
 < xacro:cutter frame_name="tool0" > #类似于创建新的实例
 		</code></pre>
@@ -139,12 +139,138 @@ Robot State is an object that contains all the current position/velocity/acceler
 在cMakeList 文件中， 预设变量： set(JSON_PATH "${CMAKE_CURRENT_SOURCE_DIR}/json")
 <br />
 ros中添加头文件: 在CMakeLists.txt中写入 add_executable(pkg_name src/xxx.h)
+<br />
+<br /><br />
+<b>URDF</b><br />
+URDF文件是xml格式，用来描述link, 其中包括<br />
+1. static Models   (Robot, Satellite)  格式通常为.dae .stl .ply (.ply格式的文件可以通过Blender来制作，export--> standford format)<br />
+2. TF frame name   (string格式)<br />
+3. offset          (wrt base frame of the link) 通常都为0 <br />
+<br />
+<br />
+		 
+<b>.Model 文件</b><br />
+.Model文件的每一行都是一个link。例如在gl_painter中，这些link都是ply格式的文件)  .Model文件规定了:  <br />
+<b>
+- mash file name<br />
+- offset<br />
+- scale<br />
+- color<br />
+- alpha<br />
+- texture size<br />
+- project texture<br />
+</b>
+这些parameter，而link之间的kinematic关系，也就是位置关系，则是使用tf pkg来规定的。
 
-		 
-		 
-		 
-		 
-		 
+<br />编程习惯：带着const的一般作为函数的输入，不带const的一般作为函数的输出<br /><br />
+<b>在Ubuntu终端中运行python文件，报错	/usr/bin/env: "python\r": No such file or directory</b><br />
+因为这个文件是直接从别处复制的，可能创建在windows下，多了\r字符。<br />
+<b>解决方法</b><br />
+使用VIM打开文本<br />
+:set ff 然后回车，我这个文件显示为dos格式。<br />
+:set ff=unix 回车，设置为unix格式。<br />
+:wq<br />
+
+修改后正常运行了！<br />
+<br /><br />
+
+<b>令Subscriber调用一次回调函数的方法</b>
+<pre><code class="language-cpp">
+// 情况1
+ros::NodeHandle nh;
+ros::Subscriber sub = nh.subscribe("A", 1, callbackFunc);
+
+// Do something
+...
+
+// shutdown the subscriber (this should be unnecessary)
+sub.shutdown();
+
+
+// Now change the subscriber
+sub = nh.subscribe("B", 1, callbackFunc);
+
+//*********************************************************
+// 情况2
+void callbackFunc()
+{
+   // Do something
+		...	
+   sub.shutdown();
+}
+
+
+int main()
+{
+        ...
+ros::Subscriber sub = nh.subscribe("A", 1, callbackFunc);
+
+}
+
+// http://ros-users.122217.n3.nabble.com/Callback-once-td918994.html 原网址
+</code></pre>
+
+<br /><br />
+<b>在Cmake文件中添加include的头文件路径</b>
+<pre><code class="language-cpp">
+set(THIS_PACKAGE_INCLUDE_DIRS)
+	move_group/include
+)
+
+</code></pre>
+
+<br /><br />
+<img class="img-fluid mb-5" src="img/dairy/json1.png" alt="">
+所谓数组的数组;遍历方法：
+<pre><code class="language-cpp">
+void jsonCallback(const std_msgs::String::ConstPtr& msg){
+	
+	const char* input = msg->data.c_str();
+	
+	
+	Json::Reader reader;
+	Json::Value JsonRoot;
+	
+    bool parsingSuccessful = reader.parse(input, JsonRoot, false);
+    if (!parsingSuccessful) {
+        ROS_ERROR("Failed to parse JSON from string");
+        
+    }
+    
+	const Json::Value& name = JsonRoot["name"];
+        if (name.empty()) {
+            ROS_ERROR("Failed to parse 'name'");
+            
+        }
+        
+    const Json::Value& geometry_name = JsonRoot["geometry_name"];
+        if (geometry_name.empty()) {
+            ROS_ERROR("Failed to parse 'geometry_name'");
+            
+        }
+        
+    Json::Value& vertices = JsonRoot["vertices"];
+    
+    geometry_msgs::Pose tmp;
+    
+    for (Json::ArrayIndex i = 0; i < vertices.size(); i ++) {
+            Json::Value& vertex = vertices[i];
+            if (vertex.size() == 3) {
+                  ...
+                
+            } else {
+                ROS_ERROR("Failed to parse JSON 'vertex'");
+                
+            }
+        }
+    
+    
+    sub_json_data.shutdown();
+}
+</code></pre>
+<br /><br />
+
+
 		 
 		 
 		 
