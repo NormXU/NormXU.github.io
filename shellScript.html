@@ -103,13 +103,21 @@ grep -r shapes * #在所有文件中查找shapes这个关键字所在的位置
 those lines containing matches that form whole words i.e. match only boo word:
 grep -rw "boo" file #r是切到某目录了下面后只搜索含有boo的line,不管boo123这种部分含有boo的line
 
-catkin_make -j 1
+rosbag record -O my_scan_data /scan /tf  #Record data to bag with name my_scan_data.bag
+
+rosparam delete /move_base  #把服务器上的/move_base节点的数据全部删除
+
+rqt_console & # nice message monitor interface
+
+catkin_make -j 1 #只用一个线程编，第一次编msg时要这样不然catkin找不到msg
 </code></pre>
 				</div>
 				
 				
 				
 	<div class="col-lg-12 ml-auto">
+	<br /><br />
+	<h4>Robot Navigation</h4>
 <pre><code class="language-C"> 
 # tf tutorial
 
@@ -218,10 +226,17 @@ using *arg passing args to a function will make python unpack the values in arg 
 (2, 3, 4)
 >>> printer(range(2, 5))
 ([2, 3, 4],)
-
-# Parameter Server 
+	</code></pre>
+<br /><br />		
+<b>Parameter Server</b> <br />	
+<pre><code class="language-css">
 angular_speed = rospy.get_param("~angular_speed", 0.7)      # radians per second
 # angular_speed 是私有parameter，get_param()从服务器上取出来这个参数，并赋值
+
+#这个样子定义angular_speed为0.7是default值为0.7；后面还可以在roslaunch文件中进行定义，
+< node .....
+< param name="angular_speed" value="1" />
+< /node>
 	</code></pre>	
 	
 <h6>move_base</h6>
@@ -276,6 +291,9 @@ uses the  MoveBaseActionGoal  message type for specifying the goal<br />
 < launch>
 # Run the map server with a blank map
 < node name="map_server" pkg="map_server" type="map_server" args="$(find rbx1_nav)/maps/blank_map.yaml"/>
+# -----------------------------------------------------
+< arg name = "map" default = "test_map.yaml" />
+< node name="map_server" pkg="map_server" type="map_server" args="$(find rbx1_nav)/maps/$(arg map)"/>
 
 # Launch move_base and load all navigation parameters
 < include file="$(find rbx1_nav)/launch/fake_move_base.launch" />
@@ -283,6 +301,81 @@ uses the  MoveBaseActionGoal  message type for specifying the goal<br />
 # Run a static transform between /odom and /map
 < node pkg="tf" type="static_transform_publisher" name="odom_map_broadcaster" args="0 0 0 0 0 0 /odom /map 100" />
 < /launch><br />
+</code></pre>
+<br />
+<b>static tf publisher</b>
+<pre><code class="language-css">
+< launch>
+< node pkg="tf" type="static_transform_publisher" name="link1_broadcaster" args="1 0 0 0 0 0 1 link1_parent link1 100" />
+static_transform_publisher x y z qx qy qz qw frame_id child_frame_id  period_in_ms
+< /launch>
+</code></pre>
+<br /><br />
+深度摄像头采集的是数据类型是：LaserScan;
+ROS 使用 amcl package来在已经存在的地图中使用机器人的深度摄像头数据和laser scan data来对机器人进行定位，
+<br /><br />
+<b>Autonomously Robot</b>
+<pre><code class="language-python">
+rospy.on_shutdown(h)
+# When node is about to begin shutdown, you can request a callback function;
+# 比如:
+def h():
+	print("shut down")
+
+rospy.on_shutdown(h)
+
+# Python dictionaries
+locations = dict()
+
+# Click 2D Pose Extimsation in Rviz to set the robot initial pose
+
+from geometry_msgs.msg import PoseWithCovarianceStamped
+
+initial_pose = PoseWithCovarianceStamped()
+rospy.wait_for_message('initialpose',PoseWithCovarianceStamped)#等待从topic /initial 来的，数据类型为PoseWithCovarianceStamped的message
+rospy.Subscriber('initialpose',PoseWithCovarianceStamped,self.update_initial_pose) 
+#只要topic /initialpose 有发布数据类型PoseWithCovarianceStamped的message，就调用函数
+
+
+</code></pre>
+<br /><br />
+<h4>Robot Vision</h4>
+<br /><br />
+640x480(VGA)
+<br /><br />
+ROS to OpenCV: cv_bridge Package
+<pre><code class="language-python">
+# ROS message type
+from sensor_msgs.msg import Image, CameraInfo
+from cv_bridge import CvBridge, CvBridgeError
+
+# Create CvBridge object to be used to convert ROS image type into OpenCV format
+self.bridge = CvBridge()
+
+# Subscribe and CallBack
+self.image_sub = rospy.Subscribe("/topic", Image, self.callback) # Image是ROS的图片格式
+
+def callback(self, ros_image):
+	frame = self.bridge.imgmsg_to_cv2(ros_image, "bgr8")
+	# 再转化为numpy的array
+	frame = np.array(frame, dtype = np.uint8)
+	
+# UI 界面
+self.keystroke = cv2.waitKey(5)
+# cv::WaitKey()函数的功能是不断刷新图像，频率时间为delay，单位为ms。
+# 在这里则是指的：每5mm检测一下输入键盘输入情况
+if 32 <= self.keystroke and self.keystroke < 128:
+	cc = chr(self.keystroke).lower()
+	# chr()将数组转化为对应的字符
+	
+	
+# 转化为深度信息
+depth_frame = self.bridge.imgmsg_to_cv2(ros_image, "passthrough")	
+depth_array = np.array(depth_frame, np.float32)
+# OpenCV Normalize
+cv2.normalize(depth_array,depth_array, 0, 1, cv2.NORM_MINMAX)
+
+
 </code></pre>
 
 				</div>

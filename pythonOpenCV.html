@@ -98,6 +98,15 @@ random.seed(0) #随机撒点
 ageDecade = random.choice([20,30,40,50,60,70]) #从list中随机选择一个数字
 random.random() #随机产生数据
 
+#-----------------------------------
+from random import sample
+
+sequence = sample(dict(), num = 5)
+#这个意思是：从序列a中随机抽取n个元素，并将n个元素生以list形式返回。
+
+from random import randint, sample
+date = [randint(10,20) for _ in range(10)]
+# 从10~20的整数中随机抽取10个数组成名为data的list
 ############################################################
 # 显示图像
 import cv2
@@ -232,7 +241,8 @@ class Student(object):
  radius = np.uint32(np.around(radius))
  #-----------------------------------
  radius = radius.astype('uint8')
- 
+ #-----------------------------------
+ frame = np.array(frame, dtype = np.uint8) 
  
  
  ############################################################
