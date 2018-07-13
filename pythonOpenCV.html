@@ -107,6 +107,7 @@ sequence = sample(dict(), num = 5)
 from random import randint, sample
 date = [randint(10,20) for _ in range(10)]
 # 从10~20的整数中随机抽取10个数组成名为data的list
+
 ############################################################
 # 显示图像
 import cv2
@@ -131,6 +132,8 @@ plt.show
 combine_img = np.concatenate((img1, img2), axis = 1)
 #对图像进行resize
 img1 = cv2.resize(img1, (1000, 700), interpolation=cv2.INTER_CUBIC)
+
+
 ############################################################
 #Python装饰器
 class Student(object):
@@ -199,6 +202,12 @@ class Student(object):
  for _ in range(100):
 	#不考虑循环的变量，只是让循环进行100次
  
+ # 把局部变量传递入全局变量
+ ex: self.image = image
+ 
+ # reshape使用：当未知需要把np.array重塑成多少行的时候，
+ np.float32(arr).reshape(-1,2) #用-1来占位 
+ 
  
  ############################################################
  #卷积操作
@@ -218,6 +227,14 @@ class Student(object):
  #创建全1的画布，一行操作
  kernel = np.ones((3,3), np.uint8)
  
+ #创建一个同输入一模一样的全0画布
+ x 
+ array([0,1,2],
+       [3,4,5])
+ np.zeros_like(x)
+ array([0,0,0],
+       [0,0,0])
+ 
  ############################################################
  #做标记
  #画矩形
@@ -230,6 +247,12 @@ class Student(object):
  xp.linespace(0,7,100)
  plt.plot(xp,y,c='r') #plot the line with red color
  plt.show()
+ # 写字
+ font_face = cv2.FONT_HERSHEY_SIMPLEX
+ font_scale = 0.5
+ cv2.putText(self.img, "Words", (10,15), font_face, font_scale, (255,255,0))
+ #(10,15)是待显示的字体；
+ 
  
  
  ############################################################
@@ -303,8 +326,100 @@ class Student(object):
  
  
  
+ ############################################################
+ # 读取图像的常用固定操作
+ if __name__ == '__main__':
+	import sys
+	try fn1 = sys.argv[1]
+	except:
+		fn1 = "root/img.png"
+		
+	
+	img = cv2.imread(fn1, cv2.IMREAD_COLOR)
+</code></pre>
  
+ <b>Python的继承与遗传机制</b>
+ <pre><code class="language-python">
+ class FooParent:
+  def bar(self, message):
+    print(message)
+ class FooChild(FooParent):
+  def bar(self, message):
+    FooParent.bar(self, message)
+>>> FooChild().bar("Hello, Python.")
+Hello, Python.
+
+这样做有一些缺点，比如说如果修改了父类名称，那么在子类中会涉及多处修改，且self参数需要显式传递
+
+# 但是如果引入super()字符呢
+ class FooParent:
+   def bar(self, message):
+     print(message)
+ class FooChild(FooParent):
+   def bar(self, message):
+     super(FooChild, self).bar(message)
  
+>>> FooChild().bar("Hello, Python.")
+Hello, Python
+</code></pre>	
+在类的继承中，如果重定义某个方法，该方法会覆盖父类的同名方法
+但有时，我们希望能同时实现父类的功能，这时，我们就需要调用父类的方法了，可通过使用 super 来实现，比如：
+<pre><code class="language-python">
+class Animal(object):
+    def __init__(self, name):
+        self.name = name
+    def greet(self):
+        print 'Hello, I am %s.' % self.name
+
+class Dog(Animal):
+    def greet(self):
+        super(Dog, self).greet()   # Python3 可使用 super().greet()
+        print 'WangWang...'
+		
+>>> dog = Dog('dog')
+>>> dog.greet()
+Hello, I am dog.
+WangWang..
+</code></pre>	
+Python所有的方法默认都是虚的。子类定义父类同名函数之后，父类函数被覆盖。
+<pre><code class="language-python">
+class P(object):
+    def foo(self):
+        print "I am a P-foo()"
+ 
+class C(P):
+    def foo(self):
+        print "I am a C-foo()"
+        
+>>>p=P()
+>>>c=C()
+>>>p.foo()
+I am a P-foo()
+>>>c.foo()
+I am a C-foo()
+</code></pre>	
+这就引出了一个问题:重写__init__不会自动调用基类的__init__。
+在C++中如果使用了派生类默认构造函数的话，是会自动调用基类的默认默认构造函数的。
+C++中调用非默认构造函数是显示调用基类构造函数来初始化基类部分的。
+<pre><code class="language-python">
+class P(object):
+    def __init__(self):
+        print "P's constructor"
+ 
+class C(P):
+    def __init__(self):
+        print "C's constructor"
+       
+>>>c=C()
+C's constructor
+</code></pre>	
+# 解决方法便是使用super()
+<pre><code class="language-python">
+class C(P):
+    def __init__(self):
+	super(C,self).__init__()
+        print "C's constructor"
+
 </code></pre>	
 			</p>
 			

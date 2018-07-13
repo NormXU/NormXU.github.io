@@ -1,0 +1,1866 @@
+@charset "UTF-8";
+.psc-of-auto {
+  overflow: auto;
+}
+
+.psc-of-hidden {
+  overflow: hidden;
+}
+
+.psc-va-top {
+  vertical-align: top;
+}
+
+.psc-va-mid {
+  vertical-align: middle;
+}
+
+.psc-va-bot {
+  vertical-align: bottom;
+}
+
+.psc-align-center {
+  text-align: center;
+}
+
+.psc-align-left {
+  text-align: left;
+}
+
+.psc-align-right {
+  text-align: right;
+}
+
+.psc-pos-rel {
+  position: relative;
+}
+
+.psc-pos-abs {
+  position: absolute;
+}
+
+.psc-is-visible {
+  display: block;
+}
+
+.psc-is-invisible {
+  display: none;
+}
+
+.psc-w100p {
+  width: 100%;
+}
+
+.psc-w90p {
+  width: 90%;
+}
+
+.psc-w80p {
+  width: 80%;
+}
+
+.psc-w70p {
+  width: 70%;
+}
+
+.psc-w60p {
+  width: 60%;
+}
+
+.psc-w64p {
+  width: 64%;
+}
+
+.psc-w50p {
+  width: 50%;
+}
+
+.psc-w40p {
+  width: 40%;
+}
+
+.psc-w30p {
+  width: 30%;
+}
+
+.psc-w20p {
+  width: 20%;
+}
+
+.psc-w10p {
+  width: 10%;
+}
+
+.psc-w40 {
+  width: 40px;
+}
+
+.psc-w48 {
+  width: 48px;
+}
+
+.psc-w56 {
+  width: 56px;
+}
+
+.psc-w64 {
+  width: 64px;
+}
+
+.psc-w72 {
+  width: 72px;
+}
+
+.psc-w80 {
+  width: 80px;
+}
+
+.psc-col-white {
+  color: #ffffff;
+}
+
+.psc-col-mid-silver {
+  color: #eeeeee;
+}
+
+.psc-device-black {
+  color: #1f1f1f;
+}
+
+.psc-col-base-blue {
+  color: #003791;
+}
+
+.psc-col-glow-blue {
+  color: #00a2ff;
+}
+
+.psc-col-satin-blue {
+  color: #0068bf;
+}
+
+.psc-col-light-silver {
+  color: #f5f5f5;
+}
+
+.psc-col-orange {
+  color: #ed5f2b;
+}
+
+.psc-col-red1 {
+  color: #d20e00;
+}
+
+.psc-col-yellow1 {
+  color: #dbc53e;
+}
+
+.psc-col-text-gray {
+  color: #363636;
+}
+
+.psc-col-sub-text-gray {
+  color: #9c9c9c;
+}
+
+.psc-col-sub-text-blue {
+  color: #a1cbed;
+}
+
+.psc-col-sub-text-black {
+  color: #5c5c5c;
+}
+
+.psc-col-hightlight-glow {
+  color: #00a2ff;
+}
+
+.psc-d-none {
+  display: none;
+}
+
+.psc-d-block {
+  display: block;
+}
+
+.psc-d-table {
+  display: table;
+}
+
+.psc-d-cell {
+  display: table-cell;
+}
+
+.psc-d-inline {
+  display: inline-block;
+  *display: inline;
+  *zoom: 1;
+}
+
+.psc-d-table-fix {
+  display: table;
+  table-layout: fixed;
+}
+
+.psc-sst-light {
+  font-family: "SST W55 Light1349120", "SST W55 Light", "SST W20 Light", "ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", "メイリオ", Meiryo, Osaka, "ＭＳ Ｐゴシック", "MS PGothic", sans-serif;
+  font-weight: 300;
+}
+
+.psc-sst-regular {
+  font-family: "SST W55 Regular", "ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", "メイリオ", Meiryo, Osaka, "ＭＳ Ｐゴシック", "MS PGothic", sans-serif;
+  font-weight: 400;
+}
+
+.psc-sst-bold {
+  font-family: "SST W22 Bold", "ヒラギノ角ゴ Pro", "Hiragino Kaku Gothic Pro", "メイリオ", Meiryo, Osaka, "ＭＳ Ｐゴシック", "MS PGothic", sans-serif;
+  font-weight: 700;
+}
+
+/*
+.psc-fs12 {  font-size: 12px; font-size: 1.2rem;  }
+.psc-fs14 {  font-size: 14px; font-size: 1.4rem;  }
+.psc-fs16 {  font-size: 16px; font-size: 1.6rem;  }
+.psc-fs18 {  font-size: 18px; font-size: 1.8rem;  }
+.psc-fs20 {  font-size: 20px; font-size: 2.0rem;  }
+.psc-fs24 {  font-size: 24px; font-size: 2.4rem;  }
+.psc-fs32 {  font-size: 32px; font-size: 3.2rem;  }
+.psc-fs40 {  font-size: 40px; font-size: 4.0rem;  }
+.psc-fs64 {  font-size: 64px; font-size: 6.4rem;  }
+.psc-fs72 {  font-size: 72px; font-size: 7.2rem;  }
+*/
+.psc-fs12 {
+  font-size: 12px;
+}
+
+.psc-fs14 {
+  font-size: 14px;
+}
+
+.psc-fs16 {
+  font-size: 16px;
+}
+
+.psc-fs18 {
+  font-size: 18px;
+}
+
+.psc-fs20 {
+  font-size: 20px;
+}
+
+.psc-fs24 {
+  font-size: 24px;
+}
+
+.psc-fs32 {
+  font-size: 32px;
+}
+
+.psc-fs40 {
+  font-size: 40px;
+}
+
+.psc-fs64 {
+  font-size: 64px;
+}
+
+.psc-fs72 {
+  font-size: 72px;
+}
+
+.psc-fs12px {
+  font-size: 12px;
+}
+
+.psc-fs14px {
+  font-size: 14px;
+}
+
+.psc-fs16px {
+  font-size: 16px;
+}
+
+.psc-fs18px {
+  font-size: 18px;
+}
+
+.psc-fs20px {
+  font-size: 20px;
+}
+
+.psc-fs24px {
+  font-size: 24px;
+}
+
+.psc-fs32px {
+  font-size: 32px;
+}
+
+.psc-fs40px {
+  font-size: 40px;
+}
+
+.psc-fs64px {
+  font-size: 64px;
+}
+
+.psc-fs72px {
+  font-size: 72px;
+}
+
+.psc-fw300 {
+  font-weight: 300;
+}
+
+.psc-fw400 {
+  font-weight: 400;
+}
+
+.psc-fw700 {
+  font-weight: 700;
+}
+
+.psc-pd4 {
+  padding: 4px;
+}
+
+.psc-pdt4 {
+  padding-top: 4px;
+}
+
+.psc-pdl4 {
+  padding-left: 4px;
+}
+
+.psc-pdr4 {
+  padding-right: 4px;
+}
+
+.psc-pdb4 {
+  padding-bottom: 4px;
+}
+
+.psc-pd8 {
+  padding: 8px;
+}
+
+.psc-pdt8 {
+  padding-top: 8px;
+}
+
+.psc-pdl8 {
+  padding-left: 8px;
+}
+
+.psc-pdr8 {
+  padding-right: 8px;
+}
+
+.psc-pdb8 {
+  padding-bottom: 8px;
+}
+
+.psc-pd12 {
+  padding: 12px;
+}
+
+.psc-pdt12 {
+  padding-top: 12px;
+}
+
+.psc-pdl12 {
+  padding-left: 12px;
+}
+
+.psc-pdr12 {
+  padding-right: 12px;
+}
+
+.psc-pdb12 {
+  padding-bottom: 12px;
+}
+
+.psc-pd16 {
+  padding: 16px;
+}
+
+.psc-pdt16 {
+  padding-top: 16px;
+}
+
+.psc-pdl16 {
+  padding-left: 16px;
+}
+
+.psc-pdr16 {
+  padding-right: 16px;
+}
+
+.psc-pdb16 {
+  padding-bottom: 16px;
+}
+
+.psc-pd24 {
+  padding: 24px;
+}
+
+.psc-pdt24 {
+  padding-top: 24px;
+}
+
+.psc-pdl24 {
+  padding-left: 24px;
+}
+
+.psc-pdr24 {
+  padding-right: 24px;
+}
+
+.psc-pdb24 {
+  padding-bottom: 24px;
+}
+
+.psc-pd32 {
+  padding: 32px;
+}
+
+.psc-pdt32 {
+  padding-top: 32px;
+}
+
+.psc-pdl32 {
+  padding-left: 32px;
+}
+
+.psc-pdr32 {
+  padding-right: 32px;
+}
+
+.psc-pdb32 {
+  padding-bottom: 32px;
+}
+
+.psc-pd40 {
+  padding: 40px;
+}
+
+.psc-pdt40 {
+  padding-top: 40px;
+}
+
+.psc-pdl40 {
+  padding-left: 40px;
+}
+
+.psc-pdr40 {
+  padding-right: 40px;
+}
+
+.psc-pdb40 {
+  padding-bottom: 40px;
+}
+
+.psc-pd64 {
+  padding: 64px;
+}
+
+.psc-pdt64 {
+  padding-top: 64px;
+}
+
+.psc-pdl64 {
+  padding-left: 64px;
+}
+
+.psc-pdr64 {
+  padding-right: 64px;
+}
+
+.psc-pdb64 {
+  padding-bottom: 64px;
+}
+
+.psc-l-center {
+  margin: 0 auto;
+}
+
+.psc-lh18 {
+  line-height: 18px;
+}
+
+.psc-icon-fb {
+  background: url("/content/dam/pscom/ja-jp/icon/social/icon_facebook.png") no-repeat;
+  -webkit-background-size: 40px 40px;
+  -moz-background-size: 40px 40px;
+  -o-background-size: 40px 40px;
+  background-size: 40px 40px;
+  background-position: 10px 10px;
+}
+
+.psc-icon-tw {
+  background: url("/content/dam/pscom/ja-jp/icon/social/icon_twitter.png") no-repeat;
+  -webkit-background-size: 40px 40px;
+  -moz-background-size: 40px 40px;
+  -o-background-size: 40px 40px;
+  background-size: 40px 40px;
+  background-position: 10px 10px;
+}
+
+.psc-icon-line {
+  background: url("/content/dam/pscom/ja-jp/icon/social/icon_line.png") no-repeat;
+  -webkit-background-size: 40px 40px;
+  -moz-background-size: 40px 40px;
+  -o-background-size: 40px 40px;
+  background-size: 40px 40px;
+  background-position: 10px 10px;
+}
+
+.psc-icon-youtube {
+  background: url("/content/dam/pscom/ja-jp/icon/social/icon_youtube.png") no-repeat;
+  -webkit-background-size: 40px 40px;
+  -moz-background-size: 40px 40px;
+  -o-background-size: 40px 40px;
+  background-size: 40px 40px;
+  background-position: 10px 10px;
+}
+
+.psc-icon-mail {
+  background: url("/content/dam/pscom/ja-jp/icon/social/icon_mail.png") no-repeat;
+  -webkit-background-size: 40px 40px;
+  -moz-background-size: 40px 40px;
+  -o-background-size: 40px 40px;
+  background-size: 40px 40px;
+  background-position: 10px 10px;
+}
+
+.psc-icon-leaves {
+  background: url("/content/dam/pscom/ja-jp/icon/icon_leaves.svg") no-repeat;
+  background-position: 14px center;
+}
+
+.psc-icon-leaves:hover {
+  background: url("/content/dam/pscom/ja-jp/icon/icon_leaves_over.svg") no-repeat;
+  background-position: 14px center;
+}
+
+.psc-icon-emergency {
+  background: url("/content/dam/pscom/ja-jp/icon/icon Info.svg") no-repeat;
+  background-position: center center;
+}
+
+.psc-icon-news {
+  background: url("/content/dam/pscom/ja-jp/icon/icon_informatio_new.png") no-repeat;
+  background-position: 0 center;
+  -webkit-background-size: 24px;
+  -moz-background-size: 24px;
+  -o-background-size: 24px;
+  background-size: 24px;
+}
+
+.psc-icon-info {
+  background: url("/content/dam/pscom/ja-jp/icon/icon_information.svg") no-repeat;
+  background-position: 0 center;
+}
+
+.psc-icon-notice {
+  background: url("/content/dam/pscom/ja-jp/icon/icon_notice.svg") no-repeat;
+  background-position: 0 center;
+}
+
+.psc-icon-global {
+  background: url("/content/dam/pscom/ja-jp/icon/icon_global.png") no-repeat;
+  background-position: left center;
+  -webkit-background-size: 16px 16px;
+  -moz-background-size: 16px 16px;
+  -o-background-size: 16px 16px;
+  background-size: 16px 16px;
+}
+
+.psc-icon-blank {
+  background: url("/content/dam/pscom/ja-jp/footer/icon_blank.png") no-repeat;
+  background-position: right center;
+  -webkit-background-size: 12px 12px;
+  -moz-background-size: 12px 12px;
+  -o-background-size: 12px 12px;
+  background-size: 12px 12px;
+}
+
+.psc-icon-anchor {
+  background: url("/content/dam/pscom/ja-jp/icon/icon_anchor.svg") no-repeat;
+  background-position: right center;
+}
+
+.psc-icon-cat-game {
+  height: 48px;
+  background: url("/content/dam/pscom/ja-jp/icon/icon_category.svg") no-repeat;
+  background-position: center center;
+  -webkit-background-size: 48px 48px;
+  -moz-background-size: 48px 48px;
+  -o-background-size: 48px 48px;
+  background-size: 48px 48px;
+}
+
+.psc-icon-signout {
+  background: url("/content/dam/pscom/ja-jp/menu/icon_mdd_signout.svg") no-repeat;
+  background-position: left center;
+  -webkit-background-size: 24px 20px;
+  -moz-background-size: 24px 20px;
+  -o-background-size: 24px 20px;
+  background-size: 24px 20px;
+}
+
+.psc-icon-sce {
+  background: url("/content/dam/pscom/ja-jp/icon/icon_sce_btn.png") no-repeat;
+  -webkit-background-size: 24px 26px;
+  -moz-background-size: 24px 26px;
+  -o-background-size: 24px 26px;
+  background-size: 24px 26px;
+  background-position: 14px center;
+}
+
+.psc-icon-game {
+  background: url("/content/dam/pscom/ja-jp/icon/icon_game_btn.png") no-repeat;
+  -webkit-background-size: 24px 16px;
+  -moz-background-size: 24px 16px;
+  -o-background-size: 24px 16px;
+  background-size: 24px 16px;
+  background-position: 14px center;
+}
+
+.psc-bg-white {
+  background-color: #ffffff;
+}
+
+.psc-bg-black {
+  background-color: #1f1f1f;
+}
+
+.psc-bg-gray {
+  background-color: #eeeeee;
+}
+
+.psc-bg-blue {
+  background-color: #0068bf;
+}
+
+.psc-bg-blue-mid {
+  background-color: #003791;
+}
+
+.psc-bg-game {
+  background-color: #eeeeee;
+}
+
+.psc-bg-ps-gray {
+  background: url("/content/dam/pscom/ja-jp/bg/pattern_ps_gray.jpg");
+}
+
+.psc-bg-ps-white {
+  background: url("/content/dam/pscom/ja-jp/bg/pattern_ps_white.jpg");
+}
+
+.psc-bg-event {
+  background: url("/content/dam/pscom/ja-jp/bg/bg_event.jpg") no-repeat;
+  background-size: cover;
+}
+
+.psc-bg-footer {
+  background: url("/content/dam/pscom/ja-jp/bg/footer_glow.png") no-repeat;
+  background-position: center 0;
+  background-color: #003791;
+}
+
+.psc-bg-mdd {
+  background: url("/content/dam/pscom/ja-jp/bg/bg_megadrop.png") no-repeat;
+  background-position: center bottom;
+  background-color: #003791;
+}
+
+.psc-bg-feature {
+  background: url("/content/dam/pscom/ja-jp/bg/bg_feature.jpg") no-repeat;
+  background-size: cover;
+  background-position: center 0;
+  background-color: #000000;
+}
+
+.psc-pointer {
+  cursor: pointer;
+}
+
+.clearfix:after {
+  content: "";
+  clear: both;
+  display: block;
+}
+
+.psc-hover-med:hover {
+  color: #003791;
+}
+
+.psc-hover-light:hover {
+  color: #00a2ff;
+}
+
+.psc-scaling-img {
+  border: 0;
+  max-width: 100%;
+  height: auto;
+  width: auto;
+  /* IE8 対応 */
+}
+
+.psc-va-sub {
+  vertical-align: sub;
+}
+
+.psc-text-btn {
+  display: inline-block;
+  padding: 0 20px 0 0;
+  background: url("/content/dam/pscom/ja-jp/header/icon_link.svg") no-repeat;
+  background-position: right center;
+  color: #00a2ff;
+}
+
+.psc-text-btn:hover {
+  display: inline-block;
+  padding: 0 20px 0 0;
+  background: url("/content/dam/pscom/ja-jp/header/icon_link_blue_over.svg") no-repeat;
+  background-position: right center;
+  -webkit-background-size: 15px 15px;
+  -moz-background-size: 15px 15px;
+  -o-background-size: 15px 15px;
+  background-size: 15px 15px;
+  color: #8fdffd;
+}
+
+.psc-btn-cell {
+  display: inline-block;
+  min-width: 220px;
+  padding: 8px;
+}
+
+.psc-btn-cell .psc-btn-blue {
+  display: block;
+  padding: 14px;
+  border-radius: 3px;
+  text-align: center;
+  font-size: 14px;
+  color: #ffffff;
+  text-decoration: none;
+  background-color: #0068bf;
+}
+
+.psc-btn-cell .psc-btn-blue:hover {
+  background-color: #00a2ff;
+}
+
+.psc-btn-cell .psc-btn-blue:hover {
+  text-decoration: none;
+}
+
+.psc-btn-cell .psc-btn-black {
+  display: block;
+  padding: 14px;
+  border-radius: 3px;
+  text-align: center;
+  font-size: 14px;
+  color: #ffffff;
+  text-decoration: none;
+  background-color: #1f1f1f;
+}
+
+.psc-btn-cell .psc-btn-black:hover {
+  background-color: #00a2ff;
+}
+
+.psc-btn-cell .psc-btn-black:hover {
+  text-decoration: none;
+}
+
+.psc-button-blue-s {
+  min-width: 234px;
+  min-width: 106px;
+}
+
+.psc-button-blue-s a {
+  display: block;
+  padding: 14px;
+  border-radius: 3px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.psc-button-blue-s a:hover {
+  text-decoration: none;
+  background-color: #00a2ff;
+}
+
+.psc-button-blue-s a {
+  padding: 12px;
+  background-color: #0068bf;
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.psc-button-blue-s a:link {
+  text-decoration: none;
+  color: #ffffff;
+}
+
+.psc-button-blue-s a:visited {
+  text-decoration: none;
+  color: #ffffff;
+}
+
+.psc-hover-mdd:hover {
+  color: #00a2ff;
+}
+
+.psc-hover-mdd:hover img {
+  opacity: 0.7;
+}
+
+.psc-back-to-top {
+  position: fixed;
+  bottom: 42px;
+  right: 42px;
+  cursor: pointer;
+  opacity: 0;
+  z-index: 100000;
+}
+
+@media screen and (max-width: 860px) {
+  .psc-back-to-top {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+  }
+}
+
+#psc-sp-global-nav {
+  display: none;
+}
+
+#psc-sp-nav-toggle {
+  display: none;
+}
+
+.psc-section-header {
+  position: relative;
+  z-index: 999;
+}
+
+.psc-row-sony {
+  padding: 0 23px;
+  background-color: #000000;
+  text-align: right;
+  min-width: 776px;
+  height: 36px;
+  line-height: 1.0;
+}
+
+.psc-link-sony {
+  display: inline-block;
+  padding: 12px 0 12px 0;
+}
+
+.psc-link-sony img {
+  border: 0;
+  max-width: 100%;
+  height: auto;
+  width: auto;
+  /* IE8 対応 */
+}
+
+@media screen and (max-width: 900px) {
+  .psc-row-sony {
+    height: 39px;
+  }
+  .psc-link-sony {
+    padding: 14px 0 12px 0;
+  }
+  .psc-link-sony img {
+    width: 70px;
+  }
+}
+
+.psc-global-container {
+  position: relative;
+  height: 65px;
+  background-color: #1f1f1f;
+}
+
+.psc-row-global-nav {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  font-size: 14px;
+  font-family: "ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", "メイリオ", Meiryo, Osaka, "ＭＳ Ｐゴシック", "MS PGothic", sans-serif;
+}
+
+.psc-cell-global {
+  display: inline-block;
+  vertical-align: middle;
+  text-align: center;
+  /*  width: 11%;*/
+}
+
+.psc-cell-global a {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.psc-cell-global a:link {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.psc-cell-global a:hover {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.psc-cell-global a:visited {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.psc-cell-global-ps {
+  display: inline-block;
+  vertical-align: middle;
+  text-align: center;
+  /*width: 130px;*/
+}
+
+.psc-cell-global-ps a {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.psc-cell-global-ps a:link {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.psc-cell-global-ps a:hover {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.psc-cell-global-ps a:visited {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.psc-cell-global-signed {
+  display: inline-block;
+  vertical-align: middle;
+  text-align: center;
+  /* width: 230px; */
+}
+
+.psc-cell-global-signed a {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.psc-cell-global-signed a:link {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.psc-cell-global-signed a:hover {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.psc-cell-global-signed a:visited {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+@media screen and (max-width: 1200px) {
+  .psc-cell-global-signed .psc-global-signed-name {
+    display: none;
+  }
+}
+
+.psc-cell-global-search {
+  display: inline-block;
+  vertical-align: middle;
+  text-align: center;
+  /*padding: 0 0px 0 16px;*/
+  width: 200px;
+  text-align: left;
+  position: absolute;
+  top: 16px;
+  right: 23px;
+}
+
+.psc-cell-global-search a {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.psc-cell-global-search a:link {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.psc-cell-global-search a:hover {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.psc-cell-global-search a:visited {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.psc-link-global {
+  display: block;
+  color: #ffffff;
+  font-size: 14px;
+  padding: 22px 10px 22px 10px;
+}
+
+.psc-link-global img {
+  vertical-align: middle;
+}
+
+.psc-link-global span.psc-sp-label-visible {
+  line-height: 18px;
+}
+
+.psc-link-global-ps {
+  display: block;
+  width: 45px;
+  padding: 13px 23px 11px 23px;
+  height: 40px;
+}
+
+.psc-link-global-support {
+  display: block;
+  color: #ffffff;
+  font-size: 14px;
+  padding: 22px 10px 22px 10px;
+}
+
+.psc-link-global-support img {
+  vertical-align: middle;
+}
+
+@media screen and (max-width: 1100px) {
+  .psc-link-global-support {
+    padding: 22px 10px;
+  }
+}
+
+.psc-link-global-signed {
+  display: block;
+  color: #ffffff;
+  font-size: 14px;
+  padding: 14px 14px 12px 14px;
+}
+
+.psc-link-global-signed img {
+  vertical-align: middle;
+}
+
+.psc-global-signed-icon {
+  vertical-align: middle;
+  width: 40px;
+}
+
+.psc-global-signed-name {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.psc-global-search input[type="text"] {
+  width: 100%;
+  height: 32px;
+  margin: 0;
+  padding: 0 30px 0 10px;
+  color: #ffffff;
+  background-color: #303030;
+  border: 0;
+  border-radius: 3px;
+  outline: 0;
+  font-size: 12px;
+  font-family: "SST W55 Regular", "ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", "メイリオ", Meiryo, Osaka, "ＭＳ Ｐゴシック", "MS PGothic", sans-serif;
+  box-sizing: border-box;
+}
+
+.psc-global-search input[type='image'] {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  position: absolute;
+  right: 6px;
+  top: 5px;
+}
+
+@media screen and (min-width: 1520px) {
+  .psc-row-global-nav {
+    table-layout: fixed;
+  }
+  .psc-cell-global {
+    width: auto;
+  }
+  .psc-cell-global-product {
+    width: auto;
+  }
+}
+
+.psc-global-search-options {
+  display: none;
+  position: absolute;
+  top: 50px;
+  background-color: #303030;
+  border-radius: 0 0 3px 3px / 0px 0px 3px 3px;
+  padding: 8px 16px;
+  text-align: left;
+  color: #ffffff;
+  font-size: 12px;
+}
+
+.psc-global-search-options li {
+  line-height: 210%;
+}
+
+.psc-search-option-title {
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.psc-pc-label-visible {
+  display: inline-block;
+  color: #ffffff;
+  line-height: 1.6;
+}
+
+.psc-sp-label-visible {
+  display: none;
+  line-height: 18px;
+  vertical-align: middle;
+  text-align: left;
+  color: #ffffff;
+}
+
+@media screen and (max-width: 1050px) {
+  .psc-row-global-nav {
+    table-layout: auto;
+  }
+}
+
+@media screen and (max-width: 1100px) {
+  .psc-link-global {
+    padding: 15px 10px 15px 10px;
+    height: auto;
+  }
+  .psc-pc-label-visible {
+    display: none;
+  }
+  .psc-sp-label-visible {
+    display: inline-block;
+  }
+}
+
+@media screen and (max-width: 900px) {
+  #psc-pc-global-nav {
+    display: none;
+  }
+  #psc-sp-global-nav {
+    display: block;
+  }
+  #psc-sp-nav-toggle {
+    display: block;
+  }
+  .psc-global-container {
+    min-width: inherit;
+  }
+  .psc-sp-global-toggle {
+    position: absolute;
+    right: 16px;
+    top: 24px;
+  }
+  .psc-row-sony {
+    min-width: inherit;
+    padding: 0px 16px;
+  }
+}
+
+.psc-browser-alert {
+  padding: 16px 42px;
+  background-color: #333333;
+  display: none;
+}
+
+.psc-browser-alert p a {
+  color: #00a2ff;
+}
+
+.psc-browser-alert p a:link {
+  color: #00a2ff;
+}
+
+.psc-browser-alert p a:hover {
+  color: #0068bf;
+}
+
+.psc-browser-alert p a:visited {
+  color: #00a2ff;
+}
+
+@media screen and (max-width: 900px) {
+  .psc-browser-alert p {
+    font-size: 11.8px;
+  }
+}
+
+/*
+.psc-btn-cell {
+    display: inline-block;
+    min-width: 220px;
+    padding: 0 8px;
+
+    a {
+        color: #ffffff;
+        text-decoration: none;
+    }
+}
+*/
+#nav-sp-main {
+  position: relative;
+  left: 400px;
+}
+
+.psc-sp-container {
+  overflow-x: hidden;
+  overflow-y: visible;
+  width: 100%;
+  position: absolute;
+  top: 100px;
+  left: 0;
+  z-index: 8999;
+}
+
+.psc-sp-nav-inner {
+  background: url("/content/dam/pscom/ja-jp/header/sp/bg_sp.jpg") no-repeat;
+  padding: 16px;
+  width: 238px;
+}
+
+a.psc-sp-nav-list {
+  display: block;
+  color: #ffffff;
+  width: 238px;
+  font-size: 14px;
+  padding: 16px 0;
+  border-top: 1px dotted #00a2ff;
+  background: url("/content/dam/pscom/ja-jp/icon/icon_link.svg") no-repeat;
+  background-position: right center;
+  text-align: left;
+  text-decoration: none;
+}
+
+a.psc-sp-nav-list:link {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+a.psc-sp-nav-list:visited {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+#psn-sp-signined-nav .psc-sp-nav-list {
+  padding: 0 0;
+}
+
+.psc-sp-nav-search-wrapper {
+  background-color: #002250;
+  padding: 16px;
+  height: 80px;
+  display: table-cell;
+  width: 238px;
+}
+
+.psc-sp-nav-search-box {
+  text-align: left;
+}
+
+.psc-sp-nav-search-box input[type="text"] {
+  display: inline-block;
+  vertical-align: top;
+  margin: 0;
+  height: 32px;
+  /* 高さ40px */
+  width: 170px;
+  color: #ffffff;
+  background-color: #001735;
+  border: 0;
+  outline: 0;
+  border-radius: 3px 0 0 3px / 3px 0 0 3px;
+  font-size: 10px;
+  padding: 0 8px;
+}
+
+.psc-sp-nav-search-box input[type="image"] {
+  display: inline-block;
+  border: 0;
+  padding: 0;
+  border-radius: 0;
+}
+
+.psc-sp-nav-search-box input[type="radio"] {
+  vertical-align: middle;
+}
+
+.psc-sp-nav-search-box input[type="text"]:focus {
+  background: #3c3c3c;
+  /* 背景色を半透明に */
+}
+
+.psc-sp-nav-search-box label {
+  display: inline-block;
+  color: #ffffff;
+  font-size: 12px;
+  padding: 8px 8px 8px 0;
+}
+
+@media screen and (max-width: 900px) {
+  .psc-sony-logo {
+    padding: 10px 0 7px 0;
+  }
+  .nav-global-toggle {
+    position: absolute;
+    right: 23px;
+    top: 21px;
+  }
+  .psc-link-global-ps {
+    padding: 16px 16px 10px 16px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .nav-global-toggle {
+    right: 16px;
+  }
+}
+
+.psc-type-signin > a {
+  display: none;
+}
+
+.psc-type-signout {
+  display: none;
+}
+
+#id-sp-profile-signined-nav {
+  display: none;
+}
+
+.psc-footer-container {
+  padding: 16px 0;
+  font-size: 62.5%;
+  position: relative;
+}
+
+.psc-row-footer {
+  position: relative;
+  padding: 8px 42px 0;
+  margin: 0 auto;
+  max-width: 940px;
+  width: 100%;
+}
+
+.psc-cell-footer {
+  display: inline-block;
+  letter-spacing: normal;
+  padding: 4px 8px;
+  background: url("/content/dam/pscom/ja-jp/footer/footer_line.jpg") no-repeat;
+  background-position: right center;
+}
+
+.psc-cell-footer:last-child {
+  background: none;
+}
+
+.psc-cell-footer a {
+  font-family: "SST W55 Regular", "ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", "メイリオ", Meiryo, Osaka, "ＭＳ Ｐゴシック", "MS PGothic", sans-serif;
+  font-weight: 400;
+}
+
+.psc-cell-footer a {
+  color: #ffffff;
+  font-size: 12px;
+}
+
+.psc-cell-footer a:link {
+  text-decoration: none;
+  color: #ffffff;
+}
+
+.psc-cell-footer a:visited {
+  color: #ffffff;
+}
+
+.psc-cell-footer a:hover {
+  color: #00a2ff;
+}
+
+.psc-copyrights {
+  font-family: "SST W55 Regular", "ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", "メイリオ", Meiryo, Osaka, "ＭＳ Ｐゴシック", "MS PGothic", sans-serif;
+  font-size: 12px;
+  color: #00a2ff;
+  margin: 0;
+}
+
+.psc-footer-global {
+  text-align: center;
+}
+
+.psc-footer-global a {
+  font-family: "SST W55 Regular", "ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", "メイリオ", Meiryo, Osaka, "ＭＳ Ｐゴシック", "MS PGothic", sans-serif;
+  text-decoration: none;
+  font-size: 12px;
+  color: #ffffff;
+  display: inline-block;
+  padding: 2.5px 0 0 24px;
+  vertical-align: middle;
+  line-height: 1.6;
+}
+
+.psc-footer-global a:link {
+  text-decoration: none;
+  color: #ffffff;
+}
+
+.psc-footer-global a:visited {
+  text-decoration: none;
+  color: #ffffff;
+}
+
+.psc-footer-sce {
+  position: absolute;
+  bottom: 0;
+  right: 84px;
+  width: 100px;
+}
+
+.psc-footer-sce img {
+  border: 0;
+  max-width: 100%;
+  height: auto;
+  width: auto;
+  /* IE8 対応 */
+}
+
+.psc-bg-footer {
+  background: url("/content/dam/pscom/ja-jp/footer/footer_glow.png") no-repeat;
+  background-position: center 0;
+  background-color: #003791;
+}
+
+@media screen and (max-width: 1024px) {
+  .psc-row-footer {
+    width: auto;
+  }
+}
+
+@media screen and (max-width: 860px) {
+  .psc-footer-sce {
+    bottom: -10px;
+    right: 40px;
+  }
+  .psc-copyrights {
+    font-size: 12px;
+  }
+}
+
+@media screen and (max-width: 500px) {
+  .psc-footer-sce {
+    right: 20px;
+    width: 85px;
+    bottom: -5px;
+  }
+}
+
+/*******************************************************************
+ * Mega Drop Down Style
+ *
+ * @date 2015.05.01
+ * @author suguru.sasaki@quad.co.jp
+ *
+ ******************************************************************/
+#mdd {
+  display: none;
+}
+
+#psn-mdd-signin-icon {
+  width: 102px;
+}
+
+.psc-row-mdd {
+  display: table;
+  margin: 0 auto;
+  max-width: 860px;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.psc-row-mdd-btn {
+  display: table;
+  margin: 0 auto;
+  max-width: 860px;
+  width: 100%;
+  text-align: center;
+  padding: 24px 0 0;
+}
+
+.psc-cell-mdd {
+  display: table-cell;
+  padding: 0px 12px;
+}
+
+.psc-cell-mdd .psc-d-inline {
+  vertical-align: middle;
+}
+
+#mdd-products,
+#mdd-services,
+#mdd-store,
+#mdd-support,
+#mdd-signin,
+#mdd-signed {
+  display: none;
+}
+
+.psc-mdd-container {
+  position: absolute;
+  top: -200px;
+  left: 0;
+  z-index: 998;
+  min-width: 860px;
+  width: 100%;
+}
+
+.psc-hover-mdd:hover {
+  text-decoration: none;
+}
+
+.psc-hover-mdd:hover .psc-col-white {
+  color: #00a2ff;
+}
+
+.psc-bg-mdd {
+  background: url("/content/dam/pscom/ja-jp/bg/bg_megadrop.png") no-repeat;
+  background-position: center bottom;
+  background-color: #003791;
+}
+
+.psc-mdd-inner {
+  padding: 24px 0 24px 0;
+}
+
+.psc-mdd-btn {
+  border-top: 1px solid #609ccd;
+  margin: 32px 0 0 0;
+}
+
+.psc-mdd-btn-title {
+  font-size: 14px;
+  color: #ffffff;
+  font-family: "SST W55 Regular", "ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", "メイリオ", Meiryo, Osaka, "ＭＳ Ｐゴシック", "MS PGothic", sans-serif;
+  padding: 0 0 16px 0;
+  margin: 0;
+}
+
+.psc-mdd-nav-title {
+  height: 42px;
+  display: table-cell;
+  vertical-align: middle;
+  margin: 0 auto;
+  width: 164px;
+}
+
+.psc-mdd-nav-title h3 {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.psc-mdd-nav-title h4 {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.psc-mdd-empty-area {
+  height: 190px;
+  width: 100%;
+  background-color: #003791;
+}
+
+.psc-icon-signout {
+  background: url("/content/dam/pscom/ja-jp/header/mdd/icon_mdd_signout.svg") no-repeat;
+  background-position: left center;
+  background-size: 24px 20px;
+}
+
+.psc-hover-signout:hover {
+  background: url("/content/dam/pscom/ja-jp/header/mdd/icon_mdd_signout_over.svg") no-repeat;
+  background-position: left center;
+  color: #003791;
+  text-decoration: none;
+}
+
+.psc-mdd-link a {
+  color: #ffffff;
+}
+
+.psc-bg-mdd {
+  background: url("/content/dam/pscom/ja-jp/header/mdd/bg_mdd.png") no-repeat;
+  background-position: center bottom;
+  background-color: #003791;
+}
+
+.psc-mdd-icon {
+  width: 88px;
+}
+
+.psc-container-account-nav {
+  width: 100%;
+  background-color: rgba(8, 82, 167, 0.6);
+}
+
+.psc-container-account-nav-sub {
+  width: 100%;
+  border-top: 1px solid #609ccd;
+}
+
+.psc-row-account-nav {
+  display: table;
+  table-layout: fixed;
+  max-width: 940px;
+  width: 100%;
+  margin: 0 auto;
+  height: 62px;
+  padding: 0 42px;
+}
+
+.psc-cell-account-nav {
+  display: table-cell;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.psc-link-account-nav {
+  display: block;
+  color: #ffffff;
+  font-family: "SST W55 Regular", "ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", "メイリオ", Meiryo, Osaka, "ＭＳ Ｐゴシック", "MS PGothic", sans-serif;
+  font-weight: 400;
+  padding: 15px 0;
+}
+
+.psc-link-account-nav:hover {
+  background-color: #00a2ff;
+}
+
+.psc-text-account-nav {
+  display: inline-block;
+  padding: 4px 0 4px 45px;
+}
+
+.psc-is-active-account-nav {
+  background-color: #00a2ff;
+}
+
+.psc-sp-nav-img {
+  width: 46px;
+}
+
+.psc-sp-nav-text {
+  font-family: "SST W55 Regular", "ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", "メイリオ", Meiryo, Osaka, "ＭＳ Ｐゴシック", "MS PGothic", sans-serif;
+  font-size: 14px;
+}
+
+.psc-account-icon-profile {
+  background: url("/content/dam/pscom/ja-jp/account/icon/icon_profile.png") no-repeat;
+  background-position: left center;
+  -webkit-background-size: 32px;
+  -moz-background-size: 32px;
+  -o-background-size: 32px;
+  background-size: 32px;
+}
+
+.psc-account-icon-friend {
+  background: url("/content/dam/pscom/ja-jp/account/icon/icon_friend.png") no-repeat;
+  background-position: left center;
+  -webkit-background-size: 32px;
+  -moz-background-size: 32px;
+  -o-background-size: 32px;
+  background-size: 32px;
+}
+
+.psc-account-icon-trophy {
+  background: url("/content/dam/pscom/ja-jp/account/icon/icon_trophy.png") no-repeat;
+  background-position: left center;
+  -webkit-background-size: 32px;
+  -moz-background-size: 32px;
+  -o-background-size: 32px;
+  background-size: 32px;
+}
+
+.psc-account-icon-setting {
+  background: url("/content/dam/pscom/ja-jp/account/icon/icon_setting.png") no-repeat;
+  background-position: left center;
+  -webkit-background-size: 32px;
+  -moz-background-size: 32px;
+  -o-background-size: 32px;
+  background-size: 32px;
+}
+
+@media screen and (max-width: 1024px) {
+  .psc-row-account-nav {
+    max-width: none;
+    padding: 0;
+  }
+}
+
+@media screen and (max-width: 700px) {
+  #account-pc-nav {
+    display: none;
+  }
+}
+
+.psc-link-mdd {
+  display: block;
+  text-align: center;
+}
+
+#mdd-signin p {
+  font-size: 14px;
+}
+
+#mdd-store {
+  max-width: 860px;
+  width: 100%;
+  margin: 0 auto;
+  table-layout: fixed;
+  padding-bottom: 40px;
+}
+
+#mdd-store .tracking-mdd {
+  max-width: 860px;
+  width: 100%;
+  display: table;
+  table-layout: fixed;
+}
+
+#mdd-store .psc-mdd-cell {
+  display: table-cell;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+
+#mdd-store .psc-mdd-cell .psc-mdd-category-link {
+  display: block;
+  text-align: center;
+  padding: 0 0 12px 0;
+}
+
+#mdd-store .psc-mdd-cell .psc-mdd-category-link:hover img {
+  opacity: 0.7;
+}
+
+#mdd-store .psc-mdd-cell .psc-mdd-category-link:hover span {
+  color: #00a2ff;
+}
+
+#mdd-store .psc-mdd-cell .psc-mdd-category-link span {
+  display: block;
+  color: #ffffff;
+}
+
+#mdd-store .psc-mdd-cell .psc-mdd-category-link span:last-child {
+  padding: 7px 0 0 0;
+}
+
+#mdd-store .psc-mdd-cell .psc-mdd-category-link img {
+  vertical-align: middle;
+  width: 114px;
+}
+
+#mdd-store .psc-mdd-cell .psc-mdd-link-list li a {
+  font-size: 14px;
+  color: #ffffff;
+  border-bottom: 1px solid #609ccd;
+  display: block;
+  padding: 7px 0;
+  background: url("/content/dam/pscom/ja-jp/header/mdd/icon_store_link.png") no-repeat;
+  -webkit-background-size: 15px 15px;
+  -moz-background-size: 15px 15px;
+  -o-background-size: 15px 15px;
+  background-size: 15px 15px;
+  background-position: right center;
+}
+
+#mdd-store .psc-mdd-cell .psc-mdd-link-list li a:link {
+  color: #ffffff;
+}
+
+#mdd-store .psc-mdd-cell .psc-mdd-link-list li a:visited {
+  color: #ffffff;
+}
+
+#mdd-store .psc-mdd-cell .psc-mdd-link-list li a:hover {
+  color: #00a2ff;
+  display: block;
+  background: url("/content/dam/pscom/ja-jp/header/icon_link.svg") no-repeat;
+  -webkit-background-size: 15px 15px;
+  -moz-background-size: 15px 15px;
+  -o-background-size: 15px 15px;
+  background-size: 15px 15px;
+  background-position: right center;
+}
+
+#mdd-store .psc-mdd-cell .psc-mdd-link-list li:first-child a {
+  border-top: 1px solid #609ccd;
+}
+
+.psc-bb-info {
+  border-bottom: 2px solid #1f1f1f;
+}
+
+.psc-bb-dot {
+  border-bottom: 1px dotted #1f1f1f;
+}
+
+.psc-line {
+  border-top: solid 1px #e0e0e0;
+}
+
+body {
+  margin: 0;
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+fieldset {
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+#topcontrol {
+  display: none;
+}
+
+/*# sourceMappingURL=psc_component.css.map */
