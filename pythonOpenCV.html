@@ -295,6 +295,12 @@ class Student(object):
  plt.scatter(X, Y)
  plt.show()
  
+ 
+ ###########################################################
+ #归一化
+ cv2.normalize(self.hist, self.hist, 0, 255, cv2.NORM_MINMAX) 
+ 
+
  ############################################################
  #常用头文件操作
  %matplotlib inline
@@ -421,6 +427,8 @@ class C(P):
         print "C's constructor"
 
 </code></pre>	
+
+<img class="img-fluid mb-5" src="img/dairy/itHWa.jpg" alt="">
 			</p>
 			
 		
