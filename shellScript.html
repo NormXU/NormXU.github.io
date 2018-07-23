@@ -112,6 +112,8 @@ rqt_console & # nice message monitor interface
 catkin_make -j 1 #只用一个线程编，第一次编msg时要这样不然catkin找不到msg
 
 matlab -nodesktop  #在Terminal使用MATLAB，而不调用UI界面；退出的时候使用quit()即可
+
+rqt_plot /cmd_vel/angular/z #使用rqt_plot来绘制该节点的信息
 </code></pre>
 				</div>
 				
@@ -442,11 +444,103 @@ ff stands for file format, and can accept the values of unix (\n), dos (\r\n) an
 [(1, 4), (2, 5), (3, 6)]
 		
 </code></pre>
-
-<b>CamShifter</b>
+<br />
+<b>CamShifter</b><br />
 Working in HSV space is a common practice when processing Color images
+<br /><br />
+<b>进程与线程</b><br />
+什么叫“多任务”呢？简单地说，就是操作系统可以同时运行多个任务。打个比方，你一边在用浏览器上网，一边在听MP3，一边在用Word赶作业，这就是多任务，至少同时有3个任务正在运行。还有很多任务悄悄地在后台同时运行着，只是桌面上没有显示而已。<br />
+现在，多核CPU已经非常普及了，但是，即使过去的单核CPU，也可以执行多任务。由于CPU执行代码都是顺序执行的，那么，单核CPU是怎么执行多任务的呢？<br />
+答案就是操作系统轮流让各个任务交替执行，任务1执行0.01秒，切换到任务2，任务2执行0.01秒，再切换到任务3，执行0.01秒……这样反复执行下去。表面上看，每个任务都是交替执行的，但是，由于CPU的执行速度实在是太快了，我们感觉就像所有任务都在同时执行一样。
+真正的并行执行多任务只能在多核CPU上实现，但是，由于任务数量远远多于CPU的核心数量，所以，操作系统也会自动把很多任务轮流调度到每个核心上执行。<br />
+对于操作系统来说，一个任务就是一个进程（Process），比如打开一个浏览器就是启动一个浏览器进程，打开一个记事本就启动了一个记事本进程，打开两个记事本就启动了两个记事本进程，打开一个Word就启动了一个Word进程。<br />
+有些进程还不止同时干一件事，比如Word，它可以同时进行打字、拼写检查、打印等事情。在一个进程内部，要同时干多件事，就需要同时运行多个“子任务”，我们把进程内的这些“子任务”称为线程（Thread）。<br />
+由于每个进程至少要干一件事，所以，一个进程至少有一个线程。当然，像Word这种复杂的进程可以有多个线程，多个线程可以同时执行，多线程的执行方式和多进程是一样的，也是由操作系统在多个线程之间快速切换，让每个线程都短暂地交替运行，看起来就像同时执行一样。当然，真正地同时执行多线程需要多核CPU才可能实现。
+我们前面编写的所有的Python程序，都是执行单任务的进程，也就是只有一个线程。如果我们要同时执行多个任务怎么办？
+
+Unix/Linux操作系统提供了一个fork()系统调用，它非常特殊。普通的函数调用，调用一次，返回一次，但是fork()调用一次，返回两次，因为操作系统自动把当前进程（称为父进程）复制了一份（称为子进程），然后，分别在父进程和子进程内返回。
+子进程永远返回0，而父进程返回子进程的ID。这样做的理由是，一个父进程可以fork出很多子进程，所以，父进程要记下每个子进程的ID，而子进程只需要调用getppid()就可以拿到父进程的ID。
+Python的os模块封装了常见的系统调用，其中就包括fork，可以在Python程序中轻松创建子进程：
+
+<pre><code class="language-python">
+# 多进程
+import os
+
+print('Process (%s) start...' % os.getpid())
+# Only works on Unix/Linux/Mac:
+pid = os.fork()
+if pid == 0:
+    print('I am child process (%s) and my parent is %s.' % (os.getpid(), os.getppid()))
+else:
+    print('I (%s) just created a child process (%s).' % (os.getpid(), pid))
+	
+	
+Process (876) start...
+I (876) just created a child process (877).
+I am child process (877) and my parent is 876.
+</code></pre>
+
+由于任何进程默认就会启动一个线程，我们把该线程称为主线程，主线程又可以启动新的线程，Python的threading模块有个current_thread()函数，它永远返回当前线程的实例。主线程实例的名字叫MainThread，子线程的名字在创建时指定，我们用LoopThread命名子线程。
+名字仅仅在打印时用来显示，完全没有其他意义，如果不起名字Python就自动给线程命名为Thread-1，Thread-2……
+<pre><code class="language-python">
+# 多线程
+import time, threading
+
+# 新线程执行的代码:
+def loop():
+    print('thread %s is running...' % threading.current_thread().name)
+    n = 0
+    while n < 5:
+        n = n + 1
+        print('thread %s >>> %s' % (threading.current_thread().name, n))
+        time.sleep(1)
+    print('thread %s ended.' % threading.current_thread().name)
+
+print('thread %s is running...' % threading.current_thread().name)
+t = threading.Thread(target=loop, name='LoopThread')
+t.start()
+t.join()
+print('thread %s ended.' % threading.current_thread().name)
+	
+</code></pre>
+
+如果我们要确保balance计算正确，就要给change_it()上一把锁，当某个线程开始执行change_it()时，我们说，该线程因为获得了锁，因此其他线程不能同时执行change_it()，只能等待，直到锁被释放后，获得该锁以后才能改。由于锁只有一个，
+无论多少线程，同一时刻最多只有一个线程持有该锁，所以，不会造成修改的冲突。创建一个锁就是通过threading.Lock()来实现：
+<pre><code class="language-python">
 
 
+import time, threading
+
+# 假定这是你的银行存款:
+balance = 0
+lock = threading.Lock()
+
+def change_it(n):
+    # 先存后取，结果应该为0:
+    global balance
+    balance = balance + n
+    balance = balance - n
+	
+def run_thread(n):
+    for i in range(100000):
+        # 先要获取锁:
+        lock.acquire()
+        try:
+            # 放心地改吧:
+            change_it(n)
+        finally:
+            # 改完了一定要释放锁:
+            lock.release()
+			
+t1 = threading.Thread(target=run_thread, args=(5,))
+t2 = threading.Thread(target=run_thread, args=(8,))
+t1.start()
+t2.start()
+t1.join()
+t2.join()
+print(balance)
+
+</code></pre>
 				</div>
 				
 			</div>	
