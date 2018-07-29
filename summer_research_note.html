@@ -305,8 +305,8 @@ namespace BOOST_JOIN(BOOST_TT_TRAIT_NAME,_impl) {
 // Using subscriber/callback functiono inside of a class C++
 Class Version CallBack
 sub = n.subscribe("/topic", 1000, &Example::CallBack, this)
-&Example::CallBack 指向类的成员函数的函数指针 function pointer to the member function
-this:object instance for which you want to callback called 
+// &Example::CallBack 指向类的成员函数的函数指针 function pointer to the member function
+// this:object instance for which you want to callback called 
 
 class Example{
 public:
