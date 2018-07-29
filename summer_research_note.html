@@ -270,8 +270,62 @@ void jsonCallback(const std_msgs::String::ConstPtr& msg){
 </code></pre>
 <br /><br />
 
+<h6>dvrk的使用</h6>
+<br />
+<b>roslaunch dvrk_robot dvrk_arm.launch:=MTMR config:=/home/nxu8/catkin_ws/src/cisst-saw/sawIntuitiveResearchKit/jhu-daVinci/console-MTMR.json</b>
+<br />
+<br />
+编译代码时出现/usr/include/boost/type_traits/detail/has_binary_operator.hp:50: Parse error at "BOOST_JOIN"错误
+<br />
+临时解决方法：
+修改/usr/include/boost/type_traits/detail/has_binary_operator.hpp文件
+<pre><code class="language-cpp">
+将namespace BOOST_JOIN(BOOST_TT_TRAIT_NAME,_impl) {
 
+..
 
+}
+
+改为
+
+#ifndef Q_MOC_RUN
+namespace BOOST_JOIN(BOOST_TT_TRAIT_NAME,_impl) {
+#endif
+
+...
+
+#ifndef Q_MOC_RUN
+}
+#endif
+</code></pre>
+<br /><br />
+
+<h6>在同一个类当中作回调函数CallBack</h6>
+<pre><code class="language-cpp">
+// Using subscriber/callback functiono inside of a class C++
+Class Version CallBack
+sub = n.subscribe("/topic", 1000, &Example::CallBack, this)
+&Example::CallBack 指向类的成员函数的函数指针 function pointer to the member function
+this:object instance for which you want to callback called 
+
+class Example{
+public:
+Example(ros::NodeHandle nh){
+	sub = nh.subscribe("/topic", 1000, &Example::CallBack, this)
+}
+
+void CallBack(const sensor_msgs::PointClou2Ptr& msg){
+}
+
+protected:
+ros::Subscriber sub;
+}
+
+// another way: Bind arguments to arbitrary functions
+
+sub = n.subscribe("/topic", 1000, boost::bind(&Example::CallBack, this, _1) )
+
+</code></pre>
 
 
 

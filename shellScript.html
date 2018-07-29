@@ -114,6 +114,15 @@ catkin_make -j 1 #只用一个线程编，第一次编msg时要这样不然catki
 matlab -nodesktop  #在Terminal使用MATLAB，而不调用UI界面；退出的时候使用quit()即可
 
 rqt_plot /cmd_vel/angular/z #使用rqt_plot来绘制该节点的信息
+
+history | grep xxx #查看历史指令，并运行对应行号的历史指令
+! 行号
+
+rosrun rviz rviz & # &这个符号是让指令在background中运行
+fg
+ctrl+Z
+bg 
+
 </code></pre>
 				</div>
 				
