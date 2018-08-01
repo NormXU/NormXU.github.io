@@ -326,10 +326,59 @@ ros::Subscriber sub;
 sub = n.subscribe("/topic", 1000, boost::bind(&Example::CallBack, this, _1) )
 
 </code></pre>
+<br /><br />
+<h6>boost::bind的使用规则</h6>
+<div class="row">
+		<div class="col-lg-6 ml-auto">
+<pre><code class="language-cpp">
+int f(int a, int b)
+{
+    return a + b;
+}
 
 
 
-		 
+
+int g(int a, int b, int c)
+{
+    return a + b + c;
+}
+
+
+
+</code></pre>
+		</div>
+
+<div class="col-lg-6 ml-auto">
+可以绑定所有参数，如：              bind(f, 1, 2)等价于f(1, 2); bind(g, 1, 2, 3)等价于g(1, 2, 3);<br />
+
+也可以选择性地绑定参数，如：<br />
+bind(f, _1, 5)(x)等价于f(x, 5)，其中_1是一个占位符，表示用第一个参数来替换;
+<br />
+bind(f, _2, _1)(x, y)等价于f(y, x);
+<br />
+bind(g, _1, 9, _1)(x)等价于g(x, 9, x);
+<br />
+bind(g, _3, _3, _3)(x, y, z)等价于g(z, z, z);
+<br /><br />
+如果想传入变量的引用，可以使用boost::ref和boost::cref，如：
+<br />
+int i = 5;
+<br />
+bind(f, ref(i), _1);
+<br />
+bind(f, cref(i), _1);
+</div>
+</div>
+<br /><br />
+将上述两个知识结合在一起，就有用法入下：
+<pre><code class="language-cpp">
+left_grip_sub = nh.subscribe<std_msgs::Bool>("dvrk/MTMR/gripper_closed_event", 10, boost::bind(&davinci::gripCallback, this, _1, 1));
+// 相当于传入参数，而_1则表示占位符
+void davinci::gripCallback(const std_msgs::Bool::ConstPtr& grab, int i)
+{}
+</code></pre>
+		
 		 
 		 
 		 

@@ -243,16 +243,34 @@ class Student(object):
  img = cv2.circle( img, center, radius, (0, 255, 0), 2) #圆心，半径, 线性是2，颜色是(0,255,0)
  #画点
  plot([p[1] for p in corner_coordinate],[p[0] for p in corner_coordinate],'r*')
+ 
  #画直线
+ %matplotlib inline
+ from sklearn.cluster import KMeans
+ import matplotlib.pyplot as plt
  xp.linespace(0,7,100)
  plt.plot(xp,y,c='r') #plot the line with red color
  plt.show()
+ 
  # 写字
  font_face = cv2.FONT_HERSHEY_SIMPLEX
  font_scale = 0.5
  cv2.putText(self.img, "Words", (10,15), font_face, font_scale, (255,255,0))
  #(10,15)是待显示的字体；
  
+ #画散点
+ %matplotlib inline
+ import numpy as np
+ from pylab import *
+ np.random.seed(2) #播撒种子点，保证每一次运行结果都相同
+ pageSpeeds = np.random.normal(3.0, 1.0, 100)
+ purchaseAmount = np.random.normal(50.0, 30.0, 100) / pageSpeeds
+ scatter(pageSpeeds, purchaseAmount)
+ 
+ #更大的画面
+ %matplotlib inline
+ from pylab import *
+ plt.figure(figsize=(8, 6))
  
  
  ############################################################

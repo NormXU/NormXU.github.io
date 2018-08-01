@@ -1,0 +1,315 @@
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+	
+    <title>Data Science Course on Udemy</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+	<link href="themes/prism.css" rel="stylesheet" />
+	
+    <!-- Custom fonts for this template -->
+    <link href="vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic" rel="stylesheet" type="text/css">
+
+    <!-- Plugin CSS -->
+    <link href="vendor/magnific-popup/magnific-popup.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="http://cdn.staticfile.org/font-awesome/4.7.0/css/font-awesome.min.css">
+   
+
+    <!-- Custom styles for this template -->
+    <link href="css/freelancer.min.css" rel="stylesheet">
+
+</head>
+
+<body id="page-top">  
+	<script src="prism.js"></script>
+	<!-- Navigation -->
+    <nav class="navbar navbar-expand-lg bg-secondary fixed-top text-uppercase" id="mainNav">
+      <div class="container">
+        <a class="navbar-brand js-scroll-trigger" href="#page-top">Go To Top</a>
+        
+        
+      </div>
+    </nav>
+	
+	<section class="portfolio" id="portfolio">
+      <div class="container">
+	    <br />
+		<br />
+        <h2 class="text-center text-uppercase text-secondary mb-0">Online Courses</h2>
+        <hr class="star-dark mb-5">
+        <div class="row">
+		<div class="container">
+		
+		
+		<p class="mb-5">
+		<b>r-squared score</b>
+<div class="container">
+	<div class="row">
+		
+		<div class="col-lg-6 ml-auto">
+		<pre><code class="language-python">
+		from sklearn.metrics import r2_score
+		
+		r2 = r2_score(testy, p4(testx))
+		#其中,testy是实际的数据 p4(testx)是通过模型拟合的预测数据
+		print(r2)
+		</code></pre>
+		
+		</div>
+		
+		<div class="col-lg-6 ml-auto">
+		<br /><br /><br />
+		r-squared score越大，说明模型拟合的效果越好
+		</div>
+    </div>
+</div>		
+		
+		<br /><br />
+		
+		<pre><code class="language-python">
+		#若pageSpeeds有100项
+		trainX = pageSpeeds[:80]#前八十项
+		testX = pageSpeeds[80:]#后20项
+		
+		# Polynomial Regression
+		x = np.array(trainX)
+		y = np.array(trainY)
+
+		p4 = np.poly1d(np.polyfit(x, y, 8))# 最高项是8
+		
+		#设置坐标轴
+		import matplotlib.pyplot as plt
+		axes = plt.axes()
+		axes.set_xlim([0,7])
+		axes.set_ylim([0, 200])
+		</code></pre>
+		
+	<br /><br />
+	
+<div class="container">
+	<div class="row">
+		<div class="col-lg-6 ml-auto">
+<pre><code class="language-python">
+	import os
+	import os.path
+	rootdir="D:\\论文"
+	for parent,dirnames,filenames in os.walk(rootdir):
+		for dirname in dirnames:
+			print 'parent is ',parent
+			print 'dirname is',dirname
+    for filename in filenames:
+			print 'parent is',parent
+			print 'filename is',filename
+			print 'fullname is '+os.path.join(parent,filename)
+	
+#还有类似这种的操作	
+	for root, dirnames, filenames in os.walk(path):
+		for filename in filenames:
+			path = os.path.join(root, filename)
+            f = io.open(path, 'r', encoding='UTF-8')#只读文件
+            ...
+		</code></pre>
+		</div>
+		
+	<div class="col-lg-6 ml-auto">
+	<br /><br />
+		os.walk()可以得到一个三元tupple(parent, dirnames, filenames)<br /><br />
+		 parent：起始路径。<br />
+		 Dirnames：起始路径下的文件夹。<br />
+		 Filenames：第三个是起始路径下的文件。<br /><br />
+rootdir要遍历的路径名称，parent是文件或者文件夹的上一层目录（这是绝对路径），dirname，如果遍历到的是文件夹，则内容放在dirname当中，如果遍历到的是文件，则文件名称放在filename当中<br />
+
+		</div>
+    </div>
+</div>	
+
+
+		
+	<br /><br />
+	
+<b>yield python的使用</b><br />
+<div class="container">
+	<div class="row">
+		<div class="col-lg-6 ml-auto">
+<pre><code class="language-python">
+#生成斐波那契数列
+def fab(max): 
+    n, a, b = 0, 0, 1 
+    while n < max: 
+        yield b 
+        # print b 
+        a, b = b, a + b 
+        n = n + 1 
+		
+#在for循环中调用
+for n in fab(5): 
+    print n 
+
+#也可以使用next()方法查看下进程
+>>> f = fab(5) 
+>>> f.next() 
+1 
+>>> f.next() 
+1 
+>>> f.next() 
+2 
+>>> f.next() 
+3 
+>>> f.next() 
+5 
+</code></pre>
+</div>
+	<div class="col-lg-6 ml-auto"><br /><br />
+	python 解释器会将其视为一个 generator，调用 fab(5) 不会执行 fab 函数，而是返回一个 iterable 对象！在 for 循环执行时，每次循环都会执行 fab 函数内部的代码，执行到 yield b 时，fab 函数就返回一个迭代值，下次迭代时，代码从 yield b 的下一条语句继续执行，
+	而函数的本地变量看起来和上次中断执行前是完全一样的，于是函数继续执行，直到再次遇到 yield。
+	</div>
+
+</div>
+</div>	
+ 
+<br /><br />
+<pre><code class="language-python">
+from sklearn.feature_extraction.text import CountVectorizer
+vectorizer = CountVectorizer()
+counts = vectorizer.fit_transform(data['message'].values)
+
+</code></pre>
+all the words in each email and the count the number that occurs<br /><br />
+
+<b>K-means clustering</b><br />
+Finding K centroid. SO, basically, what group a given data point belongs to is defined by which centroid it is closest to.<br />
+<ul>
+<li>- Randomly pick K centroids</li>
+<li>- Assign each data point to the centroid it is closest to</li>
+<li>- Recompute the centroids based on the average position of each centroid points</li>
+<li>- iterate until points stop changing assignment to centroid</li>
+</ul>
+
+<h5>Decision Tree</h5>
+partution the data to minimize the entropy of the data by choosing the right attribute to decide on(ID3);
+Decision tree are susceptible to overfitting; 为了解决这一问题，可以construct several decision tress and let them vote on the final classification(Rando)
+<ul>
+<li>- Randomly re-sample the input data for each tree</li>
+<li>- Randomize a subset of attribute each step is allowed to choose</li>
+如果训练集大小为N，对于每棵树而言，随机且有放回地从训练集中的抽取N个训练样本（这种采样方式称为bootstrap sample方法），作为该树的训练集
+Boosting: address mis-classified data by bootstrap sample
+</ul>
+Basic Idea: We have multiple trees. Each that uses a random sub-sample of data that we have to train on and each tree can vote on the final result
+<br /><br />
+<b>Gini不纯度</b><br />
+Gini不纯度的值是：1-每个标签占总数的比例的平方和.<br />
+
+总的集合D被分为两个集合D1，D2，假设见面为1，不见面为0<br /><br />
+那么D1的不纯度为1-f1^2-f0^2，总数为5，见面的占了全部，则f1=1，f0=0，结果为0<br /><br />
+D2的不纯度为1-f1^2-f0^2，f1=0.8，f0=0.2，结果为0.32<br /><br />
+ok，那么整个分类结果的Gini不纯度就是D1/D与0的乘积 加上 D2/D与0.32的乘积，为0.16<br />
+Gini值代表了某一个分类结果的“纯度”，我们希望结果的纯度很高，这样就不需要对这一结果进行处理了。
+
+从以上分析可以看出，Gini值越小，纯度越高，结果越好。
+
+<h5>Python Code</h5>
+
+<pre><code class="language-python">
+x = np.arange(-2,2)
+y = np.arange(0,3)#生成一位数组，其实也就是向量
+
+x
+Out[31]: array([-2, -1,  0,  1])
+
+y
+Out[32]: array([0, 1, 2])
+
+z,s = np.meshgrid(x,y)#将两个一维数组变为二维矩阵
+
+z
+Out[36]: 
+array([[-2, -1,  0,  1],
+       [-2, -1,  0,  1],
+       [-2, -1,  0,  1]])
+
+s
+Out[37]: 
+array([[0, 0, 0, 0],
+       [1, 1, 1, 1],
+       [2, 2, 2, 2]])
+</code></pre>
+
+</div>
+          
+		  <!-- <h4 class="text-uppercase mb-4">Location</h4> -->
+ 		  
+          
+        </div>
+      </div>
+    </section>
+
+  <!-- Footer -->
+    <footer class="footer text-center">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-4 mb-5 mb-lg-0">
+            <h4 class="text-uppercase mb-4">Location</h4>
+            <p class="lead mb-0">Baltimore
+              <br>MD, 21211</p>
+          </div>
+          <div class="col-md-4 mb-5 mb-lg-0">
+            <h4 class="text-uppercase mb-4">Around the Web</h4>
+            <ul class="list-inline mb-0">
+              <li class="list-inline-item">
+                <a class="btn btn-outline-light btn-social text-center rounded-circle" href="#">
+                  <i class="fa fa-fw fa-facebook"></i>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a class="btn btn-outline-light btn-social text-center rounded-circle" href="#">
+                  <i class="fa fa-fw fa-google-plus"></i>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a class="btn btn-outline-light btn-social text-center rounded-circle" href="#">
+                  <i class="fa fa-fw fa-twitter"></i>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a class="btn btn-outline-light btn-social text-center rounded-circle" href="#">
+                  <i class="fa fa-fw fa-linkedin"></i>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a class="btn btn-outline-light btn-social text-center rounded-circle" href="#">
+                  <i class="fa fa-fw fa-dribbble"></i>
+                </a>
+              </li>
+            </ul>
+          </div>
+		  <!--
+          <div class="col-md-4">
+            <h4 class="text-uppercase mb-4">About Freelancer</h4>
+            <p class="lead mb-0">Freelance is a free to use, open source Bootstrap theme created by
+              <a href="http://startbootstrap.com">Start Bootstrap</a>.</p>
+          </div>
+		  -->
+        </div>
+      </div>
+    </footer>
+	
+    <!-- Scroll to Top Button (Only visible on small and extra-small screen sizes) -->
+    <div class="scroll-to-top d-lg-none position-fixed ">
+      <a class="js-scroll-trigger d-block text-center text-white rounded" href="#page-top">
+        <i class="fa fa-chevron-up"></i>
+      </a>
+    </div>
+	
+
+	
+</body>
+</html>
