@@ -380,7 +380,14 @@ void davinci::gripCallback(const std_msgs::Bool::ConstPtr& grab, int i)
 </code></pre>
 		
 		 
-		 
+What does multiplication of two quaternions give?
+Multiplication of quaternions works pretty much the same way the multiplication of rotation (or transformation) matrices works. So multiplication of two quaternions combines the rotations, just as multiplying matrices does (e.g. in OpenGL glRotate() function).
+
+A nice thing is that multiplication of two normalized quaternions again produces a normalized quaternion.
+
+Quaternion inversion (or just conjugate for the normalized case) creates the inverse rotation (the same rotation in the opposite direction). This is arguably easier to compute (on current computers) than to calculate inverse of a rotation matrix 
+
+(just have to negate w in quaternion, instead of transposing a rotation matrix).	 
 		 
 		 
 		 </div>

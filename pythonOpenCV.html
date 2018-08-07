@@ -54,7 +54,7 @@
 			
 			<br />
 		
-			<pre><code class="language-python">############################################################
+<pre><code class="language-python">############################################################
 #单像素操作
 image.item((0,0)) #读取  
 image.setitem((0,0),128) #重新赋值  
@@ -108,6 +108,14 @@ from random import randint, sample
 date = [randint(10,20) for _ in range(10)]
 # 从10~20的整数中随机抽取10个数组成名为data的list
 
+from random import choice
+x_direction = choice([1, -1])
+# 随机选择1或者-1
+
+from random import randint
+randint(1, max)
+# 返回1和max之间的整数
+
 ############################################################
 # 显示图像
 import cv2
@@ -151,8 +159,9 @@ class Student(object):
  s = Student()
  s.score = 60 #setter
  s.score      #property
- 
- ############################################################
+ </code></pre>
+  
+ <pre><code class="language-python">
  #基本Python操作
  print("%s:%s" %(self.name, self.score) )
  
@@ -208,7 +217,14 @@ class Student(object):
  # reshape使用：当未知需要把np.array重塑成多少行的时候，
  np.float32(arr).reshape(-1,2) #用-1来占位 
  
- 
+ # enumration
+ seq = ['one', 'two', 'three']
+ for i, element in enumerate(seq):
+    print(i, element)
+
+ >> 0 one
+ >> 1 two
+ >> 2 three
  ############################################################
  #卷积操作
  from scipy import ndimage
@@ -234,86 +250,7 @@ class Student(object):
  np.zeros_like(x)
  array([0,0,0],
        [0,0,0])
- 
- ############################################################
- #做标记
- #画矩形
- img = cv2.rectangle( img, (x,y), (x+w, y+h), (0, 255, 0), 2) #左上角是(x,y)，右下角是(x+w, y+h), 线性是2，颜色是(0,255,0)
- #画圆形
- img = cv2.circle( img, center, radius, (0, 255, 0), 2) #圆心，半径, 线性是2，颜色是(0,255,0)
- #画点
- plot([p[1] for p in corner_coordinate],[p[0] for p in corner_coordinate],'r*')
- 
- #画直线
- %matplotlib inline
- from sklearn.cluster import KMeans
- import matplotlib.pyplot as plt
- xp.linespace(0,7,100)
- plt.plot(xp,y,c='r') #plot the line with red color
- plt.show()
- 
- # 写字
- font_face = cv2.FONT_HERSHEY_SIMPLEX
- font_scale = 0.5
- cv2.putText(self.img, "Words", (10,15), font_face, font_scale, (255,255,0))
- #(10,15)是待显示的字体；
- 
- #画散点
- %matplotlib inline
- import numpy as np
- from pylab import *
- np.random.seed(2) #播撒种子点，保证每一次运行结果都相同
- pageSpeeds = np.random.normal(3.0, 1.0, 100)
- purchaseAmount = np.random.normal(50.0, 30.0, 100) / pageSpeeds
- scatter(pageSpeeds, purchaseAmount)
- 
- #更大的画面
- %matplotlib inline
- from pylab import *
- plt.figure(figsize=(8, 6))
- 
- 
- ############################################################
- #数据类型变换
- radius = int(radius)
- #-----------------------------------
- radius = radius.astype(np.uint8)
- #-----------------------------------
- radius = np.uint32(np.around(radius))
- #-----------------------------------
- radius = radius.astype('uint8')
- #-----------------------------------
- frame = np.array(frame, dtype = np.uint8) 
- 
- 
- ############################################################
- #常用matplotLib操作
- %matplotlib inline
- import matplotlib.pyplot as plt
- 
- plt.plot(x, y)
- plt.show()
- 
- plt.xlabel('time')
- plt.ylabel('my overall health')
- 
- #设置轴
- axes = plt.axes()
- axes.set_xlim([-5,5]) #设置区间
- axes.set_ylim([0,1.0])
- axes.set_xticks([-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5])
- axes.grid() #开启网格
- 
- # 有趣的操作
- plt.xkcd()  #开启漫画风格滤镜
- plt.rcdefaults() #关闭漫画风格滤镜
- 
- 
- # Scatter Plot
- plt.scatter(X, Y)
- plt.show()
- 
- 
+	   
  ###########################################################
  #归一化
  cv2.normalize(self.hist, self.hist, 0, 255, cv2.NORM_MINMAX) 
@@ -360,7 +297,124 @@ class Student(object):
 		
 	
 	img = cv2.imread(fn1, cv2.IMREAD_COLOR)
-</code></pre>
+	
+ ############################################################
+ # IO交互
+ keep_running = input("Make another walk? (y/n): ")
+ if keep_running == 'n':
+	break
+	
+ ############################################################
+ # 统计results这个list中出现了几次value
+ frequency = results.count(value)
+ </code></pre>
+ 
+  <br /><br />
+  
+ <h6>  做标记</h6>
+<pre><code class="language-python">
+ #画矩形
+ img = cv2.rectangle( img, (x,y), (x+w, y+h), (0, 255, 0), 2) #左上角是(x,y)，右下角是(x+w, y+h), 线性是2，颜色是(0,255,0)
+ #画圆形
+ img = cv2.circle( img, center, radius, (0, 255, 0), 2) #圆心，半径, 线性是2，颜色是(0,255,0)
+ #画点
+ plot([p[1] for p in corner_coordinate],[p[0] for p in corner_coordinate],'r*')
+ 
+ #画直线
+ %matplotlib inline
+ from sklearn.cluster import KMeans
+ import matplotlib.pyplot as plt
+ xp.linespace(0,7,100)
+ plt.plot(xp,y,c='r') #plot the line with red color
+ plt.show()
+ 
+ # 写字
+ font_face = cv2.FONT_HERSHEY_SIMPLEX
+ font_scale = 0.5
+ cv2.putText(self.img, "Words", (10,15), font_face, font_scale, (255,255,0))
+ #(10,15)是待显示的字体；
+ 
+ #画散点
+ %matplotlib inline
+ import numpy as np
+ from pylab import *
+ np.random.seed(2) #播撒种子点，保证每一次运行结果都相同
+ pageSpeeds = np.random.normal(3.0, 1.0, 100)
+ purchaseAmount = np.random.normal(50.0, 30.0, 100) / pageSpeeds
+ scatter(pageSpeeds, purchaseAmount)
+ 
+ #更大的画面
+ %matplotlib inline
+ from pylab import *
+ plt.figure(figsize=(8, 6))
+ 
+ # 起标题
+ plt.title("Daily high temperatures, July 2014", fontsize=24)
+ # X坐标
+ plt.xlabel('', fontsize=16)
+ # Y坐标
+ plt.ylabel("Temperature (F)", fontsize=16)
+ # 坐标刻度
+ plt.tick_params(axis='both', which='major', labelsize=16)
+ </code></pre>
+ 
+ <br /><br />
+  <h6>  数据类型变换</h6>
+ <pre><code class="language-python">
+ radius = int(radius)
+ #-----------------------------------
+ radius = radius.astype(np.uint8)
+ #-----------------------------------
+ radius = np.uint32(np.around(radius))
+ #-----------------------------------
+ radius = radius.astype('uint8')
+ #-----------------------------------
+ frame = np.array(frame, dtype = np.uint8) 
+ </code></pre>
+ <br /><br />
+ <h6>  常用matplotLib操作</h6>
+  <pre><code class="language-python">
+ %matplotlib inline
+ import matplotlib.pyplot as plt
+ 
+ plt.plot(x, y)
+ plt.show()
+ 
+ plt.xlabel('time')
+ plt.ylabel('my overall health')
+ 
+ #设置轴
+ axes = plt.axes()
+ axes.set_xlim([-5,5]) #设置区间
+ axes.set_ylim([0,1.0])
+ axes.set_xticks([-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5])
+ axes.grid() #开启网格
+ 
+ # 有趣的操作
+ plt.xkcd()  #开启漫画风格滤镜
+ plt.rcdefaults() #关闭漫画风格滤镜
+ 
+ 
+ # Scatter Plot
+ plt.scatter(X, Y)
+ plt.show()
+ 
+ # 自动计算数据
+ import matplotlib.pyplot as plt
+ x_values = list(range(1, 1001))
+ y_values = [x**2 for x in x_values]
+ 
+ plt.scatter(x_value, y_value, c=(0,0.8,0.8), edgecolor='none',s=10)
+ # c代表颜色； edgecolor代表是否有边界
+ 
+ plt.scatter(x_values, y_values, c=y_values, cmap=plt.cm.Blues, edgecolor='none', s=40)
+ # 对颜色进行映射，数据大的点颜色越深，数据小的点颜色越浅
+ 
+ # 令X,Y坐标轴消失
+ plt.axes().get_xaxis().set_visible(False)
+ plt.axes().get_yaxis().set_visible(False)
+  </code></pre>
+
  
  <b>Python的继承与遗传机制</b>
  <pre><code class="language-python">
