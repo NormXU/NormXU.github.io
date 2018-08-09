@@ -343,8 +343,359 @@ scores = cross_val_score(clf, iris.data, iris.target, cv=5)
     </div>
 </div>	
 
+<h6>Deep Learning</h6>
+<b>autodiff</b><br />
+Mathmatically, we need the first partial derivatives of all the inputs to compute the gradient descent algorithm. However, it is hard and 
+inefficient if you just throw calculus at the problem.<br />
+解决方法: Reverse-mode autodiff<br />
 
+<b>Softmax</b><br />
+When you have the end result of a neural network, you end up with a bunch of what we call weights that come out of the neural network at the end<br />
+Softmax converts each of the final weights that come out of your neural network into a probability.<br />
+Converting the final output of your neural network to an actual answer for a classification<br />
 <br />
+<b>BackPropagation</b><br />
+Compute the error that us computed at the end of our neural and backpropagate it down <br />
+<br />
+<b>Activation function</b><br />
+the function that determines the output of a neuron given the sum of its input<br />
+<br />
+<b>input data</b><br />
+Neural networks usually work best if input data is normalized<br />
+- 0 mean and unit variance<br />
+- every input feature is comparable in terms of magnitude<br />
+
+<br /><br />
+<h6>TensorFlow</h6>
+<pre><code class="language-python">
+import tensorflow as tf
+
+a = tf.Variable(1, name="a")
+b = tf.Variable(2, name="b")
+# a variable object which contains a single value 1 and it is going by the name of "a"
+# 然后赋给Python的变量a
+
+f = a + b
+# 并不是简单的加法。it is a graph. It is a connection that you are building up between A and B tensor
+# establish the relationship between a and b and their dependency together on f
+init = tf.global_variables_initializer()
+with tf.Session() as s:
+	
+	# stuff the values 1 and 2 inside a and b variables
+	init.run()
+	
+	# f.eval()  computation will actually finally happen
+	# 相当于告诉程序，让a=1，让b=2，并把它们加在一起
+	print( f.eval() )
+	
+# Define a alayer of a neural network
+output = tf.matmul(previous_layer, layer_weights) + layer_biases
+
+# Create an interactive session which makes it easier to work with TensorFlow with IPython
+sess = tf.InteractiveSession()
+
+# Think of one_hot as a binary representation of the label data - that is, which number 
+# each handwriting sample was intended to represent. Mathematically one_hot represents a dimension 
+# for every possible label value. Every dimension is set to the value 0, except for the "correct" one which is set to 1. 
+# For example, the label vector representing the number 1 would be [0, 1, 0, 0, 0, 0, 0, 0, 0, 0] 
+# (remember we start counting at 0.) It's just a format that's optimized 
+# for how the labels are applied during training.
+mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
+
+
+
+import matplotlib.pyplot as plt
+
+def display_sample(num):
+    #Print the one-hot array of this sample's label 
+    print(mnist.train.labels[num])  
+    #Print the label converted back to a number
+    label = mnist.train.labels[num].argmax(axis=0)
+    #Reshape the 768 values to a 28x28 image
+    image = mnist.train.images[num].reshape([28,28])
+    plt.title('Sample: %d  Label: %d' % (num, label))
+	
+	# Display an image as grayscale
+    plt.imshow(image, cmap=plt.get_cmap('gray_r'))
+    plt.show()
+    
+display_sample(1234)
+
+
+import numpy as np
+
+images = mnist.train.images[0].reshape([1,784]) #将第一幅28*28的图转化为1*784
+for i in range(1, 500):
+    images = np.concatenate((images, mnist.train.images[i].reshape([1,784])))
+plt.imshow(images, cmap=plt.get_cmap('gray_r'))
+plt.show()
+
+
+# 创建placeholder， 这样做的好处是更加方便了
+# While training, we'll assign input_images to the training images and target_labels to the training lables.
+# While testing, we'll use the test images and test labels instead
+input_images = tf.placeholder(tf.float32, shape=[None, 784])
+target_labels = tf.placeholder(tf.float32, shape=[None, 10])
+# 在这里None表示并不知道有多少行， 但随后会被自动填写
+
+
+hidden_nodes = 512
+
+input_weights = tf.Variable(tf.truncated_normal([784, hidden_nodes]))
+# input是Normalized的数据，且该输入层有784个输入信号，也就是一个pixel一个输入
+# 输出有512个隐藏层(hidden layer)节点 
+
+# 设置bias term on that layer
+input_biases = tf.Variable(tf.zeros([hidden_nodes]))
+
+# 对于隐藏层来说，有输入512，输出10
+hidden_weights = tf.Variable(tf.truncated_normal([hidden_nodes, 10]))
+# bias
+hidden_biases = tf.Variable(tf.zeros([10]))
+
+
+# Input Layer does matrix multiplication between input image layer and input weights
+input_layer = tf.matmul(input_images, input_weights)
+# Define hidden layer as using the relu activation function on sum of input matix multiplication and bias vector
+hidden_layer = tf.nn.relu(input_layer + input_biases)
+# 而output layer则是hidden_layer和hidden_weights的乘积和bias的和
+digit_weights = tf.matmul(hidden_layer, hidden_weights) + hidden_biases
+
+
+
+tf.global_variables_initializer().run()
+
+
+# run 2000 training steps of 100 images on each batch
+for x in range(2000):
+	# pick out the next 100 training images from our batch of training images
+    batch = mnist.train.next_batch(100)
+	# run optimizer
+    optimizer.run(feed_dict={input_images: batch[0], target_labels: batch[1]})
+    if ((x+1) % 100 == 0):
+        print("Training epoch " + str(x+1))
+        print("Accuracy: " + str(accuracy.eval(feed_dict={input_images: mnist.test.images, target_labels: mnist.test.labels})))
+		
+</code></pre>
+<br />
+
+<h6>Keras</h6>
+<pre><code class="language-python">
+from tensorflow import keras
+from tensorflow.keras.datasets import mnist
+# A quick way to assemble the layers of a neural network
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Dropout
+# A better optimizer for gradient descent
+from tensorflow.keras.optimizers import RMSprop
+
+
+# 和tensorflow一样，构造输入的模型,60000数据，每个数据为784维
+train_images = mnist_train_images.reshape(60000, 784)
+test_images = mnist_test_images.reshape(10000, 784)
+train_images = train_images.astype('float32')
+test_images = test_images.astype('float32')
+# Normalized
+train_images /= 255
+test_images /= 255
+
+# Convert to one-hot 模式，convert the 0-9 labels into "one-hot" format
+train_labels = keras.utils.to_categorical(mnist_train_labels, 10)
+test_labels = keras.utils.to_categorical(mnist_test_labels, 10)
+
+
+model = Sequential()
+# Add one layer, output 512 neurons with an input shape of 784 neurons(每个像素一个neurons)
+# and feed it into a hidden layer. Those neurons will have the relu activation function
+model.add(Dense(512, activation='relu', input_shape=(784,)))
+# Put a softmax activation function on top of it with final layer of 10; Use to define hidden layer
+model.add(Dense(10, activation='softmax'))
+
+
+model.summary() # 显示概况
+
+# The loss function is categorical_crossentropy
+# Optimizer有 RMSProp, Adam 
+model.compile(loss='categorical_crossentropy',
+              optimizer=RMSprop(),
+              metrics=['accuracy'])
+			  
+			  
+
+			  
+history = model.fit(train_images, train_labels, # input data
+                    batch_size=100,
+                    epochs=10, # Run 10 times
+                    verbose=2,
+                    validation_data=(test_images, test_labels)) # Test Data
+					
+					
+					
+					
+					
+					
+					
+# Multi-class classification
+
+model = Sequential()
+
+model.add(Dense(64, activation='relu', input_dim=20))
+# Discard half of the neurons on each training step to prevent overfitting
+model.add(Dropout(0.5))
+# 该模型拥有两个隐藏层
+model.add(Dense(64,activation='relu'))
+model.add(Dropout(0.5))
+
+# 10 different output value
+model.add(Dense(10,activation='softmax'))
+
+# 对模型进行compile，并定义loss, optimizer
+model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
+
+
+
+# Binary classification
+
+# A sequential model, put in a dense layer with 20 inputs, and 64 neurons in that layer 
+# Then feed to another layer of 64 neurons
+# And finally goes to a binary classfier at the end
+
+model = Sequential()
+
+model.add(Dense(64, activation='relu', input_dim=20))
+# Discard half of the neurons on each training step to prevent overfitting
+model.add(Dropout(0.5))
+# 该模型拥有两个隐藏层
+model.add(Dense(64,activation='relu'))
+model.add(Dropout(0.5))
+
+# 1 output value
+model.add(Dense(1,activation='sigmoid'))
+
+# 对模型进行compile，并定义loss, optimizer
+model.compile(loss='binary_crossentropy', optimizer=rmsprop, metrics=['accuracy'])
+
+
+# Pass the estimator into scikit learn
+# The scikit learn will run your neural network
+estimator = KerasClassifier(build_fn=create_model, epochs, verbose=0)
+
+
+from tensorflow import keras
+from tensorflow.keras.layers import Dense, Dropout
+from tensorflow.keras.models import Sequential
+from sklearn.model_selection import cross_val_score
+
+def create_model():
+    model = Sequential()
+    #16 feature inputs (votes) going into an 32-unit layer 
+    model.add(Dense(32, input_dim=16, kernel_initializer='normal', activation='relu'))
+    # Another hidden layer of 16 units
+    model.add(Dense(16, kernel_initializer='normal', activation='relu'))
+    # Output layer with a binary classification (Democrat or Republican political party)
+    model.add(Dense(1, kernel_initializer='normal', activation='sigmoid'))
+    # Compile model
+    model.compile(loss='binary_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
+    return model
+
+from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
+
+# Wrap our Keras model in an estimator compatible with scikit_learn
+estimator = KerasClassifier(build_fn=create_model, nb_epoch=100, verbose=0)
+# Now we can use scikit_learn's cross_val_score to evaluate this model identically to the others
+cv_scores = cross_val_score(estimator, all_features, all_classes, cv=10)
+cv_scores.mean()
+
+</code></pre>
+<br />
+
+<h5>CNN with Keras</h5><br />
+- source data must be in right dimension: width x Length x Color<br />
+- Conv2D layer does the actual convolution on a 2D image<br />
+- MaxPooling2D layers can be used to reduce a 2D layer down by taking maximum value<br />
+- Flatten layer will convert the 2D layer to a 1D layer for passing into a flat hidden layer of neurons<br />
+<br />
+Conv2D -> MaxPooling2D -> Dropout -> Flatten -> Dense -> Dropout -> Softmax<br />
+<h6>Specialized CNN architectures</h6><br />
+- LeNet-5
+- AlexNet
+- GoogKeNet
+- ResNet
+<pre><code class="language-python">
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Dropout, Conv2D, MaxPooling2D, Flatten
+
+# Define Optimizer
+from tensorflow.keras.optimizers import RMSprop
+
+#  convert our train and test labels to be categorical in one-hot format
+train_labels = tensorflow.keras.utils.to_categorical(mnist_train_labels, 10)
+test_labels = tensorflow.keras.utils.to_categorical(mnist_test_labels, 10)
+
+
+model = Sequential()
+# Our convolution 2D layer has 32 windows. Windows are used to sample that image with
+# 3x3 filter
+# It also need input shape of data
+model.add(Conv2D(32, kernel_size=(3, 3),
+                 activation='relu',
+                 input_shape=input_shape))
+
+# add a second convolutional filter on top of previous one; 
+# have 64 kernals which are all 3x3 size, activation function is relu
+model.add(Conv2D(64, (3, 3), activation='relu'))
+
+# 池化，池化大小是2x2
+# Reduce by taking the max of each 2x2 block
+model.add(MaxPooling2D(pool_size=(2, 2)))
+
+
+# Dropout to avoid overfitting
+model.add(Dropout(0.25))
+
+# Flatten the results to one dimension for passing into our final layer
+model.add(Flatten())
+
+
+# A hidden layer，该layer有128个neurons
+model.add(Dense(128, activation='relu'))
+
+# Another dropout
+model.add(Dropout(0.5))
+
+# Final categorization from 0-9 with softmax
+model.add(Dense(10, activation='softmax'))
+
+
+model.compile(loss='categorical_crossentropy',
+              optimizer='adam',
+              metrics=['accuracy'])
+
+
+# Run convolution neural network
+history = model.fit(train_images, train_labels,
+                    batch_size=32,
+                    epochs=10,
+                    verbose=2, #等于2是为了running within an Ipython Notebook 
+                    validation_data=(test_images, test_labels))
+					
+</code></pre>
+打开一个python console，像spyder一样选中代码然后alt +shift + e
+可以在Pycharm中逐模块运行程序
+<br />
+<h5>Recurrent Neural Network</h5><br />
+- Built on Time series data. Where to drive your self-driving car based on past trajectories
+
+<img class="img-fluid mb-5" src="img/portfolio/rnn.JPG" alt="">
+Memory Cell <br />
+The output from previous time step and those get summed together<br />
+
+When you tries to build RNN, the states from earlier time ends up getting diluted over time  because we just 
+keep feeding in behavior from the previous step. 这对于older behaviour does not matter newer behavior，比如让机器理解一句话
+To counteract the effect： 方法：LSTM CELL 或 GRU Cell(简化版LSTM Cell)
+
+
+
 <h5>Python Code</h5>
 
 <pre><code class="language-python">
@@ -411,6 +762,15 @@ print str.rstrip('8');
 # 输出显示
      this is string example....wow!!!
 88888888this is string example....wow!!!
+
+
+# for循环
+def reject_outliers(data):
+    u = np.median(data)
+    s = np.std(data)
+    filtered = [e for e in data if (u - 2 * s < e < u + 2 * s)]
+	# 对于每一个在data中的数据，当满足if条件的时候，插入filtered
+    return filtered
 </code></pre>
 
 </div>

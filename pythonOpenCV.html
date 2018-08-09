@@ -116,6 +116,9 @@ from random import randint
 randint(1, max)
 # 返回1和max之间的整数
 
+import numpy as np
+incomes = np.random.normal(27000, 15000, 10000)
+# 产生mean 27000, standard deviation: 15000, 生成10000个数
 ############################################################
 # 显示图像
 import cv2
@@ -356,6 +359,9 @@ class Student(object):
  plt.ylabel("Temperature (F)", fontsize=16)
  # 坐标刻度
  plt.tick_params(axis='both', which='major', labelsize=16)
+ 
+ # Display an image as grayscale
+ plt.imshow(image, cmap=plt.get_cmap('gray_r'))
  </code></pre>
  
  <br /><br />
