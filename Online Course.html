@@ -215,7 +215,7 @@ ok，那么整个分类结果的Gini不纯度就是D1/D与0的乘积 加上 D2/D
 Gini值代表了某一个分类结果的“纯度”，我们希望结果的纯度很高，这样就不需要对这一结果进行处理了。
 
 从以上分析可以看出，Gini值越小，纯度越高，结果越好。
-
+<br /><br />
 <h5>KNN</h5>
 <pre><code class="language-python">
 from scipy import spatial
@@ -233,7 +233,7 @@ distances.sort(key=operator.itemgetter(1))
 >>>
 也就是根据tuple的第二个元素进行排序
 </code></pre>
-
+<br /><br />
 <h5>PCA</h5>
 <pre><code class="language-python">
 from sklearn.decomposition import PCA
@@ -342,7 +342,7 @@ scores = cross_val_score(clf, iris.data, iris.target, cv=5)
 		</div>
     </div>
 </div>	
-
+<br /><br />
 <h6>Deep Learning</h6>
 <b>autodiff</b><br />
 Mathmatically, we need the first partial derivatives of all the inputs to compute the gradient descent algorithm. However, it is hard and 
@@ -615,12 +615,12 @@ cv_scores.mean()
 - MaxPooling2D layers can be used to reduce a 2D layer down by taking maximum value<br />
 - Flatten layer will convert the 2D layer to a 1D layer for passing into a flat hidden layer of neurons<br />
 <br />
-Conv2D -> MaxPooling2D -> Dropout -> Flatten -> Dense -> Dropout -> Softmax<br />
+Conv2D -> MaxPooling2D -> Dropout -> Flatten -> Dense -> Dropout -> Softmax<br /><br />
 <h6>Specialized CNN architectures</h6><br />
-- LeNet-5
-- AlexNet
-- GoogKeNet
-- ResNet
+- LeNet-5<br />
+- AlexNet<br />
+- GoogKeNet<br />
+- ResNet<br />
 <pre><code class="language-python">
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout, Conv2D, MaxPooling2D, Flatten
@@ -682,7 +682,7 @@ history = model.fit(train_images, train_labels,
 </code></pre>
 打开一个python console，像spyder一样选中代码然后alt +shift + e
 可以在Pycharm中逐模块运行程序
-<br />
+<br /><br />
 <h5>Recurrent Neural Network</h5><br />
 - Built on Time series data. Where to drive your self-driving car based on past trajectories
 
@@ -695,7 +695,7 @@ keep feeding in behavior from the previous step. 这对于older behaviour does n
 To counteract the effect： 方法：LSTM CELL 或 GRU Cell(简化版LSTM Cell)
 
 
-
+<br /><br />
 <h5>Python Code</h5>
 
 <pre><code class="language-python">
