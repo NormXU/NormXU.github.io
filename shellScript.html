@@ -123,6 +123,39 @@ fg
 ctrl+Z
 bg 
 
+
+pip search Pkg_name # Search Pkg
+pip list            # Show all pkg we currently install
+pip list -o         # 查看pkg是否是latest version
+pip install -U pkg_name # Update pkg version
+pip freeze > requirements.txt # 将list打印为txt文件
+pip install -r requirements.txt #根据打印的txt文件安装所有的pkg
+
+# create seperate environment that have the specific packages and version that we need
+conda create --name 名字 基础包
+例: conda create --name NormTest numpy matplot
+conda activate NormTest # activate environment
+which python # Check Which python we are now using
+conda deactivate  #关闭该环境
+
+
+conda create --name NormTest python=2.7 numpy matplot
+#使用python 2.7
+
+
+conda env list
+# 查看所有的环境
+
+conda remove --name NormTest --all
+# Delete entire things
+
+%matplotlib inline # Aloow matplot charts to be displayed within notebook
+
+%%HTML  # Bring html directly without using markdown
+%%HTML 
+< iframe width="560" height="315" src="https://www.youtube.com/watch?v=HW29067qVWk&list=PL-osiE80TeTt2d9bfVyTiXJA-UTHn6WwU&index=17 " 
+         frameborder="0" allowfullscreen > < /iframe >
+# 在IPython中调用视频		 
 </code></pre>
 				</div>
 				

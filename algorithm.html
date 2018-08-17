@@ -724,6 +724,12 @@ class TestCalc(unittest.TestCase):
 		result = add(10,5)
 		# 验证得数是否是15
 		self.assertEqual(result, 15)
+		
+    def test_divide(self):
+		self.assertRaises(ValueError, divide, 10, 0) #用于检测Raise是否正常工作
+		# 但这样写过于繁琐，因此可以使用context manager
+		with self.assertRaises(ValueError):
+			divide(10, 0)
 
 
 if __name__ == '__main__':
@@ -731,19 +737,6 @@ if __name__ == '__main__':
 		
 </code></pre>
 </p>
-
-
-def bfs(grid,matrix,i,j,count):
-	q = [(i,j,0)]
-	while q:
-		i, j, step = q.pop(0)
-		for k, l in [(i-1,j), (i+1, j), (i,j-1), (i, j+1)]:
-			if 0<= k <= len(grid) and 0<= l <= len(grid[0]) and \
-					matrix[k][l] == count and grid[k][l] == 0:
-					q.append(k, l, step+1)
-					
-# 迅速构建二维数组的方法	
-	matrix = [[[0,0] for i in range(len(grid[0]))] for j in range(len(grid))]
 
 
 
@@ -756,6 +749,85 @@ def bfs(grid,matrix,i,j,count):
 
 
 	
+
+	
+	
+	<h5>    Binary Search </h5>
+<p class="mb-5">
+Binary search works for a sorted array.<br />
+T(n): O(log n)
+</p>
+<br />
+<div class="container">
+	<div class="row">
+		<div class="col-lg-6 ml-auto">
+		
+ <pre><code class="language-python">
+
+ def binary_search_recur(array, low, high, val):
+    if low > high:       # error case
+        return -1
+    mid = (low + high) // 2
+    if val < array[mid]:
+        return binary_search_recur(array, low, mid - 1, val)
+    elif val > array[mid]:
+        return binary_search_recur(array, mid + 1, high, val)
+    else:
+        return mid
+
+</code></pre>
+
+
+   
+		</div>
+				
+				
+				
+<div class="col-lg-6 ml-auto">
+<p>
+unittest python<br />
+<pre><code class="language-python">
+# 文件名： test_calc.py
+# 运行该脚本方式: python -m unittest test_calc.py
+# 但是，加入__name__之后，可以简单地使用python test_calc.py来运行程序
+import unittest
+
+def add(a,b):
+	return a+b
+
+def divide(x, y):
+	if y == 0:
+		raise ValueError('Can not divide by zero')
+	return x / y
+
+class TestCalc(unittest.TestCase):
+# Inherent from unittest.TestCase, will give a lot of testing capabilities
+# This name needs to start wirh test_(convention)
+	def test_add(self):
+		result = add(10,5)
+		# 验证得数是否是15
+		self.assertEqual(result, 15)
+		
+    def test_divide(self):
+		self.assertRaises(ValueError, divide, 10, 0) #用于检测Raise是否正常工作
+		# 但这样写过于繁琐，因此可以使用context manager
+		with self.assertRaises(ValueError):
+			divide(10, 0)
+
+
+if __name__ == '__main__':
+	unittest.main()
+		
+</code></pre>
+</p>
+
+
+
+
+				</div>
+				
+	</div>	
+</div>
 
 
 
