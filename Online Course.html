@@ -841,6 +841,8 @@ class Employee():
 		return self.pay + other.pay
 		
 		
+	def __len__(self):
+		return len(self.fullname)
 		
 	
 	
@@ -875,6 +877,41 @@ print(emp_1.__str__())
 
 # 定义了__add__后，就可以调用
 # print(emp_1 + emp_2 )
+
+
+
+# Decorator
+class Employee:
+	def __init__(self, first, last):
+		self.first = first
+		self.last = last
+		
+		
+	# Define as a method, access as an attribute
+	@property	
+	def email(self):
+		return '{}.{}@email.com'.format(self.first, self.last)
+		
+	@property	
+	def fullname(self):
+		return '{}.{}'.format(self.first, self.last)
+		
+	@fullname.setter
+	def fullname(self, name):
+		first, last = name.split('')# Split name as ' '
+		self.first = first
+		self.last  = last
+		
+	# 有了setter，就可以使用emp_1.fullname = 'Cory Pikachu'
+	
+	
+	@fullname.deleter
+	def fullname(self):
+		print('Delete Name')
+		self.first = None
+		self.last = None
+	# 使用方法: del emp_1.fullname	
+
 </code></pre>
 <br />
 <h5>K-Fold Cross Validation</h5>
