@@ -1,0 +1,666 @@
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+	
+    <title>ROS and Shell Script command</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+	<link href="themes/prism.css" rel="stylesheet" />
+	
+    <!-- Custom fonts for this template -->
+    <link href="vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic" rel="stylesheet" type="text/css">
+
+    <!-- Plugin CSS -->
+    <link href="vendor/magnific-popup/magnific-popup.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="http://cdn.staticfile.org/font-awesome/4.7.0/css/font-awesome.min.css">
+   
+
+    <!-- Custom styles for this template -->
+    <link href="css/freelancer.min.css" rel="stylesheet">
+
+</head>
+
+<body id="page-top">  
+	<script src="prism.js"></script>
+	<!-- Navigation -->
+    <nav class="navbar navbar-expand-lg bg-secondary fixed-top text-uppercase" id="mainNav">
+      <div class="container">
+        <a class="navbar-brand js-scroll-trigger" href="#page-top">Go To Top</a>
+        
+        
+      </div>
+    </nav>
+	
+	<section class="portfolio" id="portfolio">
+      <div class="container">
+	    <br />
+		<br />
+        <h2 class="text-center text-secondary mb-0">ROS and Shell Script command</h2>
+        <hr class="star-dark mb-5">
+        <div class="row">
+		<div class="container">
+		<p>
+		
+		<p class="mb-5">
+			
+		多多积累Linux Shell Command，有朝一日变成像Simon一样熟练运用
+		<div class="container">
+			<div class="row">
+				<div class="col-lg-12 ml-auto">
+<pre><code class="language-C">
+chmod +x day1.sh  	#将shell 文件变为可执行文件     
+ls -l  				# view the current permission on a file 
+rm day1.sh 			#删除文件day1.sh
+cat day1.sh  		#read the content of shell file
+pwd  				#present working directory
+
+# set variable in shell script
+SKILL="script"   	# 注意，等号周围没有空格
+#使用variable的时候，可按照以下例子
+if [[ "${UID}" -eq 0 ]]
+then
+	echo "xxxx"
+else
+	echo "xxx"
+fi
+
+su 				 	#switch usr account, 通过输入exit 来退出
+
+#!/bin/bash     	#预设shell运行的路径
+
+catkin_make --pkg package_name # Rebuild a Single catkin Pkg
+
+# remove a package called  “my_catkin_package” from your  “~/catkin_ws/src” directory
+cd ~/catkin_ws/src
+\rm -rf my_catkin_package
+# remove all file built by catkin_make
+\rm -rf devel build install
+
+
+# grep: mainly used for finding string and file
+
+grep "what you want to search" "file name"
+例如: grep "hello" hello.cpp 
+
+grep -i "hello" hello.cpp  # 不考虑大小写，继续进行search
+
+grep -n "hello" hello.cpp  # print the line numbers
+
+grep -n "hello" *  # search string "hello" in all the files in this folder
+
+grep -r shapes * #在所有文件中查找shapes这个关键字所在的位置
+
+#When you search for boo, grep will match fooboo, boo123, barfoo35 and more. You can force the grep command to select only 
+those lines containing matches that form whole words i.e. match only boo word:
+grep -rw "boo" file #r是切到某目录了下面后只搜索含有boo的line,不管boo123这种部分含有boo的line
+
+rosbag record -O my_scan_data /scan /tf  #Record data to bag with name my_scan_data.bag
+
+rosparam delete /move_base  #把服务器上的/move_base节点的数据全部删除
+
+rqt_console & # nice message monitor interface
+
+catkin_make -j 1 #只用一个线程编，第一次编msg时要这样不然catkin找不到msg
+
+matlab -nodesktop  #在Terminal使用MATLAB，而不调用UI界面；退出的时候使用quit()即可
+
+rqt_plot /cmd_vel/angular/z #使用rqt_plot来绘制该节点的信息
+
+history | grep xxx #查看历史指令，并运行对应行号的历史指令
+! 行号
+
+rosrun rviz rviz & # &这个符号是让指令在background中运行
+fg
+ctrl+Z
+bg 
+
+
+pip search Pkg_name # Search Pkg
+pip list            # Show all pkg we currently install
+pip list -o         # 查看pkg是否是latest version
+pip install -U pkg_name # Update pkg version
+pip freeze > requirements.txt # 将list打印为txt文件
+pip install -r requirements.txt #根据打印的txt文件安装所有的pkg
+
+# create seperate environment that have the specific packages and version that we need
+conda create --name 名字 基础包
+例: conda create --name NormTest numpy matplot
+conda activate NormTest # activate environment
+which python # Check Which python we are now using
+conda deactivate  #关闭该环境
+
+
+conda create --name NormTest python=2.7 numpy matplot
+#使用python 2.7
+
+
+conda env list
+# 查看所有的环境
+
+conda remove --name NormTest --all
+# Delete entire things
+
+%matplotlib inline # Aloow matplot charts to be displayed within notebook
+
+%%HTML  # Bring html directly without using markdown
+%%HTML 
+< iframe width="560" height="315" src="https://www.youtube.com/watch?v=HW29067qVWk&list=PL-osiE80TeTt2d9bfVyTiXJA-UTHn6WwU&index=17 " 
+         frameborder="0" allowfullscreen > < /iframe >
+# 在IPython中调用视频		 
+</code></pre>
+				</div>
+				
+				
+				
+	<div class="col-lg-12 ml-auto">
+	<br /><br />
+	<h4>Robot Navigation</h4>
+<pre><code class="language-C"> 
+# tf tutorial
+
+// 查看rqt_tree
+rosrun rqt_tf_tree rqt_tf_tree
+
+rosrun tf view_frames #生成tf相关树
+evince frames.pdf # To View the frame tree
+
+static tf::TransformBroadcaster br;
+tf::StampedTransform transform;
+br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "world", turtle_name));
+//发布当前时间戳下的transform
+
+listener.lookupTransform("/turtle2", "/turtle1", ros::Time(0), transform);
+//查看当前时间戳ros::Time(0)的transform,所计算的是 transform from frame /turtle1 to frame /turtle2。
+//time 0 means "the latest available" transform in the buffer.
+lookupTransform是用来获得the latest available transforms in tf tree.
+实际上，我们可以在指定的时间获取transform，并不一定非要获得最新的transform in tf tree
+
+
+while (node.ok()){
+    transform.setOrigin( tf::Vector3(0.0, 2.0, 0.0) );
+    transform.setRotation( tf::Quaternion(0, 0, 0, 1) );
+    br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "turtle1", "carrot1"));
+    rate.sleep();
+  }
+  
+这就是加入一个新的坐标系的方法.transform规定了旋转与平移量，br.sendTransform()有规定了这个transformation是在哪一个时刻谁相对于谁的
+
+  
+// C++ 下 try catch 的用法
+
+try{
+    可能出现异常的语句;
+}
+catch(异常种类1 异常变量名1){
+    处理第一种异常的语句;
+}
+catch(异常种类2 异常变量名2){
+    处理第二种异常的语句;
+}
+
+//具体实例:
+try{
+      listener.lookupTransform("/turtle2", "/turtle1",  
+                               ros::Time(0), transform);
+    }
+    catch (tf::TransformException ex){
+      ROS_ERROR("%s",ex.what());
+      ros::Duration(1.0).sleep();
+    }
+</code></pre>
+	<br />
+// Actionlib Tutorial<br />
+Action Specification<br />
+<b>Goal</b> 由ActionServer送至ActionClient，表明where the robot should move to in the world<br />
+<b>FeedBack</b> robot's current pose alone the path，表明当前完成的进度<br />
+<b>Result</b> 当整个进度都完成后，只发送一次
+<br /><br /><br />
+保持电脑与机器人的同步性很重要，因为tf等pkg都要盖时间戳的。An easy way to keep your computers synchronized is to install the Ubuntu chrony package on both your desktop and your robot。
+<br />
+ sudo apt-get install chrony<br />
+ <br />
+<b>odometry</b> <br />
+Knowing the diameter of the wheels and the distance between them, encoder ticks can be converted to the distance traveled in meters or the angle rotated in radians. To compute speed, these values are simply divided by
+the time interval between measurements. This internal motion data is collectively known as odometry.
+<br /><br />
+<b>amcl</b><br />
+Once a map of the environment is available, ROS provides the  amcl package (adaptive Monte Carlo localization) for automatically localizing the robot based on its current scan and odometry data. This allows the operator to point and click on any location on a map and the robot will find its way there while avoiding obstacles. 
+<pre><code class="language-python">
+import tf
+
+
+self.tf_listener = tf.TransformListener()
+# TransformListener这个对象是用来时刻监听来自tf的transform data; 
+# 由于tf需要一些时间来fill up the listener's buffer, 所以常常在后面跟着rospy.sleep(2) 
+
+self.tf_listener.waitForTransform(self.odom_frame,'/base_footprint', rospy.Time(), rospy.Duration(1.0))
+# tf provides a nice tool that will wait until a transform becomes available.
+
+
+def get_odom(self):
+	# Get the current transform between the odom and base frames
+	try:
+	#listener for a specific transformation at current time
+	(trans, rot) = self.tf_listener.lookupTransform(self.odom_frame, self.base_frame, rospy.Time(0)) 
+	except (tf.Exception, tf.ConnectivityException, tf.LookupException):
+	rospy.loginfo("TF Exception")
+	return
+
+	return (Point(*trans), quat_to_angle(Quaternion(*rot)))
+	
+# The  * in front of the  trans and  rot variables is Python's notation for passing a list of numbers to a 
+# function and we use it here since  trans is a list of x, y, and z coordinates while 
+# rot is a list of x, y, z and w quaternion components.
+
+using *arg passing args to a function will make python unpack the values in arg and pass it to the function.
+>>> def printer(*args):
+		print args
+
+
+>>> printer(2,3,4)
+(2, 3, 4)
+>>> printer(*range(2, 5)) # *把range(2,5)分解为2,3,4；并且依次打印
+(2, 3, 4)
+>>> printer(range(2, 5))
+([2, 3, 4],)
+	</code></pre>
+<br /><br />		
+<b>Parameter Server</b> <br />	
+<pre><code class="language-css">
+angular_speed = rospy.get_param("~angular_speed", 0.7)      # radians per second
+# angular_speed 是私有parameter，get_param()从服务器上取出来这个参数，并赋值
+
+#这个样子定义angular_speed为0.7是default值为0.7；后面还可以在roslaunch文件中进行定义，
+< node .....
+< param name="angular_speed" value="1" />
+< /node>
+	</code></pre>	
+	
+<h6>move_base</h6>
+move_base pkg是使用ROS action来实现让机器人到达指定的导航地点的程序。actions provide feedback as progress is made toward the goal. This means we no longer have to query the odometry topic ourselves to find out if we have arrived at the desired location.
+uses the  MoveBaseActionGoal  message type for specifying the goal<br />
+.yaml文件是用于设定参数的：包括机器人的参数，障碍物的参数等，这些参数都是调用move_base这个pkg所必须的。<br />
+<pre><code class="language-css">
+< launch><br />
+
+  < node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen" clear_params="true">
+    < rosparam file="$(find rbx1_nav)/config/fake/costmap_common_params.yaml" command="load" ns="global_costmap" />
+    < rosparam file="$(find rbx1_nav)/config/fake/costmap_common_params.yaml" command="load" ns="local_costmap" />
+    < rosparam file="$(find rbx1_nav)/config/fake/local_costmap_params.yaml" command="load" />
+    < rosparam file="$(find rbx1_nav)/config/fake/global_costmap_params.yaml" command="load" />
+    < rosparam file="$(find rbx1_nav)/config/fake/base_local_planner_params.yaml" command="load" />
+  < /node><br />
+  <br />
+< /launch>
+</code></pre>
+  <br />
+  
+<h6>move_base and actionlib</h6>
+<pre><code class="language-python">
+# define a  SimpleActionClient which will send goals to the  move_base action server.
+ self.move_base = actionlib.SimpleActionClient("move_base", MoveBaseAction) #定义简答的MoveActionClient，名字为"move_base"
+ 
+# wait for 60 seconds 
+ self.move_base.wait_for_server(rospy.Duration(60))
+ 
+# define a goal
+  goal = MoveBaseGoal()
+# 更加详细的定义
+  goal.target_pose.header.frame_id = ‘xx’
+  goal.target_pose.header.stamp = rospy.Time.now()
+  goal.target_pose.pose = xxxPose
+  
+# 向MoveBaseAction server 发送goal
+  self.move_base.send_goal(goal)
+ 
+# 时刻检查移动状态 
+  state = self.move_base.get_state()
+  if state == GoalStatus.SUCCEEDED:
+	rospy.loginfo("Goal succeeded!")
+
+# 清楚原服务器上的parameters   
+ rosparam delete /move_base
+</code></pre>
+<br /><br />
+
+载入地图<br />
+<pre><code class="language-CSS">
+< launch>
+# Run the map server with a blank map
+< node name="map_server" pkg="map_server" type="map_server" args="$(find rbx1_nav)/maps/blank_map.yaml"/>
+# -----------------------------------------------------
+< arg name = "map" default = "test_map.yaml" />
+< node name="map_server" pkg="map_server" type="map_server" args="$(find rbx1_nav)/maps/$(arg map)"/>
+
+# Launch move_base and load all navigation parameters
+< include file="$(find rbx1_nav)/launch/fake_move_base.launch" />
+
+# Run a static transform between /odom and /map
+< node pkg="tf" type="static_transform_publisher" name="odom_map_broadcaster" args="0 0 0 0 0 0 /odom /map 100" />
+< /launch><br />
+</code></pre>
+<br />
+<b>static tf publisher</b>
+<pre><code class="language-css">
+< launch>
+< node pkg="tf" type="static_transform_publisher" name="link1_broadcaster" args="1 0 0 0 0 0 1 link1_parent link1 100" />
+static_transform_publisher x y z qx qy qz qw frame_id child_frame_id  period_in_ms
+< /launch>
+</code></pre>
+<br /><br />
+深度摄像头采集的是数据类型是：LaserScan;
+ROS 使用 amcl package来在已经存在的地图中使用机器人的深度摄像头数据和laser scan data来对机器人进行定位，
+<br /><br />
+<b>Autonomously Robot</b>
+<pre><code class="language-python">
+rospy.on_shutdown(h)
+# When node is about to begin shutdown, you can request a callback function;
+# 比如:
+def h():
+	print("shut down")
+
+rospy.on_shutdown(h)
+
+# Python dictionaries
+locations = dict()
+
+# Click 2D Pose Extimsation in Rviz to set the robot initial pose
+
+from geometry_msgs.msg import PoseWithCovarianceStamped
+
+initial_pose = PoseWithCovarianceStamped()
+rospy.wait_for_message('initialpose',PoseWithCovarianceStamped)#等待从topic /initial 来的，数据类型为PoseWithCovarianceStamped的message
+rospy.Subscriber('initialpose',PoseWithCovarianceStamped,self.update_initial_pose) 
+#只要topic /initialpose 有发布数据类型PoseWithCovarianceStamped的message，就调用函数
+
+
+</code></pre>
+<br /><br />
+<h4>Robot Vision</h4>
+<br /><br />
+640x480(VGA)
+<br /><br />
+ROS to OpenCV: cv_bridge Package
+<pre><code class="language-python">
+# ROS message type
+from sensor_msgs.msg import Image, CameraInfo
+from cv_bridge import CvBridge, CvBridgeError
+
+# Create CvBridge object to be used to convert ROS image type into OpenCV format
+self.bridge = CvBridge()
+
+# Subscribe and CallBack
+self.image_sub = rospy.Subscribe("/topic", Image, self.callback) # Image是ROS的图片格式
+
+def callback(self, ros_image):
+	frame = self.bridge.imgmsg_to_cv2(ros_image, "bgr8")
+	# 再转化为numpy的array
+	frame = np.array(frame, dtype = np.uint8)
+	
+# UI 界面
+self.keystroke = cv2.waitKey(5)
+# cv::WaitKey()函数的功能是不断刷新图像，频率时间为delay，单位为ms。
+# 在这里则是指的：每5mm检测一下输入键盘输入情况
+if 32 <= self.keystroke and self.keystroke < 128:
+	cc = chr(self.keystroke).lower()
+	# chr()将数组转化为对应的字符
+	
+	
+# 转化为深度信息
+depth_frame = self.bridge.imgmsg_to_cv2(ros_image, "passthrough")	
+depth_array = np.array(depth_frame, np.float32)
+# OpenCV Normalize
+cv2.normalize(depth_array,depth_array, 0, 1, cv2.NORM_MINMAX)
+
+
+</code></pre>
+
+from sensor_msgs.msg import RegionOfInterest
+# 这是ROS用于规定ROI的一种数据类型
+self.ROI = RegionOfInterest()
+<pre><code class="language-python">
+def convert_image(self, ros_image):
+	try:
+		CV_image = self.bridge.imgmsg_to_cv2(ros_image, "bgr8")
+		return np.array(CV_image, np.uint8)
+	except CvBridgeError, e:
+		print(e)
+		
+</code></pre>
+
+<b>env: python\r: No such file or directory</b>
+<pre><code class="language-python">
+# Open the file in vim or vi, and administer the following command:
+
+:set ff=unix
+# Save and exit:
+
+:wq
+# Done!
+		
+</code></pre>
+
+ff stands for file format, and can accept the values of unix (\n), dos (\r\n) and mac (\r) 
+(only meant to be used on pre-intel macs, on modern macs use unix)..
+<br /><br />
+<b>Remap</b>
+<pre><code class="language-css">
+< node pkg="" type="" name="" >
+	< remap from = "name 1" to "/name2" />
+< /node>
+</code></pre>
+<br />
+光流的概念是Gibson在1950年首先提出来的。它是空间运动物体在观察成像平面上的像素运动的瞬时速度，
+是利用图像序列中像素在时间域上的变化以及相邻帧之间的相关性来找到上一帧跟当前帧之间存在的对应关系，从而计算出相邻帧之间物体的运动信息的一种方法。
+一般而言，光流是由于场景中前景目标本身的移动、相机的运动，或者两者的共同运动所产生的。
+<br /><br />
+假设条件
+<br />
+（1）亮度恒定，就是同一点随着时间的变化，其亮度不会发生改变。这是基本光流法的假定（所有光流法变种都必须满足），用于得到光流法基本方程；
+<br />
+（2）小运动，这个也必须满足，就是时间的变化不会引起位置的剧烈变化，这样灰度才能对位置求偏导（换句话说，小运动情况下我们才能用前后帧之间单位位置变化引起的灰度变化去近似灰度对位置的偏导数），这也是光流法不可或缺的假定；
+<br />
+（3）空间一致，一个场景上邻近的点投影到图像上也是邻近点，且邻近点速度一致。这是Lucas-Kanade光流法特有的假定，因为光流法基本方程约束只有一个，而要求x，y方向的速度，有两个未知变量。我们假定特征点邻域内做相似运动，就可以连立n多个方程求取x，y方向的速度（n为特征点邻域总点数，包括该特征点）。
+
+<br /><br />
+
+<pre><code class="language-python">
+	for (x,y), good_flag in zip(p1.reshape(-1, 2), good):
+		xxxx
+# 活用这个zip的操作，可以让循环使用起来更加便利
+>>>a = [1,2,3]
+>>> b = [4,5,6]
+>>> c = [4,5,6,7,8]
+>>> zipped = zip(a,b)     # 打包为元组的列表
+[(1, 4), (2, 5), (3, 6)]
+>>> zip(a,c)              # 元素个数与最短的列表一致
+[(1, 4), (2, 5), (3, 6)]
+		
+</code></pre>
+<br />
+<b>CamShifter</b><br />
+Working in HSV space is a common practice when processing Color images
+<br /><br />
+<b>进程与线程</b><br />
+什么叫“多任务”呢？简单地说，就是操作系统可以同时运行多个任务。打个比方，你一边在用浏览器上网，一边在听MP3，一边在用Word赶作业，这就是多任务，至少同时有3个任务正在运行。还有很多任务悄悄地在后台同时运行着，只是桌面上没有显示而已。<br />
+现在，多核CPU已经非常普及了，但是，即使过去的单核CPU，也可以执行多任务。由于CPU执行代码都是顺序执行的，那么，单核CPU是怎么执行多任务的呢？<br />
+答案就是操作系统轮流让各个任务交替执行，任务1执行0.01秒，切换到任务2，任务2执行0.01秒，再切换到任务3，执行0.01秒……这样反复执行下去。表面上看，每个任务都是交替执行的，但是，由于CPU的执行速度实在是太快了，我们感觉就像所有任务都在同时执行一样。
+真正的并行执行多任务只能在多核CPU上实现，但是，由于任务数量远远多于CPU的核心数量，所以，操作系统也会自动把很多任务轮流调度到每个核心上执行。<br />
+对于操作系统来说，一个任务就是一个进程（Process），比如打开一个浏览器就是启动一个浏览器进程，打开一个记事本就启动了一个记事本进程，打开两个记事本就启动了两个记事本进程，打开一个Word就启动了一个Word进程。<br />
+有些进程还不止同时干一件事，比如Word，它可以同时进行打字、拼写检查、打印等事情。在一个进程内部，要同时干多件事，就需要同时运行多个“子任务”，我们把进程内的这些“子任务”称为线程（Thread）。<br />
+由于每个进程至少要干一件事，所以，一个进程至少有一个线程。当然，像Word这种复杂的进程可以有多个线程，多个线程可以同时执行，多线程的执行方式和多进程是一样的，也是由操作系统在多个线程之间快速切换，让每个线程都短暂地交替运行，看起来就像同时执行一样。当然，真正地同时执行多线程需要多核CPU才可能实现。
+我们前面编写的所有的Python程序，都是执行单任务的进程，也就是只有一个线程。如果我们要同时执行多个任务怎么办？
+
+Unix/Linux操作系统提供了一个fork()系统调用，它非常特殊。普通的函数调用，调用一次，返回一次，但是fork()调用一次，返回两次，因为操作系统自动把当前进程（称为父进程）复制了一份（称为子进程），然后，分别在父进程和子进程内返回。
+子进程永远返回0，而父进程返回子进程的ID。这样做的理由是，一个父进程可以fork出很多子进程，所以，父进程要记下每个子进程的ID，而子进程只需要调用getppid()就可以拿到父进程的ID。
+Python的os模块封装了常见的系统调用，其中就包括fork，可以在Python程序中轻松创建子进程：
+
+<pre><code class="language-python">
+# 多进程
+import os
+
+print('Process (%s) start...' % os.getpid())
+# Only works on Unix/Linux/Mac:
+pid = os.fork()
+if pid == 0:
+    print('I am child process (%s) and my parent is %s.' % (os.getpid(), os.getppid()))
+else:
+    print('I (%s) just created a child process (%s).' % (os.getpid(), pid))
+	
+	
+Process (876) start...
+I (876) just created a child process (877).
+I am child process (877) and my parent is 876.
+</code></pre>
+
+由于任何进程默认就会启动一个线程，我们把该线程称为主线程，主线程又可以启动新的线程，Python的threading模块有个current_thread()函数，它永远返回当前线程的实例。主线程实例的名字叫MainThread，子线程的名字在创建时指定，我们用LoopThread命名子线程。
+名字仅仅在打印时用来显示，完全没有其他意义，如果不起名字Python就自动给线程命名为Thread-1，Thread-2……
+<pre><code class="language-python">
+# 多线程
+import time, threading
+
+# 新线程执行的代码:
+def loop():
+    print('thread %s is running...' % threading.current_thread().name)
+    n = 0
+    while n < 5:
+        n = n + 1
+        print('thread %s >>> %s' % (threading.current_thread().name, n))
+        time.sleep(1)
+    print('thread %s ended.' % threading.current_thread().name)
+
+print('thread %s is running...' % threading.current_thread().name)
+t = threading.Thread(target=loop, name='LoopThread')
+t.start()
+t.join()
+print('thread %s ended.' % threading.current_thread().name)
+	
+</code></pre>
+
+如果我们要确保balance计算正确，就要给change_it()上一把锁，当某个线程开始执行change_it()时，我们说，该线程因为获得了锁，因此其他线程不能同时执行change_it()，只能等待，直到锁被释放后，获得该锁以后才能改。由于锁只有一个，
+无论多少线程，同一时刻最多只有一个线程持有该锁，所以，不会造成修改的冲突。创建一个锁就是通过threading.Lock()来实现：
+<pre><code class="language-python">
+
+
+import time, threading
+
+# 假定这是你的银行存款:
+balance = 0
+lock = threading.Lock()
+
+def change_it(n):
+    # 先存后取，结果应该为0:
+    global balance
+    balance = balance + n
+    balance = balance - n
+	
+def run_thread(n):
+    for i in range(100000):
+        # 先要获取锁:
+        lock.acquire()
+        try:
+            # 放心地改吧:
+            change_it(n)
+        finally:
+            # 改完了一定要释放锁:
+            lock.release()
+			
+t1 = threading.Thread(target=run_thread, args=(5,))
+t2 = threading.Thread(target=run_thread, args=(8,))
+t1.start()
+t2.start()
+t1.join()
+t2.join()
+print(balance)
+
+</code></pre>
+				</div>
+				
+			</div>	
+		</div>
+			</p>
+			
+			
+			
+		
+		  
+		  
+         </div>
+          
+		  <!-- <h4 class="text-uppercase mb-4">Location</h4> -->
+ 		  
+          
+        </div>
+      </div>
+    </section>
+
+  <!-- Footer -->
+    <footer class="footer text-center">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-4 mb-5 mb-lg-0">
+            <h4 class="text-uppercase mb-4">Location</h4>
+            <p class="lead mb-0">Baltimore
+              <br>MD, 21211</p>
+          </div>
+          <div class="col-md-4 mb-5 mb-lg-0">
+            <h4 class="text-uppercase mb-4">Around the Web</h4>
+            <ul class="list-inline mb-0">
+              <li class="list-inline-item">
+                <a class="btn btn-outline-light btn-social text-center rounded-circle" href="#">
+                  <i class="fa fa-fw fa-facebook"></i>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a class="btn btn-outline-light btn-social text-center rounded-circle" href="#">
+                  <i class="fa fa-fw fa-google-plus"></i>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a class="btn btn-outline-light btn-social text-center rounded-circle" href="#">
+                  <i class="fa fa-fw fa-twitter"></i>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a class="btn btn-outline-light btn-social text-center rounded-circle" href="#">
+                  <i class="fa fa-fw fa-linkedin"></i>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a class="btn btn-outline-light btn-social text-center rounded-circle" href="#">
+                  <i class="fa fa-fw fa-dribbble"></i>
+                </a>
+              </li>
+            </ul>
+          </div>
+		  <!--
+          <div class="col-md-4">
+            <h4 class="text-uppercase mb-4">About Freelancer</h4>
+            <p class="lead mb-0">Freelance is a free to use, open source Bootstrap theme created by
+              <a href="http://startbootstrap.com">Start Bootstrap</a>.</p>
+          </div>
+		  -->
+        </div>
+      </div>
+    </footer>
+	
+    <!-- Scroll to Top Button (Only visible on small and extra-small screen sizes) -->
+    <div class="scroll-to-top d-lg-none position-fixed ">
+      <a class="js-scroll-trigger d-block text-center text-white rounded" href="#page-top">
+        <i class="fa fa-chevron-up"></i>
+      </a>
+    </div>
+	
+
+	
+</body>
+</html>

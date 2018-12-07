@@ -1,0 +1,1076 @@
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+	
+    <title>Data Science Course on Udemy</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+	<link href="themes/prism.css" rel="stylesheet" />
+	
+    <!-- Custom fonts for this template -->
+    <link href="vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic" rel="stylesheet" type="text/css">
+
+    <!-- Plugin CSS -->
+    <link href="vendor/magnific-popup/magnific-popup.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="http://cdn.staticfile.org/font-awesome/4.7.0/css/font-awesome.min.css">
+   
+
+    <!-- Custom styles for this template -->
+    <link href="css/freelancer.min.css" rel="stylesheet">
+
+</head>
+
+<body id="page-top">  
+	<script src="prism.js"></script>
+	<!-- Navigation -->
+    <nav class="navbar navbar-expand-lg bg-secondary fixed-top text-uppercase" id="mainNav">
+      <div class="container">
+        <a class="navbar-brand js-scroll-trigger" href="#page-top">Go To Top</a>
+        
+        
+      </div>
+    </nav>
+	
+	<section class="portfolio" id="portfolio">
+      <div class="container">
+	    <br />
+		<br />
+        <h2 class="text-center text-uppercase text-secondary mb-0">Online Courses</h2>
+        <hr class="star-dark mb-5">
+        <div class="row">
+		<div class="container">
+		
+		
+		<p class="mb-5">
+		<b>r-squared score</b>
+<div class="container">
+	<div class="row">
+		
+		<div class="col-lg-6 ml-auto">
+		<pre><code class="language-python">
+		from sklearn.metrics import r2_score
+		
+		r2 = r2_score(testy, p4(testx))
+		#其中,testy是实际的数据 p4(testx)是通过模型拟合的预测数据
+		print(r2)
+		</code></pre>
+		
+		</div>
+		
+		<div class="col-lg-6 ml-auto">
+		<br /><br /><br />
+		r-squared score越大，说明模型拟合的效果越好
+		</div>
+    </div>
+</div>		
+		
+		<br /><br />
+		
+		<pre><code class="language-python">
+		#若pageSpeeds有100项
+		trainX = pageSpeeds[:80]#前八十项
+		testX = pageSpeeds[80:]#后20项
+		
+		# Polynomial Regression
+		x = np.array(trainX)
+		y = np.array(trainY)
+
+		p4 = np.poly1d(np.polyfit(x, y, 8))# 最高项是8
+		
+		#设置坐标轴
+		import matplotlib.pyplot as plt
+		axes = plt.axes()
+		axes.set_xlim([0,7])
+		axes.set_ylim([0, 200])
+		</code></pre>
+		
+	<br /><br />
+	
+<div class="container">
+	<div class="row">
+		<div class="col-lg-6 ml-auto">
+<pre><code class="language-python">
+	import os
+	import os.path
+	rootdir="D:\\论文"
+	for parent,dirnames,filenames in os.walk(rootdir):
+		for dirname in dirnames:
+			print 'parent is ',parent
+			print 'dirname is',dirname
+    for filename in filenames:
+			print 'parent is',parent
+			print 'filename is',filename
+			print 'fullname is '+os.path.join(parent,filename)
+	
+#还有类似这种的操作	
+	for root, dirnames, filenames in os.walk(path):
+		for filename in filenames:
+			path = os.path.join(root, filename)
+            f = io.open(path, 'r', encoding='UTF-8')#只读文件
+            ...
+		</code></pre>
+		</div>
+		
+	<div class="col-lg-6 ml-auto">
+	<br /><br />
+		os.walk()可以得到一个三元tupple(parent, dirnames, filenames)<br /><br />
+		 parent：起始路径。<br />
+		 Dirnames：起始路径下的文件夹。<br />
+		 Filenames：第三个是起始路径下的文件。<br /><br />
+rootdir要遍历的路径名称，parent是文件或者文件夹的上一层目录（这是绝对路径），dirname，如果遍历到的是文件夹，则内容放在dirname当中，如果遍历到的是文件，则文件名称放在filename当中<br />
+
+		</div>
+    </div>
+</div>	
+
+
+		
+	<br /><br />
+	
+<b>yield python的使用</b><br />
+<div class="container">
+	<div class="row">
+		<div class="col-lg-6 ml-auto">
+<pre><code class="language-python">
+#生成斐波那契数列
+def fab(max): 
+    n, a, b = 0, 0, 1 
+    while n < max: 
+        yield b 
+        # print b 
+        a, b = b, a + b 
+        n = n + 1 
+		
+#在for循环中调用
+for n in fab(5): 
+    print n 
+
+#也可以使用next()方法查看下进程
+>>> f = fab(5) 
+>>> f.next() 
+1 
+>>> f.next() 
+1 
+>>> f.next() 
+2 
+>>> f.next() 
+3 
+>>> f.next() 
+5 
+</code></pre>
+</div>
+	<div class="col-lg-6 ml-auto"><br /><br />
+	python 解释器会将其视为一个 generator，调用 fab(5) 不会执行 fab 函数，而是返回一个 iterable 对象！在 for 循环执行时，每次循环都会执行 fab 函数内部的代码，执行到 yield b 时，fab 函数就返回一个迭代值，下次迭代时，代码从 yield b 的下一条语句继续执行，
+	而函数的本地变量看起来和上次中断执行前是完全一样的，于是函数继续执行，直到再次遇到 yield。
+	</div>
+
+</div>
+</div>	
+ 
+<br /><br />
+<pre><code class="language-python">
+from sklearn.feature_extraction.text import CountVectorizer
+vectorizer = CountVectorizer()
+counts = vectorizer.fit_transform(data['message'].values)
+
+</code></pre>
+all the words in each email and the count the number that occurs<br /><br />
+
+<b>K-means clustering</b><br />
+Finding K centroid. SO, basically, what group a given data point belongs to is defined by which centroid it is closest to.<br />
+<ul>
+<li>- Randomly pick K centroids</li>
+<li>- Assign each data point to the centroid it is closest to</li>
+<li>- Recompute the centroids based on the average position of each centroid points</li>
+<li>- iterate until points stop changing assignment to centroid</li>
+</ul>
+
+<h5>Decision Tree</h5>
+partution the data to minimize the entropy of the data by choosing the right attribute to decide on(ID3);
+Decision tree are susceptible to overfitting; 为了解决这一问题，可以construct several decision tress and let them vote on the final classification(Rando)
+<ul>
+<li>- Randomly re-sample the input data for each tree</li>
+<li>- Randomize a subset of attribute each step is allowed to choose</li>
+如果训练集大小为N，对于每棵树而言，随机且有放回地从训练集中的抽取N个训练样本（这种采样方式称为bootstrap sample方法），作为该树的训练集
+Boosting: address mis-classified data by bootstrap sample
+</ul>
+Basic Idea: We have multiple trees. Each that uses a random sub-sample of data that we have to train on and each tree can vote on the final result
+<br /><br />
+<b>Gini不纯度</b><br />
+Gini不纯度的值是：1-每个标签占总数的比例的平方和.<br />
+
+总的集合D被分为两个集合D1，D2，假设见面为1，不见面为0<br /><br />
+那么D1的不纯度为1-f1^2-f0^2，总数为5，见面的占了全部，则f1=1，f0=0，结果为0<br /><br />
+D2的不纯度为1-f1^2-f0^2，f1=0.8，f0=0.2，结果为0.32<br /><br />
+ok，那么整个分类结果的Gini不纯度就是D1/D与0的乘积 加上 D2/D与0.32的乘积，为0.16<br />
+Gini值代表了某一个分类结果的“纯度”，我们希望结果的纯度很高，这样就不需要对这一结果进行处理了。
+
+从以上分析可以看出，Gini值越小，纯度越高，结果越好。
+<br /><br />
+<b>随机森林</b><br />
+鉴于决策树容易过拟合的缺点，随机森林采用多个决策树的投票机制来改善决策树，我们假设随机森林使用了m棵决策树，那么就需要产生m个一定数量的样本集来训练每一棵树，
+如果用全样本去训练m棵决策树显然是不可取的，全样本训练忽视了局部样本的规律，对于模型的泛化能力是有害的
+
+
+
+
+<br /><br />
+<h5>KNN</h5>
+<pre><code class="language-python">
+from scipy import spatial
+genreDistance = spatial.distance.cosine(genresA, genresB)
+
+# 其中的cosine distance是专门用来测1D数组的相似度的；a measure of similarity between two non-zero
+#  vectors of an inner product space that measures the cosine of the angle between them
+
+distances.sort(key=operator.itemgetter(1))
+>>> import operator
+>>> a = [ (1,'z'), (2, 'x'), (3, 'y') ]
+>>> a.sort(key=operator.itemgetter(1))
+>>> a
+[(2, 'x'), (3, 'y'), (1, 'z')]
+>>>
+也就是根据tuple的第二个元素进行排序
+</code></pre>
+<br /><br />
+<h5>PCA</h5>
+<pre><code class="language-python">
+from sklearn.decomposition import PCA
+import pylab as pl
+from itertools import cycle
+
+# 将多维数据压缩为2维；whiten= True，对数据Normalized
+pca = PCA(n_components=2, whiten=True).fit(X)
+# 实现转化
+X_pca = pca.transform(X)
+
+# projecting it down to two orthogonal 4D vectors that make up the basis of our new 2D projection.
+print(pca.components_)
+[[ 0.36158968 -0.08226889  0.85657211  0.35884393]
+ [ 0.65653988  0.72971237 -0.1757674  -0.07470647]]
+
+print(pca.explained_variance_ratio_)
+print(sum(pca.explained_variance_ratio_))
+
+[0.92461621 0.05301557]
+0.9776317750248034
+# First Dimension preserve 92% data, second dimension preserve 5% data
+# altogether we've only really lost less than 3% of the variance in our data by projecting it down to two dimensions.
+
+# Visualization
+
+%matplotlib inline
+from pylab import *
+
+colors = cycle('rgb')
+target_ids = range(len(iris.target_names))
+pl.figure()
+for i, c, label in zip(target_ids, colors, iris.target_names):
+    pl.scatter(X_pca[iris.target == i, 0], X_pca[iris.target == i, 1],
+        c=c, label=label)
+pl.legend()
+pl.show()
+
+# Cycle循环器
+count(5, 2)     #从5开始的整数循环器，每次增加2，即5, 7, 9, 11, 13, 15 ...
+
+cycle('abc')    #重复序列的元素，既a, b, c, a, b, c ...
+
+repeat(1.2)     #重复1.2，构成无穷循环器，即1.2, 1.2, 1.2, ...
+
+</code></pre>
+<br />
+
+<h5>Q-Learning</h5>
+- A set of environment states s<br />
+- A set of possible actions in those states a<br />
+- A value of each state/action Q<br />
+As bad things happen after a given state/action, reduce Q<br />
+As rewards happen after a given state/action, increase Q<br />
+<br />
+Exploration scheme<br />
+- Always chossing the action for a given state with highest Q<br />
+<br />
+Better Way:introducing an epsilon term<br />
+If a random number is less than epi<br />
+<br />
+MDPs(Markov Decision Process): describe our exploration algorithm<br />
+State: s, s'(next state that we encounter)<br />
+Q: Reward Function<br />
+Ra(s, s'): moving from state s to another s' get what reward associated with it<br />
+<br />
+<h5>Bias and Variance</h5>
+Bias: how far removed the mean of your predicted values is from the real answer<br />
+Variance:how scattered your predicted values are from the real answer<br />
+<img class="img-fluid mb-5" src="img/portfolio/bias.JPG" alt="">
+左边:high bias, low variance; 右边:low bias, high variance
+<br />
+Increase K in KNN decrease variance and increase bias<br />
+A single decision is prone to overfitting, high variance; bur random forest decresea that variance<br />
+
+
+<div class="container">
+	<div class="row">
+		<div class="col-lg-6 ml-auto">
+<pre><code class="language-python">
+from sklearn.model_selection import cross_val_score, train_test_split
+from sklearn import datasets
+from sklearn import svm
+
+# Split the iris data into train/test data sets with 40% reserved for testing
+X_train, X_test, y_train, y_test = train_test_split(iris.data, iris.target, test_size=0.4, random_state=0)
+
+# Build an SVC model for predicting iris classifications using training data, 构造SVC模型
+clf = svm.SVC(kernel='linear', C=1).fit(X_train, y_train)
+
+# 使用测试数据对SVC进行测评 
+clf.score(X_test, y_test)  
+
+# 使用K-fold方法，对SCV进行测评
+scores = cross_val_score(clf, iris.data, iris.target, cv=5)
+		</code></pre>
+		</div>
+		
+	<div class="col-lg-6 ml-auto">
+	<br /><br />
+		In order to avoid overfitting, we use <b>K-Fold Cross Validation</b>
+- split your data into K randomly-assigned segment
+- Reserve one segment as your test data
+- Train on each of the remaining K-1 segments and measure their performance against the test set
+- Take average of the K-1 r-squared scores
+		</div>
+    </div>
+</div>	
+<br /><br />
+<h6>Deep Learning</h6>
+<b>autodiff</b><br />
+Mathmatically, we need the first partial derivatives of all the inputs to compute the gradient descent algorithm. However, it is hard and 
+inefficient if you just throw calculus at the problem.<br />
+解决方法: Reverse-mode autodiff<br />
+
+<b>Softmax</b><br />
+When you have the end result of a neural network, you end up with a bunch of what we call weights that come out of the neural network at the end<br />
+Softmax converts each of the final weights that come out of your neural network into a probability.<br />
+Converting the final output of your neural network to an actual answer for a classification<br />
+<br />
+<b>BackPropagation</b><br />
+Compute the error that us computed at the end of our neural and backpropagate it down <br />
+<br />
+<b>Activation function</b><br />
+the function that determines the output of a neuron given the sum of its input<br />
+<br />
+<b>input data</b><br />
+Neural networks usually work best if input data is normalized<br />
+- 0 mean and unit variance<br />
+- every input feature is comparable in terms of magnitude<br />
+
+<br /><br />
+<h6>TensorFlow</h6>
+<pre><code class="language-python">
+import tensorflow as tf
+
+a = tf.Variable(1, name="a")
+b = tf.Variable(2, name="b")
+# a variable object which contains a single value 1 and it is going by the name of "a"
+# 然后赋给Python的变量a
+
+f = a + b
+# 并不是简单的加法。it is a graph. It is a connection that you are building up between A and B tensor
+# establish the relationship between a and b and their dependency together on f
+init = tf.global_variables_initializer()
+with tf.Session() as s:
+	
+	# stuff the values 1 and 2 inside a and b variables
+	init.run()
+	
+	# f.eval()  computation will actually finally happen
+	# 相当于告诉程序，让a=1，让b=2，并把它们加在一起
+	print( f.eval() )
+	
+# Define a alayer of a neural network
+output = tf.matmul(previous_layer, layer_weights) + layer_biases
+
+# Create an interactive session which makes it easier to work with TensorFlow with IPython
+sess = tf.InteractiveSession()
+
+# Think of one_hot as a binary representation of the label data - that is, which number 
+# each handwriting sample was intended to represent. Mathematically one_hot represents a dimension 
+# for every possible label value. Every dimension is set to the value 0, except for the "correct" one which is set to 1. 
+# For example, the label vector representing the number 1 would be [0, 1, 0, 0, 0, 0, 0, 0, 0, 0] 
+# (remember we start counting at 0.) It's just a format that's optimized 
+# for how the labels are applied during training.
+mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
+
+
+
+import matplotlib.pyplot as plt
+
+def display_sample(num):
+    #Print the one-hot array of this sample's label 
+    print(mnist.train.labels[num])  
+    #Print the label converted back to a number
+    label = mnist.train.labels[num].argmax(axis=0)
+    #Reshape the 768 values to a 28x28 image
+    image = mnist.train.images[num].reshape([28,28])
+    plt.title('Sample: %d  Label: %d' % (num, label))
+	
+	# Display an image as grayscale
+    plt.imshow(image, cmap=plt.get_cmap('gray_r'))
+    plt.show()
+    
+display_sample(1234)
+
+
+import numpy as np
+
+images = mnist.train.images[0].reshape([1,784]) #将第一幅28*28的图转化为1*784
+for i in range(1, 500):
+    images = np.concatenate((images, mnist.train.images[i].reshape([1,784])))
+plt.imshow(images, cmap=plt.get_cmap('gray_r'))
+plt.show()
+
+
+# 创建placeholder， 这样做的好处是更加方便了
+# While training, we'll assign input_images to the training images and target_labels to the training lables.
+# While testing, we'll use the test images and test labels instead
+input_images = tf.placeholder(tf.float32, shape=[None, 784])
+target_labels = tf.placeholder(tf.float32, shape=[None, 10])
+# 在这里None表示并不知道有多少行， 但随后会被自动填写
+
+
+hidden_nodes = 512
+
+input_weights = tf.Variable(tf.truncated_normal([784, hidden_nodes]))
+# input是Normalized的数据，且该输入层有784个输入信号，也就是一个pixel一个输入
+# 输出有512个隐藏层(hidden layer)节点 
+
+# 设置bias term on that layer
+input_biases = tf.Variable(tf.zeros([hidden_nodes]))
+
+# 对于隐藏层来说，有输入512，输出10
+hidden_weights = tf.Variable(tf.truncated_normal([hidden_nodes, 10]))
+# bias
+hidden_biases = tf.Variable(tf.zeros([10]))
+
+
+# Input Layer does matrix multiplication between input image layer and input weights
+input_layer = tf.matmul(input_images, input_weights)
+# Define hidden layer as using the relu activation function on sum of input matix multiplication and bias vector
+hidden_layer = tf.nn.relu(input_layer + input_biases)
+# 而output layer则是hidden_layer和hidden_weights的乘积和bias的和
+digit_weights = tf.matmul(hidden_layer, hidden_weights) + hidden_biases
+
+
+
+tf.global_variables_initializer().run()
+
+
+# run 2000 training steps of 100 images on each batch
+for x in range(2000):
+	# pick out the next 100 training images from our batch of training images
+    batch = mnist.train.next_batch(100)
+	# run optimizer
+    optimizer.run(feed_dict={input_images: batch[0], target_labels: batch[1]})
+    if ((x+1) % 100 == 0):
+        print("Training epoch " + str(x+1))
+        print("Accuracy: " + str(accuracy.eval(feed_dict={input_images: mnist.test.images, target_labels: mnist.test.labels})))
+		
+</code></pre>
+<br />
+
+<h6>Keras</h6>
+<pre><code class="language-python">
+from tensorflow import keras
+from tensorflow.keras.datasets import mnist
+# A quick way to assemble the layers of a neural network
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Dropout
+# A better optimizer for gradient descent
+from tensorflow.keras.optimizers import RMSprop
+
+
+# 和tensorflow一样，构造输入的模型,60000数据，每个数据为784维
+train_images = mnist_train_images.reshape(60000, 784)
+test_images = mnist_test_images.reshape(10000, 784)
+train_images = train_images.astype('float32')
+test_images = test_images.astype('float32')
+# Normalized
+train_images /= 255
+test_images /= 255
+
+# Convert to one-hot 模式，convert the 0-9 labels into "one-hot" format
+train_labels = keras.utils.to_categorical(mnist_train_labels, 10)
+test_labels = keras.utils.to_categorical(mnist_test_labels, 10)
+
+
+model = Sequential()
+# Add one layer, output 512 neurons with an input shape of 784 neurons(每个像素一个neurons)
+# and feed it into a hidden layer. Those neurons will have the relu activation function
+model.add(Dense(512, activation='relu', input_shape=(784,)))
+# Put a softmax activation function on top of it with final layer of 10; Use to define hidden layer
+model.add(Dense(10, activation='softmax'))
+
+
+model.summary() # 显示概况
+
+# The loss function is categorical_crossentropy
+# Optimizer有 RMSProp, Adam 
+model.compile(loss='categorical_crossentropy',
+              optimizer=RMSprop(),
+              metrics=['accuracy'])
+			  
+			  
+
+			  
+history = model.fit(train_images, train_labels, # input data
+                    batch_size=100,
+                    epochs=10, # Run 10 times
+                    verbose=2,
+                    validation_data=(test_images, test_labels)) # Test Data
+					
+					
+					
+					
+					
+					
+					
+# Multi-class classification
+
+model = Sequential()
+
+model.add(Dense(64, activation='relu', input_dim=20))
+# Discard half of the neurons on each training step to prevent overfitting
+model.add(Dropout(0.5))
+# 该模型拥有两个隐藏层
+model.add(Dense(64,activation='relu'))
+model.add(Dropout(0.5))
+
+# 10 different output value
+model.add(Dense(10,activation='softmax'))
+
+# 对模型进行compile，并定义loss, optimizer
+model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
+
+
+
+# Binary classification
+
+# A sequential model, put in a dense layer with 20 inputs, and 64 neurons in that layer 
+# Then feed to another layer of 64 neurons
+# And finally goes to a binary classfier at the end
+
+model = Sequential()
+
+model.add(Dense(64, activation='relu', input_dim=20))
+# Discard half of the neurons on each training step to prevent overfitting
+model.add(Dropout(0.5))
+# 该模型拥有两个隐藏层
+model.add(Dense(64,activation='relu'))
+model.add(Dropout(0.5))
+
+# 1 output value
+model.add(Dense(1,activation='sigmoid'))
+
+# 对模型进行compile，并定义loss, optimizer
+model.compile(loss='binary_crossentropy', optimizer=rmsprop, metrics=['accuracy'])
+
+
+# Pass the estimator into scikit learn
+# The scikit learn will run your neural network
+estimator = KerasClassifier(build_fn=create_model, epochs, verbose=0)
+
+
+from tensorflow import keras
+from tensorflow.keras.layers import Dense, Dropout
+from tensorflow.keras.models import Sequential
+from sklearn.model_selection import cross_val_score
+
+def create_model():
+    model = Sequential()
+    #16 feature inputs (votes) going into an 32-unit layer 
+    model.add(Dense(32, input_dim=16, kernel_initializer='normal', activation='relu'))
+    # Another hidden layer of 16 units
+    model.add(Dense(16, kernel_initializer='normal', activation='relu'))
+    # Output layer with a binary classification (Democrat or Republican political party)
+    model.add(Dense(1, kernel_initializer='normal', activation='sigmoid'))
+    # Compile model
+    model.compile(loss='binary_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
+    return model
+
+from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
+
+# Wrap our Keras model in an estimator compatible with scikit_learn
+estimator = KerasClassifier(build_fn=create_model, nb_epoch=100, verbose=0)
+# Now we can use scikit_learn's cross_val_score to evaluate this model identically to the others
+cv_scores = cross_val_score(estimator, all_features, all_classes, cv=10)
+cv_scores.mean()
+
+</code></pre>
+<br />
+
+<h5>CNN with Keras</h5><br />
+- source data must be in right dimension: width x Length x Color<br />
+- Conv2D layer does the actual convolution on a 2D image<br />
+- MaxPooling2D layers can be used to reduce a 2D layer down by taking maximum value<br />
+- Flatten layer will convert the 2D layer to a 1D layer for passing into a flat hidden layer of neurons<br />
+<br />
+Conv2D -> MaxPooling2D -> Dropout -> Flatten -> Dense -> Dropout -> Softmax<br /><br />
+<h6>Specialized CNN architectures</h6><br />
+- LeNet-5<br />
+- AlexNet<br />
+- GoogKeNet<br />
+- ResNet<br />
+<pre><code class="language-python">
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Dropout, Conv2D, MaxPooling2D, Flatten
+
+# Define Optimizer
+from tensorflow.keras.optimizers import RMSprop
+
+#  convert our train and test labels to be categorical in one-hot format
+train_labels = tensorflow.keras.utils.to_categorical(mnist_train_labels, 10)
+test_labels = tensorflow.keras.utils.to_categorical(mnist_test_labels, 10)
+
+
+model = Sequential()
+# Our convolution 2D layer has 32 windows. Windows are used to sample that image with
+# 3x3 filter
+# It also need input shape of data
+model.add(Conv2D(32, kernel_size=(3, 3),
+                 activation='relu',
+                 input_shape=input_shape))
+
+# add a second convolutional filter on top of previous one; 
+# have 64 kernals which are all 3x3 size, activation function is relu
+model.add(Conv2D(64, (3, 3), activation='relu'))
+
+# 池化，池化大小是2x2
+# Reduce by taking the max of each 2x2 block
+model.add(MaxPooling2D(pool_size=(2, 2)))
+
+
+# Dropout to avoid overfitting
+model.add(Dropout(0.25))
+
+# Flatten the results to one dimension for passing into our final layer
+model.add(Flatten())
+
+
+# A hidden layer，该layer有128个neurons
+model.add(Dense(128, activation='relu'))
+
+# Another dropout
+model.add(Dropout(0.5))
+
+# Final categorization from 0-9 with softmax
+model.add(Dense(10, activation='softmax'))
+
+
+model.compile(loss='categorical_crossentropy',
+              optimizer='adam',
+              metrics=['accuracy'])
+
+
+# Run convolution neural network
+history = model.fit(train_images, train_labels,
+                    batch_size=32,
+                    epochs=10,
+                    verbose=2, #等于2是为了running within an Ipython Notebook 
+                    validation_data=(test_images, test_labels))
+					
+</code></pre>
+打开一个python console，像spyder一样选中代码然后alt +shift + e
+可以在Pycharm中逐模块运行程序
+<br /><br />
+<h5>Recurrent Neural Network</h5><br />
+- Built on Time series data. Where to drive your self-driving car based on past trajectories
+
+<img class="img-fluid mb-5" src="img/portfolio/rnn.JPG" alt="">
+Memory Cell <br />
+The output from previous time step and those get summed together<br />
+
+When you tries to build RNN, the states from earlier time ends up getting diluted over time  because we just 
+keep feeding in behavior from the previous step. 这对于older behaviour does not matter newer behavior，比如让机器理解一句话
+To counteract the effect： 方法：LSTM CELL 或 GRU Cell(简化版LSTM Cell)
+
+
+<br /><br />
+<h5>Python Code</h5>
+
+<pre><code class="language-python">
+x = np.arange(-2,2)
+y = np.arange(0,3)#生成一位数组，其实也就是向量
+
+x
+Out[31]: array([-2, -1,  0,  1])
+
+y
+Out[32]: array([0, 1, 2])
+
+z,s = np.meshgrid(x,y)#将两个一维数组变为二维矩阵
+
+z
+Out[36]: 
+array([[-2, -1,  0,  1],
+       [-2, -1,  0,  1],
+       [-2, -1,  0,  1]])
+
+s
+Out[37]: 
+array([[0, 0, 0, 0],
+       [1, 1, 1, 1],
+       [2, 2, 2, 2]])
+	   
+	   
+	   
+	   
+#	   <h5>Pandas</h5>
+
+%matplotlib inline
+import numpy as np
+import pandas as pd
+
+df = pd.read_csv("PastHires.csv")
+df.head(14) #Specify the rows that will be visualized
+
+df.tail(4) # Specify the last 4 rows
+
+# 另一种读取Table的方法
+r_cols = ['user_id', 'movie_id', 'rating']
+ratings = pd.read_csv('C:/Users/Nuo Xu/Desktop/summer/DataScience/DataScience-Python3/ml-100k/u.data', ...
+						... sep='\t', names=r_cols, usecols=range(3))
+ratings.head()
+# sep定义数据是用的什么分隔符
+
+movieProperties = ratings.groupby('movie_id').agg({'rating': [np.size, np.mean]})
+movieProperties.head()
+# 对原数据进行groupby，依据是movie_d，并生成一个rating的属性，rating属性包括np.size和np.mean两个附加属性
+
+movieNumRatings = pd.DataFrame(movieProperties['rating']['size'])
+movieNormalizedNumRatings = movieNumRatings.apply(lambda x: (x - np.min(x)) / (np.max(x) - np.min(x)))
+# 对movieNumRatings的每一行数据套入匿名函数中进行运算
+
+#返回删除 string 字符串末尾的指定字符后生成的新字符串。
+#!/usr/bin/python
+
+str = "     this is string example....wow!!!     ";
+print str.rstrip();
+str = "88888888this is string example....wow!!!8888888";
+print str.rstrip('8');
+
+# 输出显示
+     this is string example....wow!!!
+88888888this is string example....wow!!!
+
+
+# for循环
+def reject_outliers(data):
+    u = np.median(data)
+    s = np.std(data)
+    filtered = [e for e in data if (u - 2 * s < e < u + 2 * s)]
+	# 对于每一个在data中的数据，当满足if条件的时候，插入filtered
+    return filtered
+	
+	
+	
+# > Using Try/ Except Blocks for Error Handling
+
+try:
+	f = open('test_file.txt')
+except Exception as e:
+	print('Sorry. This file does not exist')
+	print(e) #将错误打印出来
+else:
+	# what else does is to run the code that needs to be executed if the "try" doesn't raise a exception 
+	print('Successfully open')
+finally:
+	# Finally run no matter what happen
+	
+
+# OOP Tutorial
+class Employee():
+	raise_amount = 1.04
+	
+	def __init__(self, first, last, pay):
+		self.first = first
+		self.last = last
+		self.pay = pay
+		
+	def fullname(self):
+		return '{} {}'.format(self.first, self.last)
+		
+# For a regular method, it automatically takes instance as the first arguments
+# To turn a regular method into a class method, add a decorator to the topic	
+	@classmethod
+	def set_raise_amt(cls, amount):
+	# 这个就相当于take class as our first argument instead of instance
+		cls.raise_amount = amount
+		
+	@classmethod
+	def from_string(cls, emp_str):
+		first, last, pay = emp_str.split('-')
+		cls(first, last, pay)
+		
+# Static methods don't pass any instance or the class
+	@staticmethod
+	def is_workday(day):
+		if day.weekday() == 5 or day.weekday() == 6:
+			return False
+			
+		return True
+
+		
+	def __repr__(self):
+		return "Employee('{}','{}','{}')".format(self.first, self.last, self.pay)
+		
+		
+	def __str__(self):
+	# a readabl representation of an object
+		return '{}-{}'.format(self.fullname, self.email)
+		
+	def __add__(self, other):
+		return self.pay + other.pay
+		
+		
+	def __len__(self):
+		return len(self.fullname)
+		
+	
+	
+	
+class Developer(Employee):
+# 继承
+	raise_amount = 1.10
+	def __init__(self, first, last, pay, pro_language):
+		super().__init__(first, last, pay)# Let that class handle these arguments
+	
+	
+	
+# 打印类的attribute所形成的字典		
+print(emp_1.__dict__)
+	
+emp_str_1 = 'John-Doe-70000'
+first, last, pay = emp_str_1.split('-')
+
+# 使用decorator
+new_emp_1 = Employee.from_string(emp_str_1)
+
+# 查看类的详情
+print(help(Developer))
+
+# is instance?
+issubclass()    isinstance()
+
+# str and repr instance
+emp_1 = Employee('Cor','xx',900000)
+print(emp_1.__repr__())
+print(emp_1.__str__())
+
+# 定义了__add__后，就可以调用
+# print(emp_1 + emp_2 )
+
+
+
+# Decorator
+class Employee:
+	def __init__(self, first, last):
+		self.first = first
+		self.last = last
+		
+		
+	# Define as a method, access as an attribute
+	@property	
+	def email(self):
+		return '{}.{}@email.com'.format(self.first, self.last)
+		
+	@property	
+	def fullname(self):
+		return '{}.{}'.format(self.first, self.last)
+		
+	@fullname.setter
+	def fullname(self, name):
+		first, last = name.split('')# Split name as ' '
+		self.first = first
+		self.last  = last
+		
+	# 有了setter，就可以使用emp_1.fullname = 'Cory Pikachu'
+	
+	
+	@fullname.deleter
+	def fullname(self):
+		print('Delete Name')
+		self.first = None
+		self.last = None
+	# 使用方法: del emp_1.fullname
+
+
+
+	if __name__ = '__main__':
+		print("Run Directly")
+	else:
+		print("Run by imported")
+		
+# That means: if this file directly run by Python or is being imported;
+# 若被导入，则print(__name__)便不等于__main__
+
+</code></pre>
+<br />
+<h5>K-Fold Cross Validation</h5>
+<p>
+Use to protect against overfitting<br />
+- Split data into K randomly-assigned segments<br />
+- Reserve one segment as your test data<br />
+- Train on each of the remaining K-1 segments and measure their performance against the test set<br />
+- Take average of the K-1 r-squared scores<br />
+</p>
+<br />
+<h5>Final Project</h5>
+<pre><code class="language-python">
+# Prepare data
+import pandas as pd
+masses_data = pd.read_csv('mammographic_masses.data.txt')
+masses_data.head()
+
+# 把missing data的地方换为NaN
+masses_data = pd.read_csv('mammographic_masses.data.txt',na_values=['?'], names = ['BI-RADS', 'age', 'shape', 'margin', 'density', 'severity'] )
+masses_data.head()
+
+# 根据导入的数据，查看数据的性质
+masses_data.describe()
+
+# 存在数据的数据组是否是何有关联？
+masses_data.loc[(masses_data['age'].isnull())   | 
+				(masses_data['shape'].isnull()) |
+				(masses_data['margin'].isnull())   |
+				(masses_data['density'].isnull())]
+				
+# Drop missing data， 然后再查看data的详情
+masses_data.dropna(inplace = True)
+masses_data.describe()
+
+# 只提取表格的数据
+all_features = masses_data[ ['age', 'shape', 'margin', 'density'] ].values
+all_classes = masses_data['severity'].values
+feature_name = ['age', 'shape', 'margin', 'density']
+
+# 对提取的表格数据进行Normalized
+from sklearn import preprocessing
+
+scaler = preprocessing.StandardScaler()
+all_features_scaled = scaler.fit_transform(all_features)
+
+# Decision Tree
+import numpy as np
+from sklearn.model_selection import train_test_split
+
+np.random.seed(1234)
+
+(training_inputs,
+ testing_inputs,
+ training_classes,
+ testing_classes ) = train_test_split(all_features, all_classes, train_size = 0.75, random_state = 1)
+ 
+from sklearn.tree import DecisionTreeClassifier
+ 
+clf = DecisionTreeClassifier(random_state=1)
+# Train the classifier with the data
+clf.fit(training_inputs, training_classes)
+# 用测试数据验证classifier的准确度
+clf.score(testing_inputs, testing_classes)
+ 
+from sklearn.model_selection import cross_val_score
+
+clf = DecisionTreeClassifier(random_state=1)
+
+cv_scores = cross_val_score(clf, all_features_scaled, all_classes, cv=10)
+
+cv_scores.mean()
+
+
+# 随机森林
+from sklearn.ensemble import RandomForestClassifier
+
+clf = RandomForestClassifier(n_estimators=10, random_state=1)
+cv_scores = cross_val_score(clf, all_features_scaled, all_classes, cv=10)
+# 产生10棵树，并且对训练集有放回的分成10个训练集训练这10棵树，让他们对结果进行投票
+cv_scores.mean()
+</code></pre>
+</div>
+          
+		  <!-- <h4 class="text-uppercase mb-4">Location</h4> -->
+ 		  
+          
+        </div>
+      </div>
+    </section>
+
+  <!-- Footer -->
+    <footer class="footer text-center">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-4 mb-5 mb-lg-0">
+            <h4 class="text-uppercase mb-4">Location</h4>
+            <p class="lead mb-0">Baltimore
+              <br>MD, 21211</p>
+          </div>
+          <div class="col-md-4 mb-5 mb-lg-0">
+            <h4 class="text-uppercase mb-4">Around the Web</h4>
+            <ul class="list-inline mb-0">
+              <li class="list-inline-item">
+                <a class="btn btn-outline-light btn-social text-center rounded-circle" href="#">
+                  <i class="fa fa-fw fa-facebook"></i>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a class="btn btn-outline-light btn-social text-center rounded-circle" href="#">
+                  <i class="fa fa-fw fa-google-plus"></i>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a class="btn btn-outline-light btn-social text-center rounded-circle" href="#">
+                  <i class="fa fa-fw fa-twitter"></i>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a class="btn btn-outline-light btn-social text-center rounded-circle" href="#">
+                  <i class="fa fa-fw fa-linkedin"></i>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a class="btn btn-outline-light btn-social text-center rounded-circle" href="#">
+                  <i class="fa fa-fw fa-dribbble"></i>
+                </a>
+              </li>
+            </ul>
+          </div>
+		  <!--
+          <div class="col-md-4">
+            <h4 class="text-uppercase mb-4">About Freelancer</h4>
+            <p class="lead mb-0">Freelance is a free to use, open source Bootstrap theme created by
+              <a href="http://startbootstrap.com">Start Bootstrap</a>.</p>
+          </div>
+		  -->
+        </div>
+      </div>
+    </footer>
+	
+    <!-- Scroll to Top Button (Only visible on small and extra-small screen sizes) -->
+    <div class="scroll-to-top d-lg-none position-fixed ">
+      <a class="js-scroll-trigger d-block text-center text-white rounded" href="#page-top">
+        <i class="fa fa-chevron-up"></i>
+      </a>
+    </div>
+	
+
+	
+</body>
+</html>
