@@ -1,0 +1,233 @@
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+	
+    <title>Stanford Deep Learning</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+	<link href="themes/prism.css" rel="stylesheet" />
+	
+    <!-- Custom fonts for this template -->
+    <link href="vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic" rel="stylesheet" type="text/css">
+
+    <!-- Plugin CSS -->
+    <link href="vendor/magnific-popup/magnific-popup.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="http://cdn.staticfile.org/font-awesome/4.7.0/css/font-awesome.min.css">
+   
+
+    <!-- Custom styles for this template -->
+    <link href="css/freelancer.min.css" rel="stylesheet">
+
+</head>
+
+<body id="page-top">  
+	<script src="prism.js"></script>
+	<!-- Navigation -->
+    <nav class="navbar navbar-expand-lg bg-secondary fixed-top text-uppercase" id="mainNav">
+      <div class="container">
+        <a class="navbar-brand js-scroll-trigger" href="#page-top">Go To Top</a>
+        <a class="navbar-brand js-scroll-trigger" href="../blog.html">Go Back</a>
+        
+        
+      </div>
+    </nav>
+	
+	<section class="portfolio" id="portfolio">
+      <div class="container">
+	    <br />
+		<br />
+        <h2 class="text-center text-uppercase text-secondary mb-0">Stanford Deep Learning</h2>
+        <hr class="star-dark mb-5">
+        <div class="row">
+		<div class="container">
+		<p>
+		<h6>Dec. 26th, 2018</h6>
+		<p class="mb-5">
+			<h6>  KNN</h6>
+			
+			<br />
+		
+<pre><code class="language-python">
+	class NearestNeighborhood:
+		def __init__(self):
+			pass
+
+		def train(self, X, y):
+			self.Xtr = X
+			self.ytr = y
+
+		def predict(self, X):
+			""X: N x D, N 个example， 每个example是D维度""
+			num_test = X.shape[0]
+			Ypred = np.zeros(num_test, dtype = self.ytr.dtype)
+
+			for i in range(num_test):
+				distance = np.sum(np.abs(self.Xtr - X[i,:], axis = 1))
+				min_index = np.argmin(distance)
+				# find the most minimum distance; K = 1
+				Ypred[i] = self.ytr[min_index]
+			return Ypred
+ </code></pre>
+
+ Tesing Time is too slow; Fast at prediction, Slow in training is OK. <br /><br />
+
+ L1 distance --- 1-norm <br />
+ L2 disatnce --- Euclidean Distance (2-norm) <br /><br />
+  
+ 
+ <h6>  Setting hyperparameters</h6>
+ split data into <b>train</b>, <b>val</b> and <b>test</b>. Train algorithm with many different choices of hyperparameters on training set, evaluate on the validation set to pick up the set of hyperparameters which perform best on the validation set; Finally, run the test set and this set goes to the paper.
+ <br /><br />
+ <h6>  Cross Validation</h6>
+ Split data into testing and different folders; 比如说把training set 分为5个folder：1,2,3,4,5； 循环用1,2,3,4训练，5当validation； 循环用2,3,4，5训练，1当validation；。。。
+<img class="img-fluid mb-5" src="img/dairy/hyper.JPG" alt="">
+  
+ <br /><br />
+ <h6>  Loss Function</h6>
+ Take the predicted scores coming from function f, together with true label y, and give some quantitive numbers indicating how bad those prediction are for the training examples.
+
+ Multiple SVM loss:
+ 比如说我们有4个class，其中一个sample属于类1，那么如果function 1 的值大于 function 2,3,4的值，则loss function = 0; 否则， 等于其他function与function 1 相差的值的和。The Multiclass Support Vector Machine "wants" the score of the correct class to be higher than all other scores by at least a margin of delta. If any class has a score inside the red region (or higher), then there will be accumulated loss. Otherwise the loss will be zero. Our objective will be to find the weights that will simultaneously satisfy this constraint for all examples in the training data and give a total loss that is as low as possible
+ <img class="img-fluid mb-5" src="img/dairy/loss.JPG" alt="">
+
+<pre><code class="language-python">
+	def Loss_vectorized(x,y,W):
+		delta = 1
+		score = W.dot(x)
+		margins = np.maximum(0, scores - scores[y] + delta)
+		scores[y] = 0
+		loss = np.sum(margins)
+		return loss
+ 
+</code></pre>
+regularization penalty R(W). The most common regularization penalty is the L2 norm that discourages large weights through an elementwise quadratic penalty over all parameters. Append the regularization penalty to the loss objective. This can lead to less overfitting.	<b>regularization strength λ</b>
+
+<br /><br />
+<h6>  Softmax Function</h6>
+之前linear classfier给出的score是无意义的，而softmax function则是要给这些score值一下意义：概率
+<img class="img-fluid mb-5" src="img/dairy/soft.JPG" alt="">
+将所有score去一下exponential，然后再normalized，这个值就是概率了
+
+
+<pre><code class="language-python">
+f = np.array([123, 456, 789]) # example with 3 classes and each having large scores
+p = np.exp(f) / np.sum(np.exp(f)) # Bad: Numeric problem, potential blowup
+
+# instead: first shift the values of f so that the highest number is 0:
+f -= np.max(f) # f becomes [-666, -333, 0]
+p = np.exp(f) / np.sum(np.exp(f)) # safe to do, gives the correct answer
+
+</code></pre>
+<br /><br />
+<h6>  Stochastic Gradient Descent</h6>
+The direction of steepest descent is the negative gradient. 当数据集非常非常大的时候，我们计算总的Loss function的时候会非常慢。
+<img class="img-fluid mb-5" src="img/dairy/fullLoss.JPG" alt="">
+为了解决这个问题，we sample some small set of training examples, called a mini-batch. Use the small mini-batch to compute an estimate of the full sum and an estimate of the gradient
+
+
+<pre><code class="language-python">
+	while True:
+  		data_batch = sample_training_data(data, 256) # sample 256 examples
+  		weights_grad = evaluate_gradient(loss_fun, data_batch, weights)
+  		weights += - step_size * weights_grad # perform parameter update
+
+</code></pre>	
+
+<pre><code class="language-python">
+	In GD, you have to run through ALL the samples in your training set to do a single update for a parameter in a particular iteration, in SGD, on the other hand, you use ONLY ONE or SUBSET of training sample from your training set to do the update for a parameter in a particular iteration. If you use SUBSET, it is called Minibatch Stochastic gradient Descent.
+
+
+</code></pre>
+
+ <h6>  Back-Propogation</h6>
+ 首先应该画出computation graph，然后一层一层用Chain Rule来计算f相对于每个变量的gradient。
+ <img class="img-fluid mb-5" src="img/dairy/sigmoid.JPG" alt="">
+
+ 当z = f(x,y)，且x和y都是vector的时候，求back-prop的时候，z相对于x的导数所得的矩阵就是Jacobian Matrix，就是derivative of each element of z wrt each element of x
+
+
+
+			</p>
+			
+		
+		  
+		  
+         </div>
+          
+		  <!-- <h4 class="text-uppercase mb-4">Location</h4> -->
+ 		  
+          
+        </div>
+      </div>
+    </section>
+
+  <!-- Footer -->
+    <footer class="footer text-center">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-4 mb-5 mb-lg-0">
+            <h4 class="text-uppercase mb-4">Location</h4>
+            <p class="lead mb-0">Baltimore
+              <br>MD, 21211</p>
+          </div>
+          <div class="col-md-4 mb-5 mb-lg-0">
+            <h4 class="text-uppercase mb-4">Around the Web</h4>
+            <ul class="list-inline mb-0">
+              <li class="list-inline-item">
+                <a class="btn btn-outline-light btn-social text-center rounded-circle" href="#">
+                  <i class="fa fa-fw fa-facebook"></i>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a class="btn btn-outline-light btn-social text-center rounded-circle" href="#">
+                  <i class="fa fa-fw fa-google-plus"></i>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a class="btn btn-outline-light btn-social text-center rounded-circle" href="#">
+                  <i class="fa fa-fw fa-twitter"></i>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a class="btn btn-outline-light btn-social text-center rounded-circle" href="#">
+                  <i class="fa fa-fw fa-linkedin"></i>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a class="btn btn-outline-light btn-social text-center rounded-circle" href="#">
+                  <i class="fa fa-fw fa-dribbble"></i>
+                </a>
+              </li>
+            </ul>
+          </div>
+		  <!--
+          <div class="col-md-4">
+            <h4 class="text-uppercase mb-4">About Freelancer</h4>
+            <p class="lead mb-0">Freelance is a free to use, open source Bootstrap theme created by
+              <a href="http://startbootstrap.com">Start Bootstrap</a>.</p>
+          </div>
+		  -->
+        </div>
+      </div>
+    </footer>
+	
+    <!-- Scroll to Top Button (Only visible on small and extra-small screen sizes) -->
+    <div class="scroll-to-top d-lg-none position-fixed ">
+      <a class="js-scroll-trigger d-block text-center text-white rounded" href="#page-top">
+        <i class="fa fa-chevron-up"></i>
+      </a>
+    </div>
+	
+
+	
+</body>
+</html>

@@ -49,9 +49,59 @@
         <hr class="star-dark mb-5">
     <div class="row">
 		<div class="container">
+
+<h5>    Python Complexity</h5><br />
+Lists<br />
+<br />
+L.sort() &nbsp &nbsp &nbsp &nbsp     O(|L|lg|L|)<br />
+len(L) &nbsp &nbsp &nbsp &nbsp       O(1)<br />
+x in L &nbsp &nbsp &nbsp &nbsp       Linear O(|L|)<br />
+<br /><br />
+Dictionary 
+D[key] = val &nbsp &nbsp &nbsp &nbsp    O(1) (Hash Table) with high probability(WHP)
+
+
 		
-		
-		
+<h5>    算法思路总结</h5><br />
+<h6>    find a 1-d peak</h6>
+a peak if and only if b ≥ a and b ≥ c. Larger than adjacent pixel. <br />
+• If a[n/2] < a[n/2 − 1] then only look at left half 1 . . . n/2 − − − 1 to look for peak<br />
+• Else if a[n/2] < a[n/2 + 1] then only look at right half n/2 + 1 . . . n to look for peak<br />
+• Else n/2 position is a peak<br />
+<br />
+<h6>    find a 2-d peak</h6>
+• Pick middle column j = m/2<br />	
+• Find global maximum on column j at (i, j)<br />	
+• Compare (i, j − 1),(i, j),(i, j + 1)<br />	
+• Pick left columns of (i, j − 1) > (i, j)<br />	
+• Similarly for right<br />	
+• (i, j) is a 2D-peak if neither condition holds <br />	
+• Solve the new problem with half the number of columns.<br />	
+• When you have a single column, find global maximum and you‘re done.<br />
+<br />
+<h6>    Inserting Sort</h6>
+insert A[i] into sorted array A[0:i-1]<br />
+Binary search with take Θ(log n) time. However, shifting the elements after insertion will still take Θ(n) time. <br />
+
+Complexity: Θ(n log n)
+<br /><br />
+<h6>    MERGE-SORT</h6>
+A[1 . .n]<br />
+If  n = 1, done (nothing to sort).<br />
+<br />
+Otherwise Divide and recursively sort<br />
+conquer A[ 1 . .n/2 ] and A[n/2+1 . . n ] <br />
+“Merge” the two sorted sub-arrays. <br /><br />
+Complexity of Merge: Θ(n) 因为每个元素都要被进行至少一次的比较，所以是Θ(n).
+T(n) = 2T(n/2) + Θ(n)
+那么一共有 log( n ) + 1 levels; n leaves
+Complexity: Θ(n log n)
+<br /><br />
+<h6>    MERGE-SORT VS Inserting Sort</h6>
+For Merge-sort, you have to make a copy of two part： L and R, do the recurrision and take the results into sorted array A.
+In Merge-sort, you needed Θ(n) auxiliary space. Inserting sort: <b>In-Place Sort</b>
+
+
 			
 <h5>    delete_uth</h5>
 <p class="mb-5">
