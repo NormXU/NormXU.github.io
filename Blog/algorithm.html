@@ -61,14 +61,14 @@ Dictionary
 D[key] = val &nbsp &nbsp &nbsp &nbsp    O(1) (Hash Table) with high probability(WHP)
 
 
-		
+<br /><br /><br />	<hr>	
 <h5>    算法思路总结</h5><br />
 <h6>    find a 1-d peak</h6>
 a peak if and only if b ≥ a and b ≥ c. Larger than adjacent pixel. <br />
 • If a[n/2] < a[n/2 − 1] then only look at left half 1 . . . n/2 − − − 1 to look for peak<br />
 • Else if a[n/2] < a[n/2 + 1] then only look at right half n/2 + 1 . . . n to look for peak<br />
 • Else n/2 position is a peak<br />
-<br />
+<br /><hr>
 <h6>    find a 2-d peak</h6>
 • Pick middle column j = m/2<br />	
 • Find global maximum on column j at (i, j)<br />	
@@ -78,13 +78,13 @@ a peak if and only if b ≥ a and b ≥ c. Larger than adjacent pixel. <br />
 • (i, j) is a 2D-peak if neither condition holds <br />	
 • Solve the new problem with half the number of columns.<br />	
 • When you have a single column, find global maximum and you‘re done.<br />
-<br />
+<br /><hr>
 <h6>    Inserting Sort</h6>
 insert A[i] into sorted array A[0:i-1]<br />
 Binary search with take Θ(log n) time. However, shifting the elements after insertion will still take Θ(n) time. <br />
 
 Complexity: Θ(n log n)
-<br /><br />
+<br /><br /><hr>
 <h6>    MERGE-SORT</h6>
 A[1 . .n]<br />
 If  n = 1, done (nothing to sort).<br />
@@ -100,9 +100,49 @@ Complexity: Θ(n log n)
 <h6>    MERGE-SORT VS Inserting Sort</h6>
 For Merge-sort, you have to make a copy of two part： L and R, do the recurrision and take the results into sorted array A.
 In Merge-sort, you needed Θ(n) auxiliary space. Inserting sort: <b>In-Place Sort</b>
+<br /><br />
+<hr>
+<h6>    Heap</h6> 
+Heap定义： An array, visualized as a nearly complete binary tree. <br />
 
+root of tree:  first element (i=1) <br />
+<b>parient:</b>   i/2<br />
+<b>left:    2i </b><br />
+<b>right:   2i + 1 </b><br />
+<br />
+max-heap定义: 所谓max-heap，就是parient的值比他的children的值都大； 4 2 1就可以写作max-heap；注意：heap并不是binary-tree，所以他的左children和右children并没有区别。
+<br />
+max-heapify: correct a single violation of the heap property in a subtree at its root 
+<br />
+Assume that the trees rooted at left(i) and right(i) are max-heaps <br />
+max-heapify（A, i）意思是对于Array A，其第i个节点违背了max-heap的定义；  于是看向自己的child，并和biggerchild的值进行交换
+<br />
+看向自己的交换后的child，是否交换后还满足max-heap的定义，如果不是，继续exchange。
+<br />
+Complexity O(log n). 由于the height of this visualization tree is bounded by log n， 且我们之前还做了假设，假设the trees rooted at left(i) and right(i) are max-heaps， 所以每一层最多会进行一次交换，因此Complexity O(log n)
 
-			
+<b>heap-based sorting algorithm</b>
+Convert A[1..n] into a max-heap
+<pre><code class="language-python">
+for i=n/2 downto 1:
+	do max-heapify(A,i)
+# 从i/2 减小到1是因为，leaves are good, 我们就满足了之前的假设（Assume that the trees rooted at left(i) and right(i) are max-heaps）
+# Every time you call the max-heapify, you will satify the prerequests
+</code></pre>
+<b>Complexity O(nlog n)	</b><br />
+We have n/4 nodes with level 1, n/8 with level 2, and so on till we have one root node that is lg n levels above the leaves<br />
+This means that Build_Max_Heap is O(n)
+
+<br /><br /><hr>
+<h6>    Binart-Search Tree</h6>
+Runway Reservation System<br />
+• Airport with single (very busy) runway (Boston 6 → 1)<br />
+• “Reservations” for future landings<br />
+• When plane lands, it is removed from set of pending events<br />
+• Reserve req specify “requested landing time” t<br />
+• Add t to the set if no other landings are scheduled within k minutes either way.<br />
+Assume that k can vary <br /><br />
+<br /><br /><hr>			
 <h5>    delete_uth</h5>
 <p class="mb-5">
 Given a list lst and a number N, create a new list
