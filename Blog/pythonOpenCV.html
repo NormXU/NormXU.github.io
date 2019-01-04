@@ -363,6 +363,12 @@ class Student(object):
  
  # Display an image as grayscale
  plt.imshow(image, cmap=plt.get_cmap('gray_r'))
+
+ # 由于plt.show()是一个阻断型语句，为了让程序顺利进行下去，可以使用
+ plt.ion()
+
+ # save figure from plt.imshow()
+ plt.savefig(os.path.join(my_path,my_file))
  </code></pre>
  
  <br /><br />
