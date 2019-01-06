@@ -234,7 +234,71 @@ Collision: When two different keys map to the same item in table, Collision happ
 
 
 <b>Chaining</b><br />
-Linked lists if colliding elements in each slot of hash table
+Linked lists if colliding elements in each slot of hash table<br />
+
+<b>Simple Uniform Hashing</b><br />
+Suppose: Each key is equally likely to be hashed to any slot of the table, independently of where other keys hashing. This implies that expected running time for search is $\Theta(1+α)$ — the 1 comes from applying the hash function and random access to the slot whereas the α comes from searching the list<br />
+
+<b>Hash function</b><br /><br />
+Division Method:
+$$h(k) = k \mod m$$
+Multiplication Method:
+$$h(k) = [(a · k) \mod 2w] >> (w − r)$$
+
+<b>How Large should Table be?</b><br />
+• want m = Θ(n) at all times: we want at least a constant of n in order to make alpha be a constant<br />
+• don’t know how large n will get at creation<br />
+• m too small =⇒ slow; m too big =⇒ wasteful<br />
+<br />
+Then, How to Choose m ?<br />
+<b>Idea:</b>Start small (constant) and grow (or shrink) as necessary<br />
+<br />
+Grow Table: $(n>m)$<br />
+⇒ make table of size $m'$<br />
+⇒ build the new hash function $h'$<br />
+<pre><code class="language-python">D[key]  	 # search
+for item in old table:
+	insert into new table
+
+</code></pre>
+⇒ rehash<br />
+Complexity:$\Theta{(n+m+m')}$, pay m to visit every slot, pay n to visit all the lists and pay $m'$ to build the new table and initialize it to all null<br />
+
+<b>How much the table?</b> <br />
+
+$m' = 2m$ Double the table size<br />
+n inserts cost $\Theta{(1 + 2 + 4 + 8 + · · · + n)} = \Theta(n) $ <br />
+where n is really the next power of 2
+
+
+<br /><br />
+<b>Amortization</b><br />
+“T(n) amortized” roughly means T(n) “on average”
+ inserting into a hash table takes O(1) amortized time
+<br /><br />
+ <b>Table Double</b><br />
+ 当Table的size大于原来的时候，要将table的size变成原来的两倍
+ eg: 8 items, 当加入9th item，table变为16；然后我们再把9th item删掉，这时又把table shrink 成了$size = 8$
+
+
+<br /><br />
+<b>Delete</b><br />
+I do n inserts, and then I do n deletes. Then m is equal to the max value of n over time。为了解决这个问题，when n decreases to ${m \over 4}$, shrink to half the size =⇒ $O(1)$ amortized cost for both insert and delete
+
+<br /><br /><hr>
+<h6>Complexity</h6>
+Simple Algorithm:
+<pre><code class="language-python">any(s == t[i : i + len(s)] for i in range(len(t) − len(s)))
+— O(|s|) time for each substring comparison
+=⇒ O(|s| · (|t| − |s|)) time
+= O(|s| · |t|) potentially quadratic
+
+</code></pre>
+比如说：我们要在string t 中寻找 string s， 其实string s每次只是把最开始的那个元素pop出来，然后append新的元素到队尾。设r(): reasonable hash function h(x) on string x。我们是加上是在找hash function互相match的两个string --- > rs() == rt()。在这个算法里，一共有俩rolling hashm rt() 和rs()，实际上，我们是先看在rt中，哪里能找到和第一个rs的元素一样的元素，然后再去比较s的第二个元素存在t中的哪里
+
+<b>Karb-Rabin Algorithms</b><br />
+
+
 
 <br /><br /><hr>			
 <div class="pagination">

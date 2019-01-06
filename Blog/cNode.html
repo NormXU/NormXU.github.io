@@ -1,0 +1,257 @@
+<html>
+
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<style>
+	.pagination a {
+	  color: black;
+	  float: left;
+	  padding: 8px 16px;
+	  text-decoration: none;
+	  transition: background-color .3s;
+	}
+
+	.pagination a.active {
+	  background-color: dodgerblue;
+	  color: white;
+	}
+
+	.pagination a:hover:not(.active) {background-color: #ddd;}
+	</style>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+	
+    <title>C++ Notes</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+	<link href="themes/prism.css" rel="stylesheet" />
+	
+    <!-- Custom fonts for this template -->
+    <link href="vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic" rel="stylesheet" type="text/css">
+
+    <!-- Plugin CSS -->
+    <link href="vendor/magnific-popup/magnific-popup.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="http://cdn.staticfile.org/font-awesome/4.7.0/css/font-awesome.min.css">
+   
+
+    <!-- Custom styles for this template -->
+    <link href="css/freelancer.min.css" rel="stylesheet">
+
+    <script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+</script>
+<script type="text/javascript"
+  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+</head>
+
+<body id="page-top">  
+	<script src="prism.js"></script>
+	<!-- Navigation -->
+    <nav class="navbar navbar-expand-lg bg-secondary fixed-top text-uppercase" id="mainNav">
+      <div class="container">
+        <a class="navbar-brand js-scroll-trigger" href="#page-top">Go To Top</a>
+        <a class="navbar-brand js-scroll-trigger" href="../blog.html">Go Back</a>
+        
+        
+      </div>
+    </nav>
+	
+<section class="portfolio" id="portfolio">
+    <div class="container">
+	    <br />
+		<br />
+		<h2 class="text-center text-secondary mb-0">C++ Notes</h2>
+        <hr class="star-dark mb-5">
+    <div class="row">
+		<div class="container">
+
+
+<pre><code class="language-c">sizeof 对类型名使用时候，应将名称放在括弧内，对变量使用时，则无需放在括弧内
+
+sizeof(int) >> "int is 4 bytes"
+short n_short = SHRT_MAX;
+sizeof n_short >> 2 bytes
+
+</code></pre>
+<br />
+cout.put()成员函数
+<pre><code class="language-c">
+char ch;
+cout.put(ch); // using cout.put() to display a char constant
+</code></pre>
+最早的时候，我们把字符常量存储为int型，4 bytes = 16位，而char是8位，因此，在执行<b>char ch = 'M'</b>的时候，左边是8位，右边是16位，需要复制'M'的8位给到ch中，因此，当时需要使用cout.put()来将'M'中的8位打印成char型字符。后来修复了这个bug，把字符常量存储为char型，所以这个已经不常用了。
+<br /><br />
+数组
+<pre><code class="language-c">
+// 简单的计算数组长度
+short thing[] = {1,2,3,4};
+int num_ele = sizeof thing / sizeof(short)
+
+// 注意区分
+char c = 's'; //legal
+char ch = "sx"; //illegal
+char[] ch = "sx"; //Legal
+ch这个数组的长度不能少于 strlen("sx") + 1，因为所有字符串都以'/0'结尾
+</code></pre>
+
+<br /><br />
+输入
+<pre><code class="language-c">
+cin //使用空白，空格，制表符和换行符来确定字符串结束的位置，不丢弃换行符，换行符留在原来的位置上
+// 若要每次读取一行字符串的输入，则使用getline()
+cin.getline(name, 20) // 通过回车输入来确定结尾，随后，getline()将丢弃换行符
+cin.get()           //并不丢弃换行符，如果遇到了一个换行符，他会把他当做一行输出
+
+int year;
+cin >> year;
+cin.get(); // 将用户在上一行year中敲入的换行符拿掉
+char address[80];
+cin.getline(address,80);
+
+
+</code></pre>
+
+<br /><br />
+string
+<pre><code class="language-c">
+string str1, str2;
+
+strcpy(charr1, charr2); #copy charr2 to charr1
+str1 = srr2;
+
+strcat(charr1,charr2); appends charr2 to charr1
+string strfull = str1 + str2;
+
+strlen(strfull) # return the length of strfull
+
+char charr[20];
+cin.getline(charr,20);
+
+string str;
+getline(cin, str);
+
+</code></pre>
+
+
+
+
+
+
+
+
+<br /><br /><hr>			
+<div class="pagination">
+  <a href="algorithm.html">&laquo;</a>
+  <a class="active" href="algorithm.html">1</a>
+  <a href="algorithm_P2.html">2</a>
+
+  <a href="algorithm_P2.html">&raquo;</a>
+</div>
+
+
+
+
+
+				</div>
+				
+	</div>	
+</div>		
+
+
+
+	
+
+	
+	
+	
+
+
+
+
+				</div>
+				
+	</div>	
+</div>
+
+
+
+
+         </div>
+          
+		  <!-- <h4 class="text-uppercase mb-4">Location</h4> -->
+ 		  
+          
+        </div>
+      </div>
+    </section>
+
+  <!-- Footer -->
+    <footer class="footer text-center">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-4 mb-5 mb-lg-0">
+            <h4 class="text-uppercase mb-4">Location</h4>
+            <p class="lead mb-0">Baltimore
+              <br>MD, 21211</p>
+          </div>
+          <div class="col-md-4 mb-5 mb-lg-0">
+            <h4 class="text-uppercase mb-4">Around the Web</h4>
+            <ul class="list-inline mb-0">
+              <li class="list-inline-item">
+                <a class="btn btn-outline-light btn-social text-center rounded-circle" href="#">
+                  <i class="fa fa-fw fa-facebook"></i>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a class="btn btn-outline-light btn-social text-center rounded-circle" href="#">
+                  <i class="fa fa-fw fa-google-plus"></i>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a class="btn btn-outline-light btn-social text-center rounded-circle" href="#">
+                  <i class="fa fa-fw fa-twitter"></i>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a class="btn btn-outline-light btn-social text-center rounded-circle" href="#">
+                  <i class="fa fa-fw fa-linkedin"></i>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a class="btn btn-outline-light btn-social text-center rounded-circle" href="#">
+                  <i class="fa fa-fw fa-dribbble"></i>
+                </a>
+              </li>
+            </ul>
+          </div>
+		  <!--
+          <div class="col-md-4">
+            <h4 class="text-uppercase mb-4">About Freelancer</h4>
+            <p class="lead mb-0">Freelance is a free to use, open source Bootstrap theme created by
+              <a href="http://startbootstrap.com">Start Bootstrap</a>.</p>
+          </div>
+		  -->
+        </div>
+      </div>
+    </footer>
+	
+    <!-- Scroll to Top Button (Only visible on small and extra-small screen sizes) -->
+    <div class="scroll-to-top d-lg-none position-fixed ">
+      <a class="js-scroll-trigger d-block text-center text-white rounded" href="#page-top">
+        <i class="fa fa-chevron-up"></i>
+      </a>
+    </div>
+	
+
+	
+</body>
+</html>
