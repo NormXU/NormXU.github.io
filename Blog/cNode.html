@@ -142,19 +142,158 @@ getline(cin, str);
 </code></pre>
 
 
+<b>structure</b><br />
+structure通常将声明放于函数main()外部，以保证外部声明可以被其后面的任何函数所使用
+<pre><code class="language-c">
+strcut perks
+{
+	std::string name;
+	float volume;
+	double price;
+} smith; //可以直接定义结构并创造实例
 
+struct inflatable
+{
+	char name[20];
+	float volume'
+	double price;
+}
+// 也可以构造结构数组
+inflatable guests[20]=
+{
+	{"a", 1.0, 2.0},
+	{"b", 1.5, 2.5}
+}
 
+</code></pre>
 
+<b>enum</b><br />
 
+<pre><code class="language-c">
+enum spectrum {red, green, yellow, blue}
+// 此后，spectrum就成为了新的数据类型
+int main()
+{
+    spectrum color;
+    color = green;
+    cout << "Color " << color+1;
+    return 0;
+}
+</code></pre>
 
+<b>指针</b><br />
+指针存储的值是值的地址，而非值的本身。对于一个变量，在它的前面加上&就可以获悉它的地址。
+*运算符被称为间接值或者接触引用运算符，被用于指针。指针的关键作用在于：在运行阶段分配未命名的内存以存储值。
+<pre><code class="language-c">
+int* p_update;  // Declare a pointer to int type
+int update = 6;
+p_update = & update;
+
+int* pt = & update; //也可以这样初始化值
+
+</code></pre>
+程序告诉new，需要为哪种数据类型分配内存，并使用指针来访问这个值
+<pre><code class="language-c">
+int* pt = new int;
+*pt = 1001;
+
+//使用完毕后，能够将其归还给内存池
+delete pt
+
+// new还可以用于建立动态数组
+int* psome = new int [10];
+delete [] psome
+</code></pre>
+
+</code></pre>
+程序告诉new，需要为哪种数据类型分配内存，并使用指针来访问这个值
+<pre><code class="language-c">
+double* p3 = new double [3];
+p3[0] = 0.5;
+p3[1] = 0.1;
+p3[2] = 0.7;
+
+p3 = p3 + 1;
+cout << p3[0] << std::endl; // 输出是0.1
+p3 = p3 - 1;
+delete [] p3;
+return 0 
+</code></pre>
+相邻int型指针相差2~4个字节，而对pointer做加法后； p3 = p3 + 1，它将指向下一个元素
+p3可以作为整个数组名来使用，且是指向第一个元素的地址值。因此，指针变量加1后，增加的量等于他指向的类型的字节数。
+
+<pre><code class="language-c">
+int tacos[10] = {5,2,8,4,1,2,2,4,6};
+int* pt = tacos;
+int* pe = &tacos[9];
+
+//其中, int* pt = tacos 相当于 int* pt = &tacos[0]
+
+// 指针与字符串
+char flowers[10] = "rose";
+cout << flowers << " are red\n";
+</code></pre>
+如果给cout提供一个字符的地址(提供的指针类型为char* )，则他将从改字符开始打印，直到遇到'\0'
+<pre><code class="language-c">
+1. char animal[20];
+2. char* ps;
+3. cin >> animal;
+4. ps  = animal;
+5. char* pe = new char [strlen(animal)+1];
+6. strcpy(pe, animal);
+</code></pre>
+注意，在第四行，ps = animal，这个时候是将&animal[0]这个地址幅值给了ps，而并非是赋值字符串。也就是两个不同的指针变量指向同一个内存块。
+<pre><code class="language-c">
+struct inflatable
+{
+  char name[20];
+  float volume;
+
+};
+int main()
+{
+  inflatable* ps = new inflatable;
+  cin.get(ps->name, 20);
+  cin >> (*ps.name);
+  delete ps;
+  return 0;
+}
+</code></pre>
+对于没有名称，只知道地址的结构，若想去调用它的成员，则需要'->' 或如上述代码所示
+
+<pre><code class="language-c">
+const ana_year* arp[3] = {&s01, &s02, &s03};
+// arp是一个数组，这里面数组的所有元素都是只想ana_year的指针
+arp则是指向指针的指针， &arp[0] = arp = const ana_year*
+
+//我们可以创造指针的指针，也就是指向const ana_year*的指针
+const ana_year** ppa = arp
+// 但这么写极其复杂，因此我们可以使用auto关键字来让编译器自己判断指针的类型
+auto ppa = arp;
+
+cout << (*(ppa+1))->year << std::endl;
+
+</code></pre>
+
+<b>STL标准库模板</b><br />
+<pre><code class="language-c">#include < vector >
+vector< double > vd(n)
+// create an array of n doubles
+
+// vector是动态长度的数组，如果要使用的数组是固定长度的，那么vector的效率会更低一些。此时，我们换着使用array.h
+# include < array >
+array< int, 5> ai;
+
+vector 和array访问指定元素，都可以 vd[2], ai[2], 或者vd.at(2), ai.at(2)来实现
+</code></pre>
 
 <br /><br /><hr>			
 <div class="pagination">
-  <a href="algorithm.html">&laquo;</a>
+  <a href="">&laquo;</a>
   <a class="active" href="algorithm.html">1</a>
-  <a href="algorithm_P2.html">2</a>
+  <a href="">2</a>
 
-  <a href="algorithm_P2.html">&raquo;</a>
+  <a href="">&raquo;</a>
 </div>
 
 

@@ -74,8 +74,59 @@
     <div class="row">
 		<div class="container">
 
-
+<h5>    最长回文串</h5>
+<p class="mb-5">
+所谓回文串就是："abcba"这种从左往右或者从右往左读都一样的字符串
+</p>
+<div class="container">
+	<div class="row">
+		<div class="col-lg-6 ml-auto">
 		
+<pre><code class="language-python">
+class Solution:
+	"""
+	@para s: input string
+	@return: the longest palindramic substring
+	"""
+	def longesrPalindramic(self, s):
+		# 首先检查传入的参数是否正确，是否是真的传入进来了
+		if not s:
+			return ""
+
+		self.start, self.longest = 0, 0
+		for middle in range(len(s)):
+			self.find_longest_palindrome_from(s,middle,middle) #这就是两种情况
+			self.find_longest_palindrome_from(s,middle,middle+1)
+
+		return s[self.left:self.left + self.longest]
+
+	def find_longest_palindrome_from(self, s, left, right):
+		while(left>=0 and right < len(s) and s[left] == s[right]):
+			left  -= 1
+			right += 1
+		if self.longest < right - left + 1:
+			self.longest = right - left + 1
+			self.left = left + 1
+
+</code></pre>
+		</div>
+				
+				
+				
+	<div class="col-lg-6 ml-auto">
+ 主要思路：基于中心点枚举的方案。这里就有两种情况: <br />	① abcba，中心点在c上。最开始两个指针，left = right，然后左指针作减法，右指针作加法，直到左右指针对应的元素值不同的时候，回文串结束
+ 还有一种情况就是偶数个元素； <br />	② abba， 这时中心点是b与b之间的点。那么对于一个长度为n的字符串，它有多少个中心点呢？ n+1.  所以中心思想就是从中心线，用两个指针，往左右两边一步步挪动 x a b b a y
+ 
+				</div>
+				
+			</div>	
+		</div>
+			
+			
+	<br />		
+
+
+
 
 <h5>    delete_uth</h5>
 <p class="mb-5">
