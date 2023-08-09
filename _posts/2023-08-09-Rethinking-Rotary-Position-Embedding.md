@@ -12,7 +12,7 @@ Shortly after the paper was published, @bloc97 introduced the NTK-aware Scaled R
 With all these methods, especially the NTK-aware Scaled RoPE, it persuades me to rethink the idea behind RoPE. 
 And I realized that the RoPE can be regarded as a $$ \beta $$-based encoding. From this perspective, the methods mentioned above can be understood as various extending for the encoding base.
 
-###Base Representation
+### Base Representation
 Suppose we have an integer $$n$$ within $$1,000$$ (not including $$1,000$$) that we want to input into a model. What would be the best way to do this?
 
 The most intuitive idea is to input it directly as a one-dimensional vector. However, the value of this vector has a large range from $$0$$ to $$999$$, which is not easy to optimize for gradient-based optimizers. What if we scale it between 0 and 1? That's not good either, because the difference between adjacent numbers changes from $$1$$ to $$0.001$$, making it challenging for both the model and optimizer to distinguish between the numbers. In general, gradient-based optimizers are a bit "vulnerable" and can only handle inputs that aren't too large or too small.
