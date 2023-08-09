@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="edc00419-59bc-46d1-89db-53a9074842bd" name="Changes" comment="add image">
-      <change afterPath="$PROJECT_DIR$/_posts/2023-08-09-A-Potential-Rotation-Inconsistency of-Dynamic-Scaled RoPE.md" afterDir="false" />
+    <list default="true" id="edc00419-59bc-46d1-89db-53a9074842bd" name="Changes" comment="add a new blog">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/_data/resources/blog/0/extrapolation.png" beforeDir="false" afterPath="$PROJECT_DIR$/_data/resources/blog/0/extrapolation.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/_posts/2023-08-09-A-Potential-Rotation-Inconsistency of-Dynamic-Scaled RoPE.md" beforeDir="false" afterPath="$PROJECT_DIR$/_posts/2023-08-09-A-Potential-Rotation-Inconsistency of-Dynamic-Scaled-Ro_P_E.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -90,9 +89,16 @@
       <option name="presentableId" value="Default" />
       <updated>1691593639782</updated>
       <workItem from="1691593641991" duration="10000" />
-      <workItem from="1691600145349" duration="802000" />
+      <workItem from="1691600145349" duration="1853000" />
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="add a new blog">
+      <created>1691603806351</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1691603806351</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -112,6 +118,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="fix formula display" />
     <MESSAGE value="add image" />
-    <option name="LAST_COMMIT_MESSAGE" value="add image" />
+    <MESSAGE value="add a new blog" />
+    <option name="LAST_COMMIT_MESSAGE" value="add a new blog" />
   </component>
 </project>

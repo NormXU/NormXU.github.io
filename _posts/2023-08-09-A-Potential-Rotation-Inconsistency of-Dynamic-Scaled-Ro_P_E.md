@@ -8,9 +8,9 @@ $$\alpha$$ is the scale of the max sequence length we extend by interpolation w.
 
 Then the Dynamic NTK is to scale up the $$\alpha$$ as:
 
-$$\alpha_{\text{dynamicNTK}} = \alpha * \frac{\text{max_seq + scale * (seq - max_seq)}}{\text{max_seq}}$$
+$$\alpha_{\text{dynamicNTK}} = \alpha * \frac \text{max_seq + scale * (seq - max_seq)} \text{max_seq}$$
 
-$$\text{max_seq}$$ is max sequence length of pretrained model, for example, for LLaMA-1-7B, $$\text{max_seq} = 2048$$; $$\text{seq}$$ is the current generated sequence ; 
+$$\text{ max_seq }$$ is max sequence length of pretrained model, for example, for LLaMA-1-7B, $$\text{ max_seq } = 2048$$; $$\text{ seq }$$ is the current generated sequence ; 
 
 According to the equation, we can see that as the sequence length keeps growing, the scaling factor continues to increase as well, which means the larger the base, the slower the rotation speed along all dimensions.
 
@@ -40,7 +40,8 @@ You can clearly see that these two $$\alpha$$ are different.
 
 Since we cache the key in almost every decoder implementation, the multiplication between the key and the query we conduct can be written as:
 
-$$\text{K}\text{Q}^ T =  [r(k_0, \alpha_0), r(k_1, \alpha_1), r(k_2, \alpha_2)] * r(q, \alpha_2) $$           **(eq1)**
+$$\text{K}\text{Q}^ T =  [r(k_0, \alpha_0), r(k_1, \alpha_1), r(k_2, \alpha_2)] * r(q, \alpha_2) $$
+**(eq1)**
 
 $$r(k, \alpha)$$: apply RoPE on the key with a rotation base $$\alpha$$
 
@@ -52,11 +53,13 @@ From my understanding, a consistent rotation between key and query should be lik
 
 Firstly,
 
-$$\text{K}\text{Q}^ T =  [r(k_0, \alpha_1), r(k_1, \alpha_1)] * r(q, \alpha_1) $$               **(eq2)**
+$$\text{K}\text{Q}^ T =  [r(k_0, \alpha_1), r(k_1, \alpha_1)] * r(q, \alpha_1) $$
+**(eq2)**
 
 when seq length increasing
 
-$$\text{K}\text{Q}^ T =  [r(k_0, \alpha_2), r(k_1, \alpha_2), r(k_2, \alpha_2)] * r(q, \alpha_2) $$             **(eq3)**
+$$\text{K}\text{Q}^ T =  [r(k_0, \alpha_2), r(k_1, \alpha_2), r(k_2, \alpha_2)] * r(q, \alpha_2) $$
+**(eq3)**
 
 The relative position introduced by RoPE between all keys and queries in **eq3** looks more reasonable when compared to **eq1**.
 
