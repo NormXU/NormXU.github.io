@@ -1,4 +1,4 @@
-Weeks ago, [u/emozilla](https://www.reddit.com/user/emozilla) proposed an improvement on NTK-Aware RoPR in this [post](https://www.reddit.com/r/LocalLLaMA/comments/14mrgpr/dynamically_scaled_rope_further_increases/?utm_source=share&utm_medium=web2x&context=3), later named DynamicNTKScalingRotaryEmbedding. 
+Weeks ago, [u/emozilla](https://www.reddit.com/user/emozilla) proposed an improvement on NTK-Aware RoPE in this [post](https://www.reddit.com/r/LocalLLaMA/comments/14mrgpr/dynamically_scaled_rope_further_increases/?utm_source=share&utm_medium=web2x&context=3), later named DynamicNTKScalingRotaryEmbedding. 
 
 The main idea behind Dynamic NTK involves incorporating a scaling factor relative to the present decoding sequence length to improve the base functionality， which means that if we represent the base of NTKRoPE as:
 
@@ -8,7 +8,7 @@ $$\alpha$$ is the scale of the max sequence length we extend by interpolation w.
 
 Then the Dynamic NTK is to scale up the $$\alpha$$ as:
 
-$$\alpha_{\text{dynamicNTK}} = \alpha * \frac \text{max\_seq + scale * (seq - max\_seq)} \text{max\_seq}$$
+$$\alpha_{\text{dynamicNTK}} = \alpha * \dfrac{\text{max\_seq + scale * (seq - max\_seq)}}{ \text{max\_seq}}$$
 
 $$\text{max\_seq}=100$$ is max sequence length of pretrained model, for example, for LLaMA-1-7B, $$\text{ max\_seq } = 2048$$; $$\text{seq}$$ is the current generated sequence ; 
 
@@ -28,11 +28,11 @@ key_states = self.k_proj(hidden_states)
 
 when the decoder tries to generate the 100th token, $$\text{seq}=100$$ and the ``key_states`` at the index $$j$$ is rotated based on a base  
 
-$$\alpha_1 = \alpha * \frac{\text{max_seq} + \text{scale} * (100 - \text{max_seq)}}{\text{max_seq}}$$
+$$\alpha_1 = \alpha * \dfrac{\text{max\_seq} + \text{scale} * (100 - \text{max\_seq)}}{\text{max\_seq}}$$
 
 when the decoder tries to generate the 200th token, $$\text{seq}=200$$ and the ``key_states`` at index $$j$$ is rotated based on a base
 
-$$\alpha_2 = \alpha * \frac{\text{max_seq} + \text{scale} * (200 - \text{max_seq)}}{\text{max_seq}}$$
+$$\alpha_2 = \alpha * \dfrac{\text{max\_seq} + \text{scale} * (200 - \text{max\_seq)}}{\text{max\_seq}}$$
 
 You can clearly see that these two $$\alpha$$ are different.
 
@@ -40,7 +40,7 @@ You can clearly see that these two $$\alpha$$ are different.
 
 Since we cache the key in almost every decoder implementation, the multiplication between the key and the query we conduct can be written as:
 
-**(eq1)**:　$$\text{K}\text{Q}^ T =  [r(k_0, \alpha_0), r(k_1, \alpha_1), r(k_2, \alpha_2)] * r(q, \alpha_2) $$
+**(eq1)**:　  $$\text{K}\text{Q}^ T =  [r(k_0, \alpha_0), r(k_1, \alpha_1), r(k_2, \alpha_2)] * r(q, \alpha_2) $$
 
 
 
@@ -55,14 +55,14 @@ From my understanding, a consistent rotation between key and query should be lik
 
 Firstly,
 
-**(eq2)**: $$\text{K}\text{Q}^ T =  [r(k_0, \alpha_1), r(k_1, \alpha_1)] * r(q, \alpha_1) $$
+**(eq2)**:　  $$\text{K}\text{Q}^ T =  [r(k_0, \alpha_1), r(k_1, \alpha_1)] * r(q, \alpha_1) $$
 
 
 
 
 when seq length increasing
 
-**(eq3)**: $$\text{K}\text{Q}^ T =  [r(k_0, \alpha_2), r(k_1, \alpha_2), r(k_2, \alpha_2)] * r(q, \alpha_2) $$
+**(eq3)**:　  $$\text{K}\text{Q}^ T =  [r(k_0, \alpha_2), r(k_1, \alpha_2), r(k_2, \alpha_2)] * r(q, \alpha_2) $$
 
 
 
