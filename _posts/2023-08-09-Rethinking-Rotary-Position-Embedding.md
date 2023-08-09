@@ -12,7 +12,7 @@ Shortly after the paper was published, @bloc97 introduced the NTK-aware Scaled R
 With all these methods, especially the NTK-aware Scaled RoPE, it persuades me to rethink the idea behind RoPE. 
 And I realized that the RoPE can be regarded as a $$ \beta $$-based encoding. From this perspective, the methods mentioned above can be understood as various extending for the encoding base.
 
-### Base Representation
+### Encoding the Number
 Suppose we have an integer $$n$$ within $$1,000$$ (not including $$1,000$$) that we want to input into a model. What would be the best way to do this?
 
 The most intuitive idea is to input it directly as a one-dimensional vector. However, the value of this vector has a large range from $$0$$ to $$999$$, which is not easy to optimize for gradient-based optimizers. What if we scale it between 0 and 1? That's not good either, because the difference between adjacent numbers changes from $$1$$ to $$0.001$$, making it challenging for both the model and optimizer to distinguish between the numbers. In general, gradient-based optimizers are a bit "vulnerable" and can only handle inputs that aren't too large or too small.
@@ -28,6 +28,7 @@ If we want to further reduce the span of each digit in the numbers, we can decre
 Let's assume we have trained a model using a three-dimensional vector, which is a representation of a number ranging from $$0$$ to $$999$$ with 10 as the encoding base, as the input, and the results are quite well. Then we want to increase the upper bound of $$n$$ to be $$2,000$$. How can we realize this?
 
 If we follow the same idea to represent the number, the input will now be a four-dimensional vector. However, the original model was designed and trained for a three-dimensional vector. Therefore, the model won't be able to process the input with an extra dimension. Some might wonder, why can't we reserve extra dimensions in advance? Indeed, we can pre-allocate a few more dimensions. During the training phase with the upper bound as $$1,000$$, they can be set to $$0$$, but during the inference phase with an upper bound as $$2,000$$, the pre-allocate dimension has to be set to numbers besides $$0$$. This approach is what we call Extrapolation.
+
 ![Extrapolation](https://raw.githubusercontent.com/NormXU/NormXU.github.io/main/_data/resources/blog/0/extrapolation.png)
 
 However, the dimensions reserved during the training phase have always been set to 0. If these dimensions were changed to other numbers during the inference phase, the results might be harmed. This is because the model is never trained to adapt to those pre-allocated digits in different values. In other words, due to insufficient training data for those dimensions, the extrapolation usually leads to a significant performance drop.
