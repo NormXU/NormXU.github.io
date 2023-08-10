@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "ReRoPE: Rethinking RoPE as a β-based Encoding"
+title: "ReRoPE & Rethinking RoPE as a β-based Encoding, Part 1"
 categories: LLM
 ---
 
@@ -75,13 +75,14 @@ Let's first recall a decimal number n. To calculate the digit at position m (cou
 **(eq1)**        $$\lfloor\dfrac{n}{\beta^{m-1}}\rfloor \mod \beta $$
 
 As for RoPE, which is adapted from Sinusoidal Position Embedding
-**(eq2)**        $$[\text{cos}(\frac n \beta^0), \text{sin}(\frac n \beta^0), \text{cos}(\frac n \beta^1), \text{sin}(\frac n \beta^1), …, \text{cos}(\frac n \beta^{d/2-1}), \text{sin}(\frac n \beta^{d/2-1})]$$
+
+**(eq2)**        $$[\text{cos}(\dfrac{n}{\beta^0}), \text{sin}(\dfrac{n}{\beta^0}), \text{cos}(\dfrac{n}{\beta^1}), \text{sin}(\dfrac{n}{\beta^1}), …, \text{cos}(\dfrac{n}{\beta^{d/2-1}}), \text{sin}(\dfrac{n}{\beta^{d/2-1}})]$$
 
 where $$\beta = 10000^{2/d}$$
 
 
-we can notice that **(eq1)** and **(eq2)** share the same component $$\frac n \beta^{m-1}$$
-$$\text{mod}$$ introduces periodicity, while \text{sin} and \text{cos} are also periodical functions. If we ignore the ceiling operation, we can say RoPE (or Sinusoidal Position Embedding) is a kind of β-based encoding.
+we can notice that **(eq1)** and **(eq2)** share the same component $$\frac n {\beta^{m-1}}$$
+$$\text{mod}$$ introduces periodicity, while $$\text{sin}$$ and $$\text{cos}$$ are also periodical functions. If we ignore the ceiling operation, we can say RoPE (or Sinusoidal Position Embedding) is a kind of β-based encoding.
 
 With this property, we can now apply extrapolation on $$n$$ by simply replacing $$n$$ as $$n/k$$, $$k$$ is the scale we want to enlarge. This is the Positional Interpolation proposed in Meta's paper, and the experimental results show that extrapolation indeed requires more fine-tuning steps than interpolation.
 
