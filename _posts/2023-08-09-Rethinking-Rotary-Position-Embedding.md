@@ -1,15 +1,15 @@
 ---
 layout: post
-title: "ReRoPE: Rethinking RoPE as a $$ \beta $$-based Encoding"
+title: "ReRoPE: Rethinking RoPE as a β-based Encoding"
 categories: LLM
 ---
 
-> > Translated from blogs [1](https://kexue.fm/archives/9675), [2](https://kexue.fm/archives/9706), [3](https://kexue.fm/archives/9708) originally written in Chinese by Su, Jianlin
+> Translated from blogs [1](https://kexue.fm/archives/9675), [2](https://kexue.fm/archives/9706), [3](https://kexue.fm/archives/9708) originally written in Chinese by Su, Jianlin
 >
 > Translated by Norm Inui
 
 (WIP🚧)
-## RoPE is a $$ \beta $$-based encoding 
+## RoPE is a β-based encoding 
 For developers who are interested in how to extend the context length of LLMs (Large Language Models), the open-source community has continuously presented us with fascinating proposals in the past few weeks. First, the user [@kaiokendev](https://www.reddit.com/user/kaiokendev) experimented with a "positional linear interpolation" approach in his project [SuperHOT](https://kaiokendev.github.io/til#extending-context-to-8k). 
 He demonstrated that with minimal fine-tuning on long texts, existing LLMs can be easily adapted to handle contexts over their pretraining context length. Almost simultaneously, Meta proposed the same idea, publishing their comprehensive experimental results in the paper titled "[Extending Context Window of Large Language Models via Positional Interpolation](https://arxiv.org/abs/2306.15595)." 
 Shortly after the paper was published, [@bloc97](https://www.reddit.com/user/bloc97) introduced the [NTK-aware Scaled RoPE](https://www.reddit.com/r/LocalLLaMA/comments/14lz7j5/ntkaware_scaled_rope_allows_llama_models_to_have/), enabling LLM to extend its context length without fine-tuning!
