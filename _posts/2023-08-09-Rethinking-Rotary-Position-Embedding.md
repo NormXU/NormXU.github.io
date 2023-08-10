@@ -69,9 +69,11 @@ Based on the explanation above, we can claim:
 > The Rotational Positional Encoding (RoPE) at position $$n$$ is the $$\beta$$-based encoding of the number $$n$$
 
 This might surprise you at first glance, however, it does hold true.
-Proof:
+
+_Proof:_
 
 Let's first recall a decimal number n. To calculate the digit at position m (counting from right to left) in its β-based encoding, we have:
+
 **(eq1)**        $$\lfloor\dfrac{n}{\beta^{m-1}}\rfloor \mod \beta $$
 
 As for RoPE, which is adapted from Sinusoidal Position Embedding
@@ -81,8 +83,9 @@ As for RoPE, which is adapted from Sinusoidal Position Embedding
 where $$\beta = 10000^{2/d}$$
 
 
-we can notice that **(eq1)** and **(eq2)** share the same component $$\frac n {\beta^{m-1}}$$
-$$\text{mod}$$ introduces periodicity, while $$\text{sin}$$ and $$\text{cos}$$ are also periodical functions. If we ignore the ceiling operation, we can say RoPE (or Sinusoidal Position Embedding) is a kind of β-based encoding.
+we can notice that 1) **(eq1)** and **(eq2)** share the same component $$\frac n {\beta^{m-1}}$$; 2) $$\text{mod}$$ introduces periodicity, while $$\text{sin}$$ and $$\text{cos}$$ are also periodical functions. 
+
+Therefore, if we ignore the ceiling operation, we can say RoPE (or Sinusoidal Position Embedding) is a kind of β-based encoding.
 
 With this property, we can now apply extrapolation on $$n$$ by simply replacing $$n$$ as $$n/k$$, $$k$$ is the scale we want to enlarge. This is the Positional Interpolation proposed in Meta's paper, and the experimental results show that extrapolation indeed requires more fine-tuning steps than interpolation.
 
