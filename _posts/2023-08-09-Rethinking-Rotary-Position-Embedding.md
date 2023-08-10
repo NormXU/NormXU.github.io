@@ -61,7 +61,7 @@ It is a solution that we are all familiar with, base conversion! A three-digit d
 It's indeed a clever idea. As mentioned earlier, what we care about is relative information in the sequence since a trained model has already learned $$875 > 874$$. This holds true in hexadecimal as well. The model doesn't care what base you use to represent the input, but the relative information. Now, the only problem would be if the value of each dimension exceeds $$9$$ (values between $$10-15$$), will the model still know how to compare accurately? Luckily, most LLMs have the generalization capability. Therefore, this base conversion approach can extend the range without fine-tuning! Furthermore, to make interpolation more robust, we can opt for a smaller base like $$\lceil\sqrt[3]{2000}\rceil = 13$$  instead of  $$16$$ to limit the value range of each dimension.
 
 
-This idea of base conversion finally leads us to the NTK-aware scaled RoPE that was mentioned at the beginning of the article.
+This idea of base conversion finally leads us to the NTK-aware scaled RoPE that was mentioned at the beginning.
 
 
 ### 1.5 Positional Encoding
@@ -78,16 +78,18 @@ Let's first recall a decimal number n. To calculate the digit at position m (cou
 
 As for RoPE, which is adapted from Sinusoidal Position Embedding
 
-**(eq2)**        $$[\text{cos}(\dfrac{n}{\beta^0}), \text{sin}(\dfrac{n}{\beta^0}), \text{cos}(\dfrac{n}{\beta^1}), \text{sin}(\dfrac{n}{\beta^1}), …, \text{cos}(\dfrac{n}{\beta^{d/2-1}}), \text{sin}(\dfrac{n}{\beta^{d/2-1}})]$$
-
-where $$\beta = 10000^{2/d}$$
+**(eq2)**        $$[\text{cos}(\dfrac{n}{\beta^0}), \text{sin}(\dfrac{n}{\beta^0}), \text{cos}(\dfrac{n}{\beta^1}), \text{sin}(\dfrac{n}{\beta^1}), …, \text{cos}(\dfrac{n}{\beta^{d/2-1}}), \text{sin}(\dfrac{n}{\beta^{d/2-1}})]$$, where $$\beta = 10000^{2/d}$$
 
 
-we can notice that 1) **(eq1)** and **(eq2)** share the same component $$\frac n {\beta^{m-1}}$$; 2) $$\text{mod}$$ introduces periodicity, while $$\text{sin}$$ and $$\text{cos}$$ are also periodical functions. 
+we can notice that:
+
+1) **eq1** and **eq2** share the same component $$\frac n {\beta^{m-1}}$$;
+
+2) $$\text{mod}$$ introduces periodicity, while $$\text{sin}$$ and $$\text{cos}$$ are also periodical functions. 
 
 Therefore, if we ignore the ceiling operation, we can say RoPE (or Sinusoidal Position Embedding) is a kind of β-based encoding.
 
 With this property, we can now apply extrapolation on $$n$$ by simply replacing $$n$$ as $$n/k$$, $$k$$ is the scale we want to enlarge. This is the Positional Interpolation proposed in Meta's paper, and the experimental results show that extrapolation indeed requires more fine-tuning steps than interpolation.
 
-Regarding numeral base conversion, the objective is to expand the representation range by $$k$$. Therefore, the β-base should be converted to at least $$β(k^{2/d})$$ (according to **(eq2)**, cos and sin appear in pairs. This can be regarded as a β-base representation with $$d/2$$ bits, not $$d$$). Alternatively, the original base $$10000$$ can be replaced with $$10000k$$, which is the NTK-aware Scaled RoPE. As discussed earlier, since positional embedding has taught the model the sequence relative information, NTK-aware Scaled RoPE can achieve good performance in longer contexts without fine-tuning.
+Regarding numeral base conversion, the objective is to expand the representation range by $$k$$. Therefore, the β-base should be converted to at least $$β(k^{2/d})$$ (according to **eq2**, cos and sin appear in pairs. This can be regarded as a β-base representation with $$d/2$$ bits, not $$d$$). Alternatively, the original base $$10000$$ can be replaced with $$10000k$$, which is the NTK-aware Scaled RoPE. As discussed earlier, since positional embedding has taught the model the sequence relative information, NTK-aware Scaled RoPE can achieve good performance in longer contexts without fine-tuning.
 
