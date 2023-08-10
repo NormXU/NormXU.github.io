@@ -1,6 +1,7 @@
 ---
 layout: post
 title: "A Potential Rotation Inconsistency of Dynamic Scaled RoPE"
+categories: LLM
 ---
 Weeks ago, [u/emozilla](https://www.reddit.com/user/emozilla) proposed an improvement on NTK-Aware RoPE in this [post](https://www.reddit.com/r/LocalLLaMA/comments/14mrgpr/dynamically_scaled_rope_further_increases/?utm_source=share&utm_medium=web2x&context=3), later named DynamicNTKScalingRotaryEmbedding. 
 

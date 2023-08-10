@@ -1,4 +1,10 @@
-> Translated from blogs [1](https://kexue.fm/archives/9675), [2](https://kexue.fm/archives/9706), [3](https://kexue.fm/archives/9708) originally written in Chinese by Su, Jianlin
+---
+layout: post
+title: "ReRoPE: Rethinking RoPE as a $$ \beta $$-based Encoding"
+categories: LLM
+---
+
+> > Translated from blogs [1](https://kexue.fm/archives/9675), [2](https://kexue.fm/archives/9706), [3](https://kexue.fm/archives/9708) originally written in Chinese by Su, Jianlin
 >
 > Translated by Norm Inui
 
