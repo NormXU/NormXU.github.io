@@ -3,6 +3,14 @@ layout: post
 title: "A Potential Rotation Inconsistency of Dynamic Scaled RoPE"
 categories: LLM
 ---
+### TL;DL
+
+- The huggingface implementation of DynamicNTK RoPE  introduces inconsistency in rotation base between keys
+- Current perplexity evaluation cannot faithfully reflect whether the inconsistency problem can harm the perplexity.
+- The DynamicNTK RoPE scaling can be fixed with `use_cache=False`, at the cost of speed.
+
+## A Potential Rotation Inconsistency of Dynamic Scaled RoPE
+
 Weeks ago, [u/emozilla](https://www.reddit.com/user/emozilla) proposed an improvement on NTK-Aware RoPE in this [post](https://www.reddit.com/r/LocalLLaMA/comments/14mrgpr/dynamically_scaled_rope_further_increases/?utm_source=share&utm_medium=web2x&context=3), later named DynamicNTKScalingRotaryEmbedding. 
 
 The main idea behind Dynamic NTK involves incorporating a scaling factor relative to the present decoding sequence length to improve the base functionality， which means that if we represent the base of NTKRoPE as:
@@ -161,12 +169,3 @@ According to the table above: The throughput of consistent is impaired compared 
 In fact, I haven't found any practical downstream tasks where the consistent RoPE can bring significant performance boost. The only advantage convinces me to replace it is its potential to achieve better perplexity scores when dealing with very long contexts.. Therefore, it looks, it is not necessary to correct this inconsistency in the RoPE. Speed does matter more than correctness :)
 
 Still, my experiments have some limitations. I only test it on one dataset with limited samples. I hope my finds can be helpful to you. If there is any mistake in my codes or experiments, I'll appreciate it if you could kindly point it out. Please feel free to raise an issue in the repo as well.
-
-
-
-### TL;DL
-
-- The huggingface implementation of DynamicNTK RoPE  introduces inconsistency in rotation base between keys
-- Current perplexity evaluation cannot faithfully reflect whether the inconsistency problem can harm the perplexity.
-- The DynamicNTK RoPE scaling can be fixed with `use_cache=False`, at the cost of speed.
-
