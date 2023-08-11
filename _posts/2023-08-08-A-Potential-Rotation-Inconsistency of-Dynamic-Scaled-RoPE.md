@@ -3,7 +3,7 @@ layout: post
 title: "A Potential Rotation Inconsistency of Dynamic Scaled RoPE"
 categories: LLM
 ---
-### TL;DL
+### TL;DR
 
 - The huggingface implementation of DynamicNTK RoPE  introduces inconsistency in rotation base between keys
 - Current perplexity evaluation cannot faithfully reflect whether the inconsistency problem can harm the perplexity.

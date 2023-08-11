@@ -8,7 +8,7 @@ categories: LLM
 >
 > Translated by Norm Inui
 
-### TL;DL
+### TL;DR
 
 The blog interprets RoPE from the perspective of a β-based encoding and introduces recent developments in the open-source community regarding long contexts. Some approaches, such as NTK-aware Scale RoPE can extend context length without fine-tuning.
 
