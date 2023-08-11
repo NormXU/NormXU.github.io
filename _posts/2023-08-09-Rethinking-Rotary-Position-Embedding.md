@@ -108,7 +108,8 @@ $$\dfrac{n}{\beta^{d/2-1}}$$
 Here, we introduce a factor $$\lambda$$
 $$\dfrac{n}{(\beta\lambda)^{d/2-1}}$$
 We expect that scaling the rotation base $$\beta$$ can work as interpolation, therefore
-**(eq3)**     $$\dfrac{n}{(\beta\lambda)^{d/2-1}} = $$\dfrac{n/k}{\beta^{d/2-1}}$$
+
+**(eq3)**     $$\dfrac{n}{(\beta\lambda)^{d/2-1}} = \dfrac{n/k}{\beta^{d/2-1}}$$
 
 We can solve from **eq3**: 
 
@@ -148,10 +149,10 @@ No fine-tuning is applied on all tests. **Baseline**: use extrapolation; **PI（
 
 3. NTK-RoPE achieves promising (though slightly reduced) results in extended context even without fine-tuning.
 
-4. S $$\log n$$ factor indeed improves self-attention for long context.
+4. A $$\log n$$ factor indeed optimize self-attention for long context.
 
-5. What's even more encouraging is that NTK-RoPE performs significantly better in 'repeated' extrapolation compared to 'non-repeated,' suggesting that LLM with NTK-RoPE still global attention within the expanded context, rather than confining attention to a limited contextual scope.
+5. What's even more encouraging is that NTK-RoPE performs significantly better in 'repeated' extrapolation compared to 'non-repeated', suggesting that LLM with NTK-RoPE still retain the global attention across the expanded context, rather than confining attention to a limited scope.
 
 
 
-In just a few weeks, the open-source community concerning long contexts totally blows our minds. Hey, ~~Open~~ClosedAI, you better watch out.
+In just a few weeks, the open-source community concerning long contexts totally blows our minds. ~~Open~~ClosedAI, you better watch out.
