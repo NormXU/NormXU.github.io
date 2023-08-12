@@ -26,9 +26,7 @@ Suppose we have an integer $$n$$ within $$1,000$$ (not including $$1,000$$) that
 
 The most intuitive idea is to input it directly as a one-dimensional vector. However, the value of this vector has a large range from $$0$$ to $$999$$, which is not easy to optimize for gradient-based optimizers. What if we scale it between 0 and 1? That's not good either, because the difference between adjacent numbers changes from $$1$$ to $$0.001$$, making it challenging for both the model and optimizer to distinguish between the numbers. In general, gradient-based optimizers are a bit "vulnerable" and can only handle inputs that aren't too large or too small.
 
-To solve this problem, it is necessary to find a smart way to represent the input. We might think about how we humans do. For an integer, like $$759$$, it's a three-digit number in decimal, with each digit ranging from 0 to 9. This inspires me to represent the input in decimal directly as a vector. That is, we transform the integer 
-
-$$n$$ as a three-dimensional vector $$[a,b,c]$$, where $$a$$, $$b$$, and $$c$$ represent the hundreds, tens, and units of $$n$$ respectively. By increasing the input dimension, we can both reduce the range of each digit and get rid of small resolution between numbers. Luckily, neural networks are good at handling high-dimensional vectors.
+To solve this problem, it is necessary to find a smart way to represent the input. We might think about how we humans do. For an integer, like $$759$$, it's a three-digit number in decimal, with each digit ranging from 0 to 9. This inspires me to represent the input in decimal directly as a vector. That is, we transform the integer  $$n$$ as a three-dimensional vector $$[a,b,c]$$, where $$a$$, $$b$$, and $$c$$ represent the hundreds, tens, and units of $$n$$ respectively. By increasing the input dimension, we can both reduce the range of each digit and get rid of small resolution between numbers. Luckily, neural networks are good at handling high-dimensional vectors.
 
 If we want to further reduce the value span of each dimension, we can simply decrease the base, like using 8, 6, or even 2 as the encoding base at a cost of an increase in input vector dimensions.
 
@@ -92,9 +90,9 @@ we can notice that:
 
 Therefore, if we ignore the ceiling operation, we can say RoPE (or Sinusoidal Position Embedding) is a kind of β-based encoding.
 
-With this property, we can now apply extrapolation on $$n$$ by simply replacing $$n$$ as $$n/k$$, $$k$$ is the scale we want to enlarge. This is the ~~Positional Interpolation~~ proposed in Meta's paper, and the experimental results show that extrapolation indeed requires more fine-tuning steps than interpolation.
+With this property, we can now apply extrapolation on $$n$$ by simply replacing $$n$$ as $$n/k$$, $$k$$ is the scale we want to enlarge. This is the __Positional Interpolation__ proposed in Meta's paper, and the experimental results show that extrapolation indeed requires more fine-tuning steps than interpolation.
 
-Regarding numeral base conversion, the objective is to expand the representation range by $$k$$. Therefore, the β-base should be converted to at least $$β(k^{2/d})$$ (according to **eq2**, cos and sin appear in pairs. This can be regarded as a β-base representation with $$d/2$$ bits, not $$d$$). Alternatively, the original base $$10000$$ can be replaced with $$10000k$$, which is the NTK-aware Scaled RoPE. As discussed earlier, since positional embedding has taught the model the sequence relative information, NTK-aware Scaled RoPE can achieve good performance in longer contexts without fine-tuning.
+Regarding numeral base conversion, the objective is to expand the representation range by $$k$$. Therefore, the β-base should be converted to at least $$β(k^{2/d})$$ (according to **eq2**, $$\text{cos}$$ and $$\text{sin}$$ appear in pairs. This can be regarded as a β-base representation with $$d/2$$ bits, not $$d$$). Alternatively, the original base $$10000$$ can be replaced with $$10000k$$, which is the NTK-aware Scaled RoPE. As discussed earlier, since positional embedding has taught the model the sequence relative information, NTK-aware Scaled RoPE can achieve good performance in longer contexts without fine-tuning.
 
 ### Let’s dig further
 You might wonder why we call it “NTK (Neural Tangent Kernel). In fact, it is the academic background of @bloc97 that makes him use this term to name it.
@@ -104,8 +102,9 @@ In "[Fourier Features Let Networks Learn High-Frequency Functions in Low-Dimensi
 Thus, based on the findings from this NTK paper, @bloc97 proposed the NTK-aware Scaled RoPE. I ask him about how he derived it. Surprisingly, his derivation is quite straightforward. The main idea is to combine extrapolation with interpolation — **extrapolation in high-frequency and  interpolation in low-frequency**.
 According to **eq2**, the lowest frequency in each element of the position features is 
 $$\dfrac{n}{\beta^{d/2-1}}$$
-Here, we introduce a factor $$\lambda$$
+Here, we introduce a factor $$\lambda$$ in base, now we have: 
 $$\dfrac{n}{(\beta\lambda)^{d/2-1}}$$
+
 We expect that scaling the rotation base $$\beta$$ can work as interpolation, therefore
 
 **(eq3)**     $$\dfrac{n}{(\beta\lambda)^{d/2-1}} = \dfrac{n/k}{\beta^{d/2-1}}$$
