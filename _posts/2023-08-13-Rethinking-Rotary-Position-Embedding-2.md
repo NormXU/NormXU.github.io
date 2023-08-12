@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Expand the Context Length with RoPE, Part 2 -- Further Research about RoPE as a β-Based Encoding"
+title: "Expand the Context Length with RoPE, Part 2 -- Further Research about β-Based Encoding"
 categories: LLM
 ---
 
