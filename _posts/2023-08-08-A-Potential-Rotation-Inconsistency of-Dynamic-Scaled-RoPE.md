@@ -54,7 +54,7 @@ You can clearly see that these two $$\alpha$$ are different.
 
 Since we cache the key in almost every decoder implementation, the multiplication between the key and the query we conduct can be written as:
 
-**(eq1)**:　  $$\text{K}\text{Q}^ T =  [r(k_0, \alpha_0), r(k_1, \alpha_1), r(k_2, \alpha_2)] * r(q, \alpha_2) $$
+$$ \begin{equation} \text{K}\text{Q}^ T =  [r(k_0, \alpha_0), r(k_1, \alpha_1), r(k_2, \alpha_2)] * r(q, \alpha_2) \end{equation} $$
 
 
 
@@ -69,14 +69,14 @@ From my understanding, a consistent rotation between key and query should be lik
 
 Firstly,
 
-**(eq2)**:　  $$\text{K}\text{Q}^ T =  [r(k_0, \alpha_1), r(k_1, \alpha_1)] * r(q, \alpha_1) $$
+$$ \begin{equation} \text{K}\text{Q}^ T =  [r(k_0, \alpha_1), r(k_1, \alpha_1)] * r(q, \alpha_1) \end{equation} $$
 
 
 
 
 when seq length increasing
 
-**(eq3)**:　  $$\text{K}\text{Q}^ T =  [r(k_0, \alpha_2), r(k_1, \alpha_2), r(k_2, \alpha_2)] * r(q, \alpha_2) $$
+$$ \begin{equation} \text{K}\text{Q}^ T =  [r(k_0, \alpha_2), r(k_1, \alpha_2), r(k_2, \alpha_2)] * r(q, \alpha_2) \end{equation} $$
 
 
 

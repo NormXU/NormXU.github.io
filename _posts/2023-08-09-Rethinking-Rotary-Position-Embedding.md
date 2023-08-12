@@ -75,11 +75,13 @@ _Proof:_
 
 Suppose we have a decimal number $$n$$. To calculate the digit at position $$m$$ (counting from right to left) in its β-based encoding, we have:
 
-**(eq1)**        $$\lfloor\dfrac{n}{\beta^{m-1}}\rfloor \mod \beta $$
+$$ \begin{equation}\lfloor\dfrac{n}{\beta^{m-1}}\rfloor \mod \beta \end{equation} $$
 
 As for RoPE, which is adapted from Sinusoidal Position Embedding
 
-**(eq2)**        $$[\text{cos}(\dfrac{n}{\beta^0}), \text{sin}(\dfrac{n}{\beta^0}), \text{cos}(\dfrac{n}{\beta^1}), \text{sin}(\dfrac{n}{\beta^1}), …, \text{cos}(\dfrac{n}{\beta^{d/2-1}}), \text{sin}(\dfrac{n}{\beta^{d/2-1}})]$$, where $$\beta = 10000^{2/d}$$
+$$ \begin{equation}[\text{cos}(\dfrac{n}{\beta^0}), \text{sin}(\dfrac{n}{\beta^0}), \text{cos}(\dfrac{n}{\beta^1}), \text{sin}(\dfrac{n}{\beta^1}), …, \text{cos}(\dfrac{n}{\beta^{d/2-1}}), \text{sin}(\dfrac{n}{\beta^{d/2-1}})]\end{equation} $$
+
+where $$\beta = 10000^{2/d}$$
 
 
 we can notice that:
@@ -107,7 +109,7 @@ $$\dfrac{n}{(\beta\lambda)^{d/2-1}}$$
 
 We expect that scaling the rotation base $$\beta$$ can work as interpolation, therefore
 
-**(eq3)**     $$\dfrac{n}{(\beta\lambda)^{d/2-1}} = \dfrac{n/k}{\beta^{d/2-1}}$$
+$$ \begin{equation}\dfrac{n}{(\beta\lambda)^{d/2-1}} = \dfrac{n/k}{\beta^{d/2-1}}\end{equation} $$
 
 We can solve from **eq3**: 
 
