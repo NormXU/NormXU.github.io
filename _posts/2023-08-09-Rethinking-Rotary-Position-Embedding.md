@@ -10,8 +10,8 @@ categories: LLM
 
 ### TL;DR
 
-- Interprets RoPE from the perspective of a β-based encoding.
-- Introduces recent developments in the open-source community regarding long contexts. 
+- Interpret RoPE from the perspective of a β-based encoding.
+- Introduce recent developments in the open-source community regarding long contexts. 
 - Some approaches, such as NTK-aware Scale RoPE, can extend context length without fine-tuning.
 
 ## RoPE is a β-based encoding 
