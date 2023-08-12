@@ -10,12 +10,12 @@ categories: LLM
 
 ### TL;DR
 
-The blog interprets RoPE from the perspective of a β-based encoding and introduces recent developments in the open-source community regarding long contexts. Some approaches, such as NTK-aware Scale RoPE can extend context length without fine-tuning.
+The blog interprets RoPE from the perspective of a β-based encoding and introduces recent developments in the open-source community regarding long contexts. Some approaches, such as NTK-aware Scale RoPE, can extend context length without fine-tuning.
 
 ## RoPE is a β-based encoding 
 For developers who are interested in how to extend the context length of LLMs (Large Language Models), the open-source community has continuously presented us with fascinating proposals in the past few weeks. First, the user [@kaiokendev](https://www.reddit.com/user/kaiokendev) experimented with a "positional linear interpolation" approach in his project [SuperHOT](https://kaiokendev.github.io/til#extending-context-to-8k). 
 
-He demonstrated that with minimal fine-tuning on long texts, existing LLMs can be easily adapted to handle contexts over their pretraining context length. Almost simultaneously, Meta proposed the same idea, publishing their comprehensive experimental results in the paper titled "[Extending Context Window of Large Language Models via Positional Interpolation](https://arxiv.org/abs/2306.15595)." 
+He/She demonstrated that with minimal fine-tuning on long texts, existing LLMs can be easily adapted to handle contexts over their pretraining context length. Almost simultaneously, Meta proposed the same idea, publishing their comprehensive experimental results in the paper titled "[Extending Context Window of Large Language Models via Positional Interpolation](https://arxiv.org/abs/2306.15595)." 
 
 Shortly after the paper was published, [@bloc97](https://www.reddit.com/user/bloc97) introduced the [NTK-aware Scaled RoPE](https://www.reddit.com/r/LocalLLaMA/comments/14lz7j5/ntkaware_scaled_rope_allows_llama_models_to_have/), enabling LLM to extend its context length without fine-tuning!
 
@@ -102,7 +102,7 @@ You might wonder, Why do we call it “NTK (Neural Tangent Kernel) ? In fact, it
 
 In "[Fourier Features Let Networks Learn High-Frequency Functions in Low-Dimensional Domains](https://arxiv.org/abs/2006.10739)", authors use NTK methods to demonstrate that neural networks cannot learn high-frequency signals well. Instead, one solution is to transform it into Fourier features, which share the same idea with the Sinusoidal position encoding we explain in **eq1**.
 
-Thus, based on the findings from this NTK paper,@bloc97 derived the NTK-aware Scaled RoPE. I ask him/her about the derivation. And his/her derivation is quite straightforward. The main idea is to combine extrapolation with interpolation — high-frequency for extrapolation and low-frequency for interpolation.
+Thus, based on the findings from this NTK paper, @bloc97 proposed the NTK-aware Scaled RoPE. I ask him/her about how he/she derived it. Surprisingly, his/her derivation is quite straightforward. The main idea is to combine extrapolation with interpolation — high-frequency for extrapolation and low-frequency for interpolation.
 According to **eq2**, the lowest frequency in each element of the position features is 
 $$\dfrac{n}{\beta^{d/2-1}}$$
 Here, we introduce a factor $$\lambda$$
@@ -119,7 +119,7 @@ The same idea for the highest frequency in the RoPE feature: $$\dfrac{n}{\beta}$
 
 $$\dfrac{n}{(\beta\lambda)^{d/2-1}}\simeq \dfrac{n}{(\beta)^{d/2-1}}$$ 
 
-The frequency remains relatively stable w.r.$$\lambda$$, indicating that the corresponding dimension doesn’t become more crowded. Therefore, to represent a larger number, a high-frequency dimension is more likely to extrapolate by using an additional dimension rather than extending its current range that one dimension can hold. This is what we call: high-frequency for extrapolation.
+You can see the frequency remains relatively stable w.r.t $$\lambda$$, indicating that the corresponding dimension doesn’t become too crowded. Therefore, to represent a larger number, a high-frequency dimension is more likely to extrapolate by using an additional dimension rather than extending its current range one dimension can hold. This is what we call: high-frequency for extrapolation.
 
 From the derivation above, we can see that NTK-aware Scaled RoPE cleverly combines interpolation and extrapolation together. Besides scaling the base, I believe any transformations on the frequencies will be also effective as long as it ensures the extrapolation for high frequencies and interpolation for low-frequencies.
 
@@ -151,7 +151,7 @@ No fine-tuning is applied on all tests. **Baseline**: use extrapolation; **PI（
 
 4. A $$\log n$$ factor indeed optimize self-attention for long context.
 
-5. What's even more encouraging is that NTK-RoPE performs significantly better in 'repeated' extrapolation compared to 'non-repeated', suggesting that LLM with NTK-RoPE still retain the global attention across the expanded context, rather than confining attention to a limited scope.
+5. What's even more encouraging is that NTK-RoPE performs significantly better in 'repeated' extrapolation compared to 'non-repeated', suggesting that LLM with NTK-RoPE still retain the global attention ability across the expanded context, rather than confining its attention to a limited scope.
 
 
 
