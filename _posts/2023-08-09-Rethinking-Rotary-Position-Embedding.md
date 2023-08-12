@@ -27,15 +27,15 @@ Suppose we have an integer $$n$$ within $$1,000$$ (not including $$1,000$$) that
 
 The most intuitive idea is to input it directly as a one-dimensional vector. However, the value of this vector has a large range from $$0$$ to $$999$$, which is not easy to optimize for gradient-based optimizers. What if we scale it between 0 and 1? That's not good either, because the difference between adjacent numbers changes from $$1$$ to $$0.001$$, making it challenging for both the model and optimizer to distinguish between the numbers. In general, gradient-based optimizers are a bit "vulnerable" and can only handle inputs that aren't too large or too small.
 
-To avoid this problem, a new way to represent the input is necessary. We might think about how we humans do. For an integer, like $$759$$, it's a three-digit number if encoded with 10 as base, with each digit ranging from 0 to 9. This inspires me to represent the input into the model directly with the 10-based encoding. That is, we transform the integer 
+To solve this problem, it is necessary to find a new way to represent the input. We might think about how we humans do. For an integer, like $$759$$, it's a three-digit number if encoded with 10 as base, with each digit ranging from 0 to 9. This inspires me to represent the input into the model directly with the 10-based encoding. That is, we transform the integer 
 
 $$n$$ as a three-dimensional vector $$[a,b,c]$$, where $$a$$, $$b$$, and $$c$$ represent the hundreds, tens, and units of $$n$$ respectively. This way, we can both reduce the range of the numbers and get rid of reducing the difference between adjacent numbers, by increasing the input dimension. Luckily, neural networks are good at handling high-dimensional data.
 
-If we want to further reduce the span of each digit in the numbers, we can decrease the base, like using 8, 6, or even 2 as the encoding base at a cost of an increase in input vector dimensions.
+If we want to further reduce the value span of each dimension, we can decrease the base, like using 8, 6, or even 2 as the encoding base at a cost of an increase in input vector dimensions.
 
 ### Direct Extrapolation
 
-Let's assume we have trained a model using a three-dimensional vector, which is a representation of a number ranging from $$0$$ to $$999$$ with 10 as the encoding base, as the input, and the results are quite well. Then we want to increase the upper bound of $$n$$ to be $$2,000$$. How can we realize this?
+Let's assume we have trained a model by representing the input ranging from $$0$$ to $$999$$ in decimal as a three-dimensional vector. Then we want to enlarge the upper bound of $$n$$ to be $$2,000$$. How can we realize this?
 
 If we follow the same idea to represent the number, the input will now be a four-dimensional vector. However, the original model was designed and trained for a three-dimensional vector. Therefore, the model won't be able to process the input with an extra dimension. Some might wonder, why can't we reserve extra dimensions in advance? Indeed, we can pre-allocate a few more dimensions. During the training phase with the upper bound as $$1,000$$, they can be set to $$0$$, but during the inference phase with an upper bound as $$2,000$$, the pre-allocate dimension has to be set to numbers besides $$0$$. This approach is what we call Extrapolation.
 
