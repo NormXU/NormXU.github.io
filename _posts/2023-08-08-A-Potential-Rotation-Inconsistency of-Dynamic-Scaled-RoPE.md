@@ -37,6 +37,7 @@ Let's denote
 
 ```python
 key_states = self.k_proj(hidden_states)
+value_states = self.v_proj(hidden_states)
 ```
 
 when the decoder tries to generate the 100th token, $$\text{seq}=100$$ and the ``key_states`` at the index $$j$$ is rotated based on a base  
