@@ -35,7 +35,7 @@ If we want to further reduce the value span of each dimension, we can decrease t
 
 ### Direct Extrapolation
 
-Let's assume we have trained a model by representing the input ranging from $$0$$ to $$999$$ in decimal as a three-dimensional vector. Then we want to enlarge the upper bound of $$n$$ to be $$2,000$$. How can we realize this?
+Let's say we have trained a model with the input ranging from $$0$$ to $$999$$ in decimal represented as a three-dimensional vector. Then we want to enlarge the upper bound of $$n$$ to be $$2,000$$. How can we realize this?
 
 If we follow the same idea to represent the number, the input will now be a four-dimensional vector. However, the original model was designed and trained for a three-dimensional vector. Therefore, the model won't be able to process the input with an extra dimension. Some might wonder, why can't we reserve extra dimensions in advance? Indeed, we can pre-allocate a few more dimensions. During the training phase with the upper bound as $$1,000$$, they can be set to $$0$$, but during the inference phase with an upper bound as $$2,000$$, the pre-allocate dimension has to be set to numbers besides $$0$$. This approach is what we call Extrapolation.
 
