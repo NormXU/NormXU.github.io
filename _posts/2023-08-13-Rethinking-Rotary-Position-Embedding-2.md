@@ -12,12 +12,12 @@ In our previous [post](https://normxu.github.io/Rethinking-Rotary-Position-Embed
 
 ### Modification to NTK
 Suppose we encode integer $$n$$ in the $$\beta$$-base, and $$m$$ is the digit of the representation counting from the right.
-
-**(eq1)**          $$\lfloor\dfrac{n}{\beta^{m-1}}\rfloor \mod \beta $$
+ 
+$$ \begin{equation} \lfloor\dfrac{n}{\beta^{m-1}}\rfloor \mod \beta \end{equation} $$
 
 If we represent it as a RoPE vector:
 
-**(eq2)**          $$p_n = [\text{cos}\theta_1, \text{sin}\theta_1, \text{cos}\theta_2, \text{sin}\theta_2, …, \text{cos}\theta_{d/2}, \text{sin}\theta_{d/2}]$$
+$$ \begin{equation} p_n = [\text{cos}\theta_1, \text{sin}\theta_1, \text{cos}\theta_2, \text{sin}\theta_2, …, \text{cos}\theta_{d/2}, \text{sin}\theta_{d/2}] \end{equation}$$
 
 where $$\theta_m = \dfrac{n}{\beta^{m-1}}$$, $$\beta= 10000^{2/d}$$
 
@@ -31,7 +31,7 @@ $$\lambda^{d/2}=k \Rightarrow \lambda=k^{2/d}$$
 
 Then, the RoPE becomes:
 
-**(eq3)**        $$p_n = [\text{cos}\theta_1, \text{sin}\theta_1, \text{cos}\theta_2, \text{sin}\theta_2, …, \text{cos}\theta_{d/2}, \text{sin}\theta_{d/2}]$$
+$$ \begin{equation} p_n = [\text{cos}\theta_1, \text{sin}\theta_1, \text{cos}\theta_2, \text{sin}\theta_2, …, \text{cos}\theta_{d/2}, \text{sin}\theta_{d/2}] \end{equation} $$
 
 where $$\theta_m = \dfrac{n}{(\beta\lambda)^{m-1}}$$, $$\beta= 10000^{2/d}$$, $$ \lambda=k^{2/d}$$
 
@@ -39,11 +39,11 @@ This is how we implement NTK-RoPE.
 
 However, back to **eq1**, we can see that if we want to encode $$n$$ with a base of $$\beta \lambda$$, the **eq1** should be:
 
-**(eq4)**        $$\lfloor\dfrac{n}{(\beta\lambda)^{m-1}}\rfloor \mod (\beta\lambda) $$
+$$ \begin{equation} \lfloor\dfrac{n}{(\beta\lambda)^{m-1}}\rfloor \mod (\beta\lambda) \end{equation} $$
 
 Therefore, our derivation in **eq2** and **eq3** has flaws, besides replacing the $$\dfrac{n}{\beta^{m-1}}$$ with $$\dfrac{n}{(\beta\lambda)^{m-1}}$$, the $$\mod$$ needs to scale up its period by $$\lambda$$ as well, then the corrected Scaled RoPE should be:
 
-**(eq5)**        $$p_n = [\text{cos}\theta_1, \text{sin}\theta_1, \text{cos}\theta_2, \text{sin}\theta_2, …, \text{cos}\theta_{d/2}, \text{sin}\theta_{d/2}]$$
+$$ \begin{equation} p_n = [\text{cos}\theta_1, \text{sin}\theta_1, \text{cos}\theta_2, \text{sin}\theta_2, …, \text{cos}\theta_{d/2}, \text{sin}\theta_{d/2}] \end{equation} $$
 
 where $$\theta_m = \dfrac{n}{\lambda(\beta\lambda)^{m-1}}$$, $$\beta= 10000^{2/d}$$, $$ \lambda=k^{2/d}$$
 
