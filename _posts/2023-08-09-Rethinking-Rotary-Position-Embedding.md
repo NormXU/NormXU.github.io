@@ -4,7 +4,7 @@ title: "Expand the Context Length with RoPE, Part 1 -- RoPE is a β-based Encodi
 categories: LLM
 ---
 
-> Translated from the [blog](https://kexue.fm/archives/9675), originally written in Chinese by Su, Jianlin
+> Translated from the [post](https://kexue.fm/archives/9675), originally written in Chinese by Su, Jianlin
 >
 > Translated by Norm Inui
 
@@ -98,7 +98,7 @@ With this property, we can now apply extrapolation on $$n$$ by simply replacing 
 Regarding numeral base conversion, the objective is to expand the representation range by $$k$$. Therefore, the β-base should be converted to at least $$β(k^{2/d})$$ (according to **eq2**, cos and sin appear in pairs. This can be regarded as a β-base representation with $$d/2$$ bits, not $$d$$). Alternatively, the original base $$10000$$ can be replaced with $$10000k$$, which is the NTK-aware Scaled RoPE. As discussed earlier, since positional embedding has taught the model the sequence relative information, NTK-aware Scaled RoPE can achieve good performance in longer contexts without fine-tuning.
 
 ### Let’s dig further
-You might wonder, Why do we call it “NTK (Neural Tangent Kernel) ? In fact, it is the academic background of  @bloc97 that makes him/her use this term to name it.
+You might wonder, Why do we call it NTK (Neural Tangent Kernel) ? In fact, it is the academic background of  @bloc97 that makes him use this term to name it.
 
 In "[Fourier Features Let Networks Learn High-Frequency Functions in Low-Dimensional Domains](https://arxiv.org/abs/2006.10739)", authors use NTK methods to demonstrate that neural networks cannot learn high-frequency signals well. Instead, one solution is to transform it into Fourier features, which share the same idea with the Sinusoidal position encoding we explain in **eq1**.
 
@@ -156,3 +156,6 @@ No fine-tuning is applied on all tests. **Baseline**: use extrapolation; **PI（
 
 
 In just a few weeks, the open-source community concerning long contexts totally blows our minds. ~~Open~~ClosedAI, you better watch out.
+
+### Future Research
+please check [part-2](https://normxu.github.io/Rethinking-Rotary-Position-Embedding-2/)
