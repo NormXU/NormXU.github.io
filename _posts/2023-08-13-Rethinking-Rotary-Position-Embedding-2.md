@@ -54,10 +54,12 @@ In the following context, we denote **eq3** as **NTK-RoPE-old**, and **eq5** as 
 
 If we can encode an integer in $$\beta$$ base, how about generalizing to a mixed-based encoding where each digit is encoded in a different base? Just like the time system we daily use, 60 seconds make up 1 minute, 60 minutes equal 1 hour, 24 hours is 1 day, and 7 days amount to 1 week. Here, the numbers 60, 60, 24, and 7 can be regarded as different encoding bases. In essence, any timestamp can be encoded into seconds, minutes, hours, days, and weeks with the mixed-based system.
 Counted from right to left, the first digit is encoded in $$\beta_1$$, the second digit is in $$\beta_2$$, and the third is in $$\beta_3$$, …. The $$m$$th digit of an integer $$n$$ can then be represented as:
+
 $$ \begin{equation} \lfloor\dfrac{n}{\beta^{1}\beta^{1}...\beta^{m-1}}\rfloor \mod \beta_m \end{equation} $$
+
 Since RoPE is a relative position encoding, it can be viewed as a specific instance of the Toeplitz matrix, which looks like this (given our discussion mainly focuses on language models, the top-right part of the matrix is trimmed to fit the page).
 
-$$\begin{equation}
+$$
 \begin{pmatrix}
 0 \\
 1 & 0 &  \\
@@ -68,15 +70,19 @@ $$\begin{equation}
 6 & 5 & 4 & 3 & 2 & 1 & 0\\
 
 \end{pmatrix}
-\end{equation}$$
+$$
 
 Upon the matrix, it is evident that the distribution of relative position encoding is not uniform! The 0 is the most frequent, followed by 1, 2, and so on. In other words, as $$n$$ grows larger, its appearance becomes less frequent. This suggests that, as a form of $$\beta$$-base encoding, the higher bits of RoPE might be under-trained. This implies that the generalization capability of the higher bits might be inferior to the lower bits. As mentioned, NTK-RoPE mitigated the confusion introduced by extrapolation across all bits uniformly. However, if our hypothesis holds, this strategy might not be optimal. Lower bits can be more robust than higher bits and can hold a larger data range than the higher bits. Inspired by the timestamp encoding system, we should redesign RoPE with a mix-based encoding system.
 ### Optimization via a mixture of bases
 To be specific, we extend the context length by $$k$$ with a mixture of bases, $$\beta_1$$, $$\beta_2$$, $$...$$, $$\beta_{d/2}$$, where $$\beta_m = \beta\lambda_m$$
-eq5 can be written as:
+
+Thus, **eq4** shold be be written as:
+
 $$ \begin{equation} \lfloor\dfrac{n}{\beta^{m-1}(\lambda_1\lambda_2…\lambda_m)}\rfloor \mod (\beta\lambda_m) \end{equation} $$
+
 $$\theta_m = \dfrac{n}{\beta^{m-1}(\lambda_1\lambda_2…\lambda_m)}$$, $$\beta = 10000^{2/d}$$
-According to the goal to ensure lower digits hold a larger range of data and to extend the context length by a scale factor $$k$$, eq 6 is subject to the conditions
+
+According to the goal to ensure lower digits hold a larger range of data and to extend the context length by a scale factor $$k$$, eq 7 is subject to the conditions
 
 $$ \lambda_1\lambda_2…\lambda_m = k$$
 
