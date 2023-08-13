@@ -73,7 +73,7 @@ $$
 $$
 
 Upon the matrix, it is evident that the distribution of relative position encoding is not uniform! The 0 is the most frequent, followed by 1, 2, and so on. In other words, as $$n$$ grows larger, its appearance becomes less frequent. This suggests that, as a form of $$\beta$$-base encoding, the higher bits of RoPE might be under-trained. This implies that the generalization capability of the higher bits might be inferior to the lower bits. As mentioned, NTK-RoPE mitigated the confusion introduced by extrapolation across all bits uniformly. However, if our hypothesis holds, this strategy might not be optimal. Lower bits can be more robust than higher bits and can hold a larger data range than the higher bits. Inspired by the timestamp encoding system, we should redesign RoPE with a mix-based encoding system.
-### Optimization via a mixture of bases
+### Encoding with a mixture of bases
 To be specific, we extend the context length by $$k$$ with a mixture of bases, $$\beta_1$$, $$\beta_2$$, $$...$$, $$\beta_{d/2}$$, where $$\beta_m = \beta\lambda_m$$
 
 Thus, **eq4** shold be be written as:
@@ -82,11 +82,9 @@ $$ \begin{equation} \lfloor\dfrac{n}{\beta^{m-1}(\lambda_1\lambda_2…\lambda_m)
 
 $$\theta_m = \dfrac{n}{\beta^{m-1}(\lambda_1\lambda_2…\lambda_m)}$$, $$\beta = 10000^{2/d}$$
 
-According to the goal to ensure lower digits hold a larger range of data and to extend the context length by a scale factor $$k$$, eq 7 is subject to the conditions
+According to the goal to ensure lower digits hold a larger range of data and to extend the context length by a scale factor $$k$$, **eq 7** is subject to the conditions
 
-$$ \lambda_1\lambda_2…\lambda_m = k$$
-
-$$\lambda_1 \ge \lambda_2 \ge … \ge \lambda_{d/2} \ge 1$$
+$$ \lambda_1\lambda_2…\lambda_m = k, \lambda_1 \ge \lambda_2 \ge … \ge \lambda_{d/2} \ge 1$$
 
 Given these two conditions, one possible solution is:
 
@@ -96,9 +94,7 @@ $$ \lambda_1\lambda_2…\lambda_m = \text{exp}(am^b)$$,  where $$a \ge 0$$, $$b 
 
 
 
-When $$b=1$$, from eq5, we have
-$$\theta_m = \dfrac{n}{\beta^{m-1}\text{exp}(am)}$$
-
+When $$b=1$$, 
 
 
 
@@ -107,7 +103,7 @@ $$\theta_m = \dfrac{n}{\beta^{m-1}\text{exp}(am)}$$
 
 >  Suppose $$ \lambda_1\lambda_2…\lambda_m = \text{exp}(am^b)$$
 >
-> We claim that : When $$a \ge 0$$, $$b \le 1$$, then $$\lambda_1 \ge \lambda_2 \ge … \ge \lambda_{d/2} \ge 1
+> We claim that : When $$a \ge 0$$, $$b \le 1$$, then $$\lambda_1 \ge \lambda_2 \ge … \ge \lambda_{d/2} \ge 1$$
 
 
 __Proof__:
