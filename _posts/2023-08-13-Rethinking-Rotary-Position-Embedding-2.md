@@ -41,7 +41,7 @@ However, back to **eq1**, we can see that if we want to encode $$n$$ with a base
 
 $$ \begin{equation} \lfloor\dfrac{n}{(\beta\lambda)^{m-1}}\rfloor \mod (\beta\lambda) \end{equation} $$
 
-Therefore, our derivation in **eq2** and **eq3** has flaws, besides replacing the $$\dfrac{n}{\beta^{m-1}}$$ with $$\dfrac{n}{(\beta\lambda)^{m-1}}$$, the $$\mod$$ needs to scale up its period by $$\lambda$$ as well, then the corrected Scaled RoPE should be:
+Therefore, our derivation from **eq2** to **eq3** has flaws, besides replacing the $$\dfrac{n}{\beta^{m-1}}$$ with $$\dfrac{n}{(\beta\lambda)^{m-1}}$$, the $$\text{mod}$$ needs to scale up its period by $$\lambda$$ as well, then the corrected Scaled RoPE should be:
 
 $$ \begin{equation} p_n = [\text{cos}\theta_1, \text{sin}\theta_1, \text{cos}\theta_2, \text{sin}\theta_2, …, \text{cos}\theta_{d/2}, \text{sin}\theta_{d/2}] \end{equation} $$
 
