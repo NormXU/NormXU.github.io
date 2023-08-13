@@ -80,11 +80,11 @@ Thus, **eq4** shold be be written as:
 
 $$ \begin{equation} \lfloor\dfrac{n}{\beta^{m-1}(\lambda_1\lambda_2…\lambda_m)}\rfloor \mod (\beta\lambda_m) \end{equation} $$
 
-$$\theta_m = \dfrac{n}{\beta^{m-1}(\lambda_1\lambda_2…\lambda_m)}$$, $$\beta = 10000^{2/d}$$
+where $$\theta_m = \dfrac{n}{\beta^{m-1}(\lambda_1\lambda_2…\lambda_m)}$$, $$\beta = 10000^{2/d}$$
 
 According to the goal to ensure lower digits hold a larger range of data and to extend the context length by a scale factor $$k$$, **eq 7** is subject to the conditions
 
-$$ \lambda_1\lambda_2…\lambda_m = k, \lambda_1 \ge \lambda_2 \ge … \ge \lambda_{d/2} \ge 1$$
+$$ \lambda_1\lambda_2…\lambda_m = k$$ and  $$\lambda_1 \ge \lambda_2 \ge … \ge \lambda_{d/2} \ge 1$$
 
 Given these two conditions, one possible solution is:
 
