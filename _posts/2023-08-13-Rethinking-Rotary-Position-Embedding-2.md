@@ -50,7 +50,7 @@ where $$\theta_m = \dfrac{n}{\lambda(\beta\lambda)^{m-1}}$$, $$\beta= 10000^{2/d
 In the following context, we denote **eq3** as **NTK-RoPE-old**, and **eq5** as **NTK-RoPE-fixed**.
 
 
-### Encoding with a mixture of base
+### Why a mixture of base is necessary
 
 If we can encode an integer in $$\beta$$ base, how about generalizing to a mixed-based encoding where each digit is encoded in a different base? Just like the time system we daily use, 60 seconds make up 1 minute, 60 minutes equal 1 hour, 24 hours is 1 day, and 7 days amount to 1 week. Here, the numbers 60, 60, 24, and 7 can be regarded as different encoding bases. In essence, any timestamp can be encoded into seconds, minutes, hours, days, and weeks with the mixed-based system.
 Counted from right to left, the first digit is encoded in $$\beta_1$$, the second digit is in $$\beta_2$$, and the third is in $$\beta_3$$, …. The $$m$$th digit of an integer $$n$$ can then be represented as:
