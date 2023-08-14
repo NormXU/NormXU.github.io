@@ -208,7 +208,7 @@ Thus, only when $$b \le 1$$,  $$ \sum_{k=2,4,6...} \dfrac{b!}{(b-k)!k!}m^{b-k} \
 
 In conclusion, we can conclude the assumption stays true.
 
-#### 2. Minor changes on LlamaAttention
+#### 2. Minor changes in LlamaAttention
 ```python
 class LlamaAttention(nn.Module):
     def __init__(self, config: LlamaConfig):
