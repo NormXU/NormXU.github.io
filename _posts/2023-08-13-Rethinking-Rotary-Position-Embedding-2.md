@@ -6,9 +6,15 @@ categories: LLM
 
 > Translated from the [post](https://kexue.fm/archives/9676), originally written in Chinese by Su, Jianlin
 >
-> Translated by Norm Inui  WIP 🚧
+> Translated by Norm Inui
 
-In our previous [post](https://normxu.github.io/Rethinking-Rotary-Position-Embedding/), we interpret RoPE using a β-based encoding and demonstrated why NTK-aware Scaled RoPE can extend the context length without the need for fine-tuning. Viewing position encoding through the lens of β-based encoding indeed offers me some fresh insights and inspiration.
+### TL; DR
+
+- NTK-Scale RoPE has flaw
+- Introduce a mixture-of-based encoding method, which can significantly enhance LLM performance beyond its pretraining max length, without the need for fine-tuning
+- Introduce a scale factor $$\log n$$ for attention calculation, which can be incorporated either during the pretraining phase or directly applied to an off-the-shell LLM
+
+In [part 1](https://normxu.github.io/Rethinking-Rotary-Position-Embedding/), we interpret RoPE using a β-based encoding and demonstrated why NTK-aware Scaled RoPE can extend the context length without the need for fine-tuning. Viewing position encoding through the lens of β-based encoding indeed offers me some fresh insights and inspiration.
 
 ### Modification to NTK
 Suppose we encode integer $$n$$ in the $$\beta$$-base, and $$m$$ is the digit of the representation counting from the right.
@@ -94,13 +100,70 @@ $$ \lambda_1\lambda_2…\lambda_m = \text{exp}(am^b)$$,  where $$a \ge 0$$, $$b 
 
 
 
-When $$b=1$$, 
+When $$b=1$$,  $$\lambda_1 = \lambda_2 = … = \lambda_{d/2} > 1$$, we denote as "NTK-RoPE-fixed"; 
+
+when $$b=0$$, $$\lambda_1 = \lambda_2 = … = \lambda_{d/2} = 1$$, this exactly meets the definition of “Positional Interpolation (PI)”
+
+Given one of the constrains we mention above: 
+
+$$\lambda_1 \lambda_2 … \lambda_{d/2} =k$$
+
+We can derive:
+
+$$a(\dfrac{d}{2})^b = \log k$$
+
+$$b=0.625$$ is an empirical value that can achieve optimal performance in an expanded long context; (Optimal values may vary across models, feel free to tune it), and we denoted this method as NTK-RoPE-mixed.
+
+## Experiment
+We follow the same experiment setup as part 1 and compare the NTK-RoPE-mixed and NTK-RoPE-fixed in an extended context.
+
+**Table 1**
+
+| context length            | 512(trained) | 4096 (repeated text) | 4096 (non-repeated text) |
+| ------------------------- | ------------ | -------------------- | ------------------------ |
+| Baseline                  | 49.41%       | 24.17%               | 23.16%                   |
+| Baseline-$$\log n$$       | 49.40%       | 24.60%               | 24.02%                   |
+| PI-RoPE                   | 49.41%       | 15.04%               | 13.54%                   |
+| PI-RoPE-$$\log n$$        | 49.40%       | 14.99%               | 16.51%                   |
+| NTK-RoPE                  | 49.41%       | 51.28%               | 39.27%                   |
+| NTK-RoPE-$$\log n$$       | 49.40%       | 61.71%               | 43.75%                   |
+| NTK-RoPE-fixed            | 49.41%       | 51.86%               | 39.61%                   |
+| NTK-RoPE-$$\log n$$-fixed | 49.40%       | 62.85%               | 44.14%                   |
+| NTK-RoPE-mixed            | 49.41%       | 53.09%               | 40.12%                   |
+| NTK-RoPE-$$\log n$$-mixed | 49.40%       | **68.91%**           | **45.41%**               |
+
+From the **Table 1**, we can clearly see when compared to the "NTK-RoPE-old" and "NTK-RoPE-fixed," the mixture-of-base "NTK-RoPE-mixed" shows a significant accuracy improvement without fine-tuning. This effectively provides a 'free lunch' approach to enhance LLM performance in a longer context. In addition, the table shows the scale factor $$\log n$$ can benefit as well. But this trick requires $$\log n$$ to be inserted into attention during the pre-training phase, unaffordable and expensive. 
+
+Can models like LLaMA leverage this technique without the need for pre-training? Based on my experiments, a compromised way is to apply the $$\log n$$ factor only to the attention beyond the pretraining length:
+
+$$\max(1, \log_{\text{maxlen}n})$$ , where $$\text{maxlen}$$  is the max sequence length during pretraining phase​;
 
 
 
+For LLaMA-1, it is $$2048$$, and for LLaMA-2, it is $$4096$$; we can scale the attention of an off-the-shelf model on text that exceeds its $$\text{maxlen}$$
+
+
+> from translator: it is simple to implement this log trick in LLaMA self-attention, see Appendix for more details.
+
+
+| context length              | 512(trained) | 4096 (repeated text) | 4096 (non-repeated text) |
+|-----------------------------|--------------|----------------------|--------------------------|
+| NTK-RoPE-fixed              | 49.41%       | 51.86%               | 39.61%                   |
+| NTK-RoPE-$$\log n^*$$-fixed | 49.41%       | 55.94%               | 41.11%                   |
+| NTK-RoPE-mixed              | 49.41%       | 53.09%               | 40.12%                   |
+| NTK-RoPE-$$\log n^*$$-mixed | 49.41%       | **59.11%**           | **42.38%**               |
+
+**Table 2:** $$*$$ denotes we only apply $$\log n$$ on text beyond pretraining max length
+
+We can see from **Table 2**, $$\log n$$ can still enhance performance even without adding it at pretraining phase.  In conclusion, if you are ready to start a pretraining, I suggest you consider incorporated this trick in your network; If you don't want to train at all, this trick can also benefit performance on long context.
+
+
+
+------
 
 ### Appendix
 
+#### 1. Proof
 >  Suppose $$ \lambda_1\lambda_2…\lambda_m = \text{exp}(am^b)$$
 >
 > We claim that : When $$a \ge 0$$, $$b \le 1$$, then $$\lambda_1 \ge \lambda_2 \ge … \ge \lambda_{d/2} \ge 1$$
@@ -143,7 +206,41 @@ $$\begin{split}
 
 Thus, only when $$b \le 1$$,  $$ \sum_{k=2,4,6...} \dfrac{b!}{(b-k)!k!}m^{b-k} \le 0$$
 
- In conclusion, we can conclude the assumption stays true.
+In conclusion, we can conclude the assumption stays true.
+
+#### Minor changes on LlamaAttention
+```python
+class LlamaAttention(nn.Module):
+    def __init__(self, config: LlamaConfig):
+        super().__init__()
+        ...
+        self.max_position_embeddings = config.max_position_embeddings
+        ...
+
+    def forward(
+            self,
+            hidden_states: torch.Tensor,
+            attention_mask: Optional[torch.Tensor] = None,
+            position_ids: Optional[torch.LongTensor] = None,
+            past_key_value: Optional[Tuple[torch.Tensor]] = None,
+            output_attentions: bool = False,
+            use_cache: bool = False,
+    ) -> Tuple[torch.Tensor, Optional[torch.Tensor], Optional[Tuple[torch.Tensor]]]:
+        ...
+        bsz, q_len, _ = hidden_states.size()
+        ...
+        query_states, key_states = apply_rotary_pos_emb(query_states, key_states, cos, sin, position_ids)
+        # ---- + new code
+        query_states = max(1, math.log(q_len, self.max_position_embeddings)) * query_states
+        # -------
+        ...
+        # repeat k/v heads if n_kv_heads < n_heads
+        key_states = repeat_kv(key_states, self.num_key_value_groups)
+        value_states = repeat_kv(value_states, self.num_key_value_groups)
+        attn_weights = torch.matmul(query_states, key_states.transpose(2, 3)) / math.sqrt(self.head_dim)
+        ...
+```
+
 
 
 
