@@ -136,7 +136,7 @@ From the **Table 1**, we can clearly see when compared to the "NTK-RoPE-old" and
 
 Can models like LLaMA leverage this technique without the need for pre-training? Based on my experiments, a compromised way is to apply the $$\log n$$ factor only to the attention beyond the pretraining length:
 
-$$\max(1, \log_{\text{maxlen}n})$$ , where $$\text{maxlen}$$  is the max sequence length during pretraining phase​;
+$$\max(1, \log_{\text{maxlen}}n)$$ , where $$\text{maxlen}$$  is the max sequence length during pretraining phase​;
 
 
 
