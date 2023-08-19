@@ -4,7 +4,7 @@ title: "Expand the Context Length with RoPE, Part 2 -- Further Research about β
 categories: LLM
 ---
 
-> Translated from the [post](https://kexue.fm/archives/9676), originally written in Chinese by Su, Jianlin
+> Translated from the [post](https://kexue.fm/archives/9706), originally written in Chinese by Su, Jianlin
 >
 > Translated by Norm Inui
 
@@ -84,7 +84,7 @@ To be specific, we extend the context length by $$k$$ with a mixture of bases, $
 
 Thus, **eq4** shold be be written as:
 
-$$ \begin{equation} \lfloor\dfrac{n}{\beta^{m-1}(\lambda_1\lambda_2…\lambda_m)}\rfloor \mod (\beta\lambda_m) \end{equation} $$
+$$ \begin{equation} \lfloor\dfrac{n}{\beta^{m-1}(\lambda_1\lambda_2…\lambda_{m-1})}\rfloor \mod (\beta\lambda_m) \end{equation} $$
 
 where $$\theta_m = \dfrac{n}{\beta^{m-1}(\lambda_1\lambda_2…\lambda_m)}$$, $$\beta = 10000^{2/d}$$
 

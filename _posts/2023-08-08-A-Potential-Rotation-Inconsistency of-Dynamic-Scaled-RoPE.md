@@ -5,9 +5,9 @@ categories: LLM
 ---
 ### TL;DR
 
-- The huggingface implementation of DynamicNTK RoPE  introduces inconsistency in rotation base between keys
+- The huggingface implements DynamicNTK RoPE with a potential inconsistency problem in rotation base between keys
 - Current perplexity evaluation cannot faithfully reflect whether the inconsistency problem can harm the perplexity.
-- The DynamicNTK RoPE scaling can be fixed with `use_cache=False`, at the cost of speed.
+- The inconsistency in DynamicNTK RoPE can be fixed with `use_cache=False`, at the cost of speed.
 
 ## A Potential Rotation Inconsistency of Dynamic Scaled RoPE
 
