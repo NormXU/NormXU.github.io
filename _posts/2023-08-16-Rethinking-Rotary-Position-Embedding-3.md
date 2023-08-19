@@ -25,8 +25,9 @@ In a previous blog, I introduced the mixture-of-base encoding and believed we mi
 
 Surprisingly, even though this method will increase time complexity, the experimental results are promising and even shows a potential to unlock the unlimited extrapolation ability of the language model. I can’t wait to write this article and share the method with you. Due to its similarity with the ReLU activation function, I've named this method 'ReRoPE (Rectified Rotary Position Embeddings)'
 
-Background
+### Background
 We explain in the previous blog that although RoPE is regarded as an absolute position embedding, it can inject relative positional information into the Attention matrix with a Toeplitz matrix.
+
 $$ \begin{equation} \begin{pmatrix}
 0 &  &  &  &  &  &  & & \\ 
 1 & 0 &  &  &  &  &  & & \\ 
@@ -41,9 +42,8 @@ L-1 & L-2 & \ddots & \ddots & \ddots & 3 & 2 & 1 & 0
 $$L$$ is the input sequence length. When $$L$$ is greatly larger than the pretrained max sequence length, the model typically exhibits poor extrapolation because it hasn't been adequately trained on longer sequences.
 
 The Position Interpolation modifies the Toeplitz matrix as:
-$$
-\begin{equation}
-\begin{pmatrix}
+
+$$ \begin{equation} \begin{pmatrix}
 0 &  &  &  &  &  &  & & \\ 
 1/k & 0 &  &  &  &  &  & & \\ 
 2/k &  1/k& 0 &  &  &  &  & & \\ 
@@ -83,6 +83,7 @@ Numbers in $$\color{red} \text{red}$$ are within the sliding window, in $$ \text
 By adjusting $$k$$, we can ensure $$w < \text{max pretraining length}$$, which allows us to maintain locality while keeping the position encoding within the pretraining length. This sliding window approach to the input sequence achieves interpolation outside the window and preserves locality within the window concurrently.
 
 Moreover, when we extend the context length $$\to \infty$$, then $$k \to \infty$$, the matrix can be formulated as:
+
 $$ \begin{equation} \begin{pmatrix}
 \color{red}0 &  &  &  &  &  &  & & \\ 
 \color{red}1 & \color{red}0 &  &  &  &  &  & & \\
