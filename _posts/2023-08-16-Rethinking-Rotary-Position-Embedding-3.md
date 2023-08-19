@@ -27,10 +27,7 @@ Surprisingly, even though this method will increase time complexity, the experim
 
 Background
 We explain in the previous blog that although RoPE is regarded as an absolute position embedding, it can inject relative positional information into the Attention matrix with a Toeplitz matrix.
-$$
-\begin{equation}
-\begin{pmatrix}
-
+$$ \begin{equation} \begin{pmatrix}
 0 &  &  &  &  &  &  & & \\ 
 1 & 0 &  &  &  &  &  & & \\ 
 2 &  1& 0 &  &  &  &  & & \\ 
@@ -39,9 +36,7 @@ $$
 \ddots  & \ddots & \ddots & \ddots & \ddots & \ddots & \ddots & & \\ 
 L-2 & \ddots & \ddots & \ddots & \ddots & \ddots & \ddots & \ddots & \\ 
 L-1 & L-2 & \ddots & \ddots & \ddots & 3 & 2 & 1 & 0
-\end{pmatrix}
-\end{equation}
-$$
+\end{pmatrix} \end{equation} $$
 
 $$L$$ is the input sequence length. When $$L$$ is greatly larger than the pretrained max sequence length, the model typically exhibits poor extrapolation because it hasn't been adequately trained on longer sequences.
 
@@ -49,7 +44,6 @@ The Position Interpolation modifies the Toeplitz matrix as:
 $$
 \begin{equation}
 \begin{pmatrix}
-
 0 &  &  &  &  &  &  & & \\ 
 1/k & 0 &  &  &  &  &  & & \\ 
 2/k &  1/k& 0 &  &  &  &  & & \\ 
@@ -58,23 +52,18 @@ $$
 \ddots  & \ddots & \ddots & \ddots & \ddots & \ddots & \ddots & & \\ 
 (L-2)/k & \ddots & \ddots & \ddots & \ddots & \ddots & \ddots & \ddots & \\ 
 (L-1)/k & (L-2)/k & \ddots & \ddots & \ddots & 3/k & 2/k & 1/k & 0
-\end{pmatrix}
-\end{equation}
-$$
+\end{pmatrix} \end{equation} $$
 
 Position Interpolation (PI) ensures that the maximum relative position does not exceed the training length by tuning $$k$$, therefore, it is free from any extrapolation on dimension. However, it makes each dimension carry more position information. Consequently, a few fine-tuning steps are necessary to get the model to adapt to the “crowded” dimension. Neural networks are often better at interpolation rather than extrapolation, just consider extrapolation as adding an extra dimension, while interpolation inserts more data into the already trained dimension. Intuitively, neural networks struggle with extrapolation. Therefore, PI is an efficient method to extend the context length with minimal fine-tuning.
 
 As for the NTK-aware Scaled RoPE, it cleverly distributes the “crowded” dimension across every dimension. As a result, it can get even better perplexity value without fine-tuning. However, as we mention above,  neural networks struggle with extrapolation, which explains why an extended long context model can't quite match a pretrained model with an identical max sequence length.
 
 ### Combine Interpolation and Extrapolation
-Let’s revisit extending methods we have through the lens of the definition of the locality. By mentioning 'locality,' we try to describe a preference of a language model when it predicts the next token, it heavily relies on the nearing tokens. Extrapolation preserves this locality since position encoding near 0s of the Toeptile matrix is unchanged, but its performance suffers due to the introduction of position encodings beyond the trained length. Although position interpolation doesn't introduce extrapolated position encodings, it harms the locality since position encoding near 0 is compressed to 1/k, leading to necessary fine-tuning. On the other hand, NTK-aware Scaled RoPE combines the advantages of both methods by "high-frequency extrapolation and low-frequency interpolation". This ensures the preservation of locality without introducing new position encoding, yielding good results even without fine-tuning.
+Let’s revisit extending methods we have through the lens of the definition of the locality. By mentioning 'locality,' we try to describe a preference of a language model when it predicts the next token, it heavily relies on the nearing tokens. Extrapolation preserves this locality since position encoding near 0s of the Toeptile matrix is unchanged, but its performance suffers due to the introduction of position encodings beyond the trained length. Although position interpolation doesn't introduce extrapolated position encodings, it harms the locality since position encoding near 0 is compressed to $$1/k$$, leading to necessary fine-tuning. On the other hand, NTK-aware Scaled RoPE combines the advantages of both methods by "high-frequency extrapolation and low-frequency interpolation". This ensures the preservation of locality without introducing new position encoding, yielding good results even without fine-tuning.
 Besides NTK Scaled RoPE, is there any other method that can realize both extrapolation and interpolation? The answer is **YES**.
 Suppose we set a window with size $$w$$, the interval between positions inside the window is $$1$$, while the interval outside the window is $$1/k$$, the Toepiltz matrix is shown as:
 
-$$
-\begin{equation}
-\begin{pmatrix}
-
+$$ \begin{equation} \begin{pmatrix}
 \color{red}0 &  &  &  &  &  &  & & \\ 
 \color{red}1 & \color{red}0 &  &  &  &  &  & & \\
 \color{red}2 & \color{red}1 & \color{red}0 &  &  &  &  & & \\  
@@ -86,18 +75,15 @@ w + 2/k & w + 1/k  & \ddots & \color{red}\ddots & \color{red}\ddots & \color{red
 \ddots & w + 2/k  & \ddots & \ddots & \color{red}\ddots & \color{red}\ddots & \color{red}2 & \color{red}1 & \color{red}0 & & \\
 \ddots & \ddots & \ddots & w + 2/k  & w + 1/k & w & \color{red}w-1 & \color{red} \ddots & \color{red}2 & \color{red}1 & \color{red}0 & & \\
 w + (L-1-w)/k & \ddots & \ddots & \ddots & w + 2/k  & w + 1/k & w & \color{red}w-1 & \color{red} \ddots & \color{red}2 & \color{red}1 & \color{red}0 & & \\
-\end{pmatrix}
-\end{equation}
-$$
+\end{pmatrix} \end{equation} $$
+
 Numbers in $$\color{red} \text{red}$$ are within the sliding window, in $$ \text{black}$$ are outside the sliding window.
 
 
 By adjusting $$k$$, we can ensure $$w < \text{max pretraining length}$$, which allows us to maintain locality while keeping the position encoding within the pretraining length. This sliding window approach to the input sequence achieves interpolation outside the window and preserves locality within the window concurrently.
 
 Moreover, when we extend the context length $$\to \infty$$, then $$k \to \infty$$, the matrix can be formulated as:
-$$
-\begin{equation}
-\begin{pmatrix}
+$$ \begin{equation} \begin{pmatrix}
 \color{red}0 &  &  &  &  &  &  & & \\ 
 \color{red}1 & \color{red}0 &  &  &  &  &  & & \\
 \color{red}2 & \color{red}1 & \color{red}0 &  &  &  &  & & \\  
@@ -109,9 +95,7 @@ w & w + 1/k  & \ddots & \color{red}\ddots & \color{red}\ddots & \color{red}2 & \
 \ddots & w   & \ddots & \ddots & \color{red}\ddots & \color{red}\ddots & \color{red}2 & \color{red}1 & \color{red}0 & & \\
 \ddots & \ddots & \ddots & w   & w  & w & \color{red}w-1 & \color{red} \ddots & \color{red}2 & \color{red}1 & \color{red}0 & & \\
 w  & \ddots & \ddots & \ddots & w   & w  & w & \color{red}w-1 & \color{red} \ddots & \color{red}2 & \color{red}1 & \color{red}0 & & \\
-\end{pmatrix}
-\end{equation}
-$$
+\end{pmatrix} \end{equation} $$
 
 We can notice the locality can still be preserved within the window.
 In conclusion, we can find a relation between **eq(3)**, **eq(4)** and **eq(1)**
