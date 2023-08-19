@@ -115,7 +115,7 @@ $$a(\dfrac{d}{2})^b = \log k$$
 $$b=0.625$$ is an empirical value that can achieve optimal performance in an expanded long context; (Optimal values may vary across models, feel free to tune it), and we denoted this method as NTK-RoPE-mixed.
 
 ## Experiment
-We follow the same experiment setup as part 1 and compare the NTK-RoPE-mixed and NTK-RoPE-fixed in an extended context.
+We follow the same experiment setup as in part 1 and compare the NTK-RoPE-mixed and NTK-RoPE-fixed in an extended context.
 
 **Table 1**
 
@@ -153,7 +153,7 @@ For LLaMA-1, it is $$2048$$, and for LLaMA-2, it is $$4096$$; we can scale the a
 | NTK-RoPE-mixed              | 49.41%       | 53.09%               | 40.12%                   |
 | NTK-RoPE-$$\log n^*$$-mixed | 49.41%       | **59.11%**           | **42.38%**               |
 
-**Table 2:** $$*$$ denotes we only apply $$\log n$$ on text beyond pretraining max length
+**Table 2:** $$\log n^{*}$$ denotes we apply the scale factor $$\log n$$ is applied to the attention matrix only for text exceeding the max sequence length, without any pretraining
 
 We can see from **Table 2**, $$\log n$$ can still enhance performance even without adding it at pretraining phase.  In conclusion, if you are ready to start a pretraining, I suggest you consider incorporated this trick in your network; If you don't want to train at all, this trick can also benefit performance on long context.
 
