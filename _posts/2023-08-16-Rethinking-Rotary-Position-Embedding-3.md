@@ -100,6 +100,7 @@ w  & \ddots & \ddots & \ddots & w   & w  & w & \color{red}w-1 & \color{red} \ddo
 
 We can notice the locality can still be preserved within the window.
 In conclusion, we can find a relation between **eq(3)**, **eq(4)** and **eq(1)**
+
 $$eq(3) = \text{LeakyReLU}(eq(1))$$ and $$eq(4) = \text{ReLU}(eq(1))$$
 
 ### Computation Cost
