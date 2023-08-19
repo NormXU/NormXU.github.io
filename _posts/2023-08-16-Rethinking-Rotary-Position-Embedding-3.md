@@ -115,18 +115,18 @@ Then we compute attention scores outside the window, whose interval between numb
 $$a_{i,j}^{(2)} = (R^{(i-w)/k+w} q_i)^T(R^{j/k} k_j) = q_i^T R^{(j-i+w)/k - w} k_j$$
 
 When $$k \to \infty$$, the equation is simpler:
+
 $$a_{i,j}^{(2)} = (R^{w} q_i)^T k_j = q_i^T R^{w} k_j$$
 
 Let’s combine them together:
-$$
-\begin{equation}
+
+$$ \begin{equation}
     a_{i,j}=
     \begin{cases}
       a^{(1)}_{i,j}, &  i -j < w\\
       a^{(2)}_{i,j}, & i -j \ge w
     \end{cases}
-  \end{equation}
-$$
+  \end{equation} $$
 
 
 
@@ -224,4 +224,4 @@ ReRoPE effectively achieves near-optimal results, aligning with our intuition th
 
 The ReRoPE and Leaky ReRoPE codes can be found here. Feel free to play with it.
 
-> **Github：https://github.com/bojone/rerope**
+> **Github: [https://github.com/bojone/rerope](https://github.com/bojone/rerope)**
