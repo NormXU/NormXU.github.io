@@ -4,7 +4,7 @@ title: "Expand the Context Length with RoPE, Part 3 -- Unlocking the Unlimited E
 categories: LLM
 ---
 
-> Translated from the [post](https://kexue.fm/archives/9708), originally written in Chinese by Su, Jianlin
+> Translated from the [post](https://kexue.fm/archives/9708) and [post](https://kexue.fm/archives/9728), originally written in Chinese by Su, Jianlin
 >
 > Translated by Norm Inui
 
@@ -14,7 +14,9 @@ categories: LLM
 
 - Experimental results reveal that ReRoPE's extrapolation capabilities, without fine-tuning, significantly surpass the previous NTK-aware Scaled RoPE
 
-- ReRoPE appears to consistently perform well across any length.
+- ReRoPE appears to consistently perform well across any length
+
+- ReRoPE significantly reduces inference speed. However, training with ReRoPE and inferring with RoPE can benefit the extrapolation ability of LLMs without sacrificing throughput in inference
 
 - Code is available [here](https://github.com/bojone/rerope)
 
@@ -23,9 +25,10 @@ categories: LLM
 
 In a previous blog, I introduced the mixture-of-base encoding and believed we might have maxed out the potential of RoPE regarding extrapolation. It appeared we might need to explore other avenues for any further enhancement on context length. However, I remembered a method I previously set aside due to its complexity. Since we have run out of ideas, why not revisit it and see what can we learn from it? Sometimes, 'The best solution is the only solution'.
 
-Surprisingly, even though this method will increase time complexity, the experimental results are promising and even shows a potential to unlock the unlimited extrapolation ability of the language model. I can’t wait to write this article and share the method with you. Due to its similarity with the ReLU activation function, I've named this method 'ReRoPE (Rectified Rotary Position Embeddings)'
+Surprisingly, even though this method will increase time complexity, the experimental results are promising and even shows a potential to unlock the unlimited extrapolation ability of the language model. I can’t wait to write this article and share the method with you. Due to its similarity with the ReLU activation function, I've named this method **ReRoPE (Rectified Rotary Position Embeddings)**
 
 ### Background
+
 We explain in the previous blog that although RoPE is regarded as an absolute position embedding, it can inject relative positional information into the Attention matrix with a Toeplitz matrix.
 
 $$ \begin{equation} \begin{pmatrix}
@@ -59,6 +62,7 @@ Position Interpolation (PI) ensures that the maximum relative position does not 
 As for the NTK-aware Scaled RoPE, it cleverly distributes the “crowded” dimension across every dimension. As a result, it can get even better perplexity value without fine-tuning. However, as we mention above,  neural networks struggle with extrapolation, which explains why an extended long context model can't quite match a pretrained model with an identical max sequence length.
 
 ### Combine Interpolation and Extrapolation
+
 Let’s revisit extending methods we have through the lens of the definition of the locality. By mentioning 'locality,' we try to describe a preference of a language model when it predicts the next token, it heavily relies on the nearing tokens. Extrapolation preserves this locality since position encoding near 0s of the Toeptile matrix is unchanged, but its performance suffers due to the introduction of position encodings beyond the trained length. Although position interpolation doesn't introduce extrapolated position encodings, it harms the locality since position encoding near 0 is compressed to $$1/k$$, leading to necessary fine-tuning. On the other hand, NTK-aware Scaled RoPE combines the advantages of both methods by "high-frequency extrapolation and low-frequency interpolation". This ensures the preservation of locality without introducing new position encoding, yielding good results even without fine-tuning.
 Besides NTK Scaled RoPE, is there any other method that can realize both extrapolation and interpolation? The answer is **YES**.
 Suppose we set a window with size $$w$$, the interval between positions inside the window is $$1$$, while the interval outside the window is $$1/k$$, the Toepiltz matrix is shown as:
@@ -106,6 +110,7 @@ In conclusion, we can find a relation between **eq(3)**, **eq(4)** and **eq(1)**
 $$eq(3) = \text{LeakyReLU}(eq(1))$$ and $$eq(4) = \text{ReLU}(eq(1))$$
 
 ### Computation Cost
+
 The concept of incorporating sliding windows into the input sequence is not new today and has been widely used in Attention Bias, like T5-bias, and relative position embedding. Yet, integrating a sliding window with RoPE can increase computation costs. Regarding **eq(3)** and **eq(4)**, since the values in each matrix row don't increase linearly, RoPE needs to encode twice: one for positions within the window and another for those outside. These encodings are then combined together as ReRoPE.
 
 To be specific, we compute attention scores with RoPE position encoding within the window:
@@ -131,8 +136,6 @@ $$ \begin{equation}
     \end{cases}
   \end{equation} $$
 
-
-
 According to the equations, we can notice both ReRoPE and Leaky ReRoPE inevitably require calculating the Attention matrix twice. If you have a more efficient implementation, please feel free to contact me. Moreover, this Attention matrix cannot directly be optimized with the current flash attention implementation, leading to more computational cost.
 
 
@@ -145,8 +148,32 @@ $$
 \end{aligned}\right.\end{equation}
 $$
 
+
+
+However, using ReRoPE/Leaky ReRoPE  in LLMs is computationally intensive. While it enables LLMs to process longer extended contexts, the input length during inference often exceeds the pretrained maximum sequence length. This results in significant latency, making it challenging for real-time applications.
+
+What if we train with ReRoPE/Leaky ReRoPE but infer using standard RoPE? ReRoPE/Leaky ReRoPE serves as an extrapolation method for the ideal goal: "Train Short, Test Long". Training an LLM with ReRoPE/Leaky ReRoPE certainly demands more time; however, this slowdown during training is acceptable when compared to the potential drop in inference speed.
+
+To be specific, when a model is trained with RoPE and its context length is extrapolated using LeakyReRoPE, the interval outside the window is  $$1$$ during training and $$\dfrac{1}{k} < 1$$ during inference. When swapping the embedding strategy, the model is trained with an interval greater than  $$1$$ but infers with an interval of $$1$$. This means that, during inference, LeakyReRoPE behaves like RoPE. We refer to this approach as InvLeaky ReRoPE (Inverse Leaky ReRoPE). **Table 5** demonstrates the effectiveness of this strategy. Since the embedding behaves like RoPE at inference, optimization techniques like FlashAttenion can be seamlessly integrated. After experimenting the different hyperparameters, we propose the empirical optimal parameter rule:
+
+expanding scale: 
+
+$$b = \dfrac{\text{expanded\_len}}{\text{max\_seq\_len}}$$
+
+number interval outside window: 
+
+$$k=\dfrac{1}{2 b}$$
+
+window size: 
+
+$$w = \dfrac{\text{max\_seq\_len}}{4}$$
+
+In **Table 5**, the model has 100M parameters, with a training length of 512. The training time for every 1,000 steps grows from $$330$$ seconds to $$350$$ seconds, an increase less than $$10\%$$. Since the model is a hybrid of Transformer and GAU (Gated Attention Unit), with single-head attention in HAU. As for a multi-head attention LLM, the time increase could be more significant, possibly up to $$50\%$$, but it is still acceptable.
+
+
+
 ### Ablation Experiments
-We follow the same experiment setup as in part 1 on an 100M GAU model. The result is shown below.
+We follow the same experiment setup as in [part 1](https://normxu.github.io/Rethinking-Rotary-Position-Embedding/) on an 100M [GAU](https://arxiv.org/abs/2202.10447) model. The result is shown below.
 
 | context length                | 512(trained) | 4096 (repeated text) | 4096 (non-repeated text) |
 | ----------------------------- | ------------ | -------------------- | ------------------------ |
@@ -166,7 +193,7 @@ We follow the same experiment setup as in part 1 on an 100M GAU model. The resul
 | ReRoPE-w256-$$\log n^{*}$$    | 49.41%       | 82.40%               | 48.85%                   |
 | ReRoPE-w256-$$\log n$$        | 49.40%       | **85.12%**           | **49.07%**               |
 
-**Table 1**: $$\log n$$ indicates we add the scale factor $$\log n$$ at pretraining stage; $$\log n^{*}$$ denotes we apply the scale factor $$\log n$$ is applied to the attention matrix only for text exceeding the max sequence length, without any pretraining ; $$w256$$ denotes $$w=256$$
+**Table 1**: the average accuracy of predicting next token to match the ground-truth next token given previous context. The experiment is based on a hybrid Transformer-GAU (Gated Attention Unit) model with a size of 100M parameters. $$\log n$$ indicates we add the scale factor $$\log n$$ at pretraining stage; $$\log n^{*}$$ denotes we apply the scale factor $$\log n$$ is applied to the attention matrix only for text exceeding the max sequence length, without any pretraining ; $$w256$$ denotes $$w=256$$
 
 
 
@@ -188,7 +215,7 @@ We follow the same experiment setup as in part 1 on an 100M GAU model. The resul
 | ReRoPE-w512-$$\log n^{*}$$ | 49.41%       |     7.08%                 |          8.25%                |
 | ReRoPE-w512-$$\log n$$     | 49.40%       |      15.84%                |        10.83%                  |
 
-**Table 2**: ablation on window size of ReRoPE
+**Table 2**: Ablation on window size of ReRoPE; experiment setting is the same as **Table 1**
 
 From **Table 2**, we can learn $$w$$ is robust to the performance; the optimal **w** is $$1/4$$ to $$1/2$$ of the pretraining max sequence length.
 
@@ -207,7 +234,7 @@ From **Table 2**, we can learn $$w$$ is robust to the performance; the optimal *
 | Leaky-ReRoPE-w256-k16-$$\log n$$ |   49.40%           |      83.59%                |       48.87%                   |
 | Leaky-ReRoPE-w256-k8-$$\log n$$  |   49.40%           |      69.80%                |       45.72%                   |
 
-**Table 3**: ablation on interval $$k$$ of Leaky ReRoPE and ReRoPE
+**Table 3**: Ablation on interval $$k$$ of Leaky ReRoPE and ReRoPE; experiment setting is the same as **Table 1**
 
 From **Table 3**: Fine-tuned Leaky ReRoPE, as a generalization of ReRoPE, might slightly surpass ReRoPE's performance, though the gains are minimal. When setting $$k$$ to a finite value, there's an inherent limitation on the maximum length it can manage. Since predicting the length LLM will generate in advance is impossible, we usually set a large value for $$k$$. However, even with a sufficiently large $$k$$, a siginificant long input could severely degrade performance due to position encoding surpassing the trained length. While ReRoPE doesn't have such an issue. In practical applications, fine-tuned Leaky ReRoPE may not be as universally adaptable as ReRoPE.
 
@@ -222,6 +249,28 @@ From **Table 3**: Fine-tuned Leaky ReRoPE, as a generalization of ReRoPE, might 
 **Table 4**: Experiments on LLaMa-2-13B, the value represent loss; smaller is better.
 
 ReRoPE effectively achieves near-optimal results, aligning with our intuition that "longer context results in lower loss", given that an extended context should benefit LLM comprehension ability. Furthermore, I evaluated the chat capabilities of the LLAMA2-13b model, open-source by [OpenBuddy](https://huggingface.co/OpenBuddy), and found its performance satisfying with an input length up to 20k tokens.
+
+
+
+
+| context length                | 512(trained) | 4096 (repeated text) | 4096 (non-repeated text) |
+| ----------------------------- | ------------ | -------------------- |--------------------------|
+| Baseline                      | 49.41%       | 24.17%               | 23.16%                   |
+| Baseline-$$\log n$$           | 49.40%       | 24.60%               | 24.02%                   |
+| NTK-RoPE-fixed                | 49.41%       | 51.86%               | 39.61%                   |
+| NTK-RoPE-$$\log n^{*}$$-fixed | 49.41%       | 55.94%               | 41.11%                   |
+| NTK-RoPE-$$\log n$$-fixed     | 49.40%       | 62.85%               | 44.14%                   |
+| NTK-RoPE-mixed                | 49.41%       | 53.09%               | 40.12%                   |
+| NTK-RoPE-$$\log n^{*}$$-mixed | 49.41%       | 59.11%               | 42.38%                   |
+| NTK-RoPE-$$\log n$$-mixed     | 49.40%       | 68.91%               | 45.41%                   |
+| ReRoPE-w256                   | 49.41%       | 77.90%               | 48.48%                   |
+| ReRoPE-w256-$$\log n^{*}$$    | 49.41%       | 82.40%               | 48.85%                   |
+| ReRoPE-w256-$$\log n$$        | 49.40%       | **85.12%**           | **49.07%**               |
+| InvLeaky ReRoPE-w128-$$\log n$$        | 49.38%       | 82.25%           | 48.32%                   |
+| InvLeaky ReRoPE-w128-b8-$$\log n$$        | 49.62%       | 81.15%           | 48.85%                   |
+
+**Table 5**: Experiment setting is the same as **Table 1**； b8: replace the RoPE base from $$10000$$ to $$80000$$; InvLeaky ReRoPE is inferior to ReRoPE, but still promising compared to vanilla NTK-RoPE
+
 
 
 
