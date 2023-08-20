@@ -70,11 +70,11 @@ $$ \begin{equation} \begin{pmatrix}
 \color{red}\ddots & \color{red}2 & \color{red}1 & \color{red}0 &  &  &  & & \\
 \color{red}w-1 & \color{red}\ddots & \color{red}2 & \color{red}1 & \color{red}0 &  &  & & \\ 
 w & \color{red}w-1 & \color{red}\ddots & \color{red}2 & \color{red}1 & \color{red}0 &  & & \\ 
-w + 1/k & w & \color{red}\ddots & \color{red}\ddots & \color{red}2 & \color{red}1 & \color{red}0 & & \\ 
-w + 2/k & w + 1/k  & \ddots & \color{red}\ddots & \color{red}\ddots & \color{red}2 & \color{red}1 & \color{red}0 & & \\ 
-\ddots & w + 2/k  & \ddots & \ddots & \color{red}\ddots & \color{red}\ddots & \color{red}2 & \color{red}1 & \color{red}0 & & \\
+w + 1/k  & w & \color{red}\ddots & \color{red}\ddots & \color{red}2 & \color{red}1 & \color{red}0 & & \\ 
+w + 2/k  & w + 1/k  & \ddots & \color{red}\ddots & \color{red}\ddots & \color{red}2 & \color{red}1 & \color{red}0 & & \\ 
+\ddots & w  + 2/k & \ddots & \ddots & \color{red}\ddots & \color{red}\ddots & \color{red}2 & \color{red}1 & \color{red}0 & & \\
 \ddots & \ddots & \ddots & w + 2/k  & w + 1/k & w & \color{red}w-1 & \color{red} \ddots & \color{red}2 & \color{red}1 & \color{red}0 & & \\
-w + (L-1-w)/k & \ddots & \ddots & \ddots & w + 2/k  & w + 1/k & w & \color{red}w-1 & \color{red} \ddots & \color{red}2 & \color{red}1 & \color{red}0 & & \\
+w + (L-1-w)/k  & \ddots & \ddots & \ddots & w  + 2/k  & w  + 1/k & w & \color{red}w-1 & \color{red} \ddots & \color{red}2 & \color{red}1 & \color{red}0 & & \\
 \end{pmatrix} \end{equation} $$
 
 Numbers in $$\color{red} \text{red}$$ are within the sliding window, in $$ \text{black}$$ are outside the sliding window.
