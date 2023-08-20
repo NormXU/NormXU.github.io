@@ -4,7 +4,7 @@ title: "Expand the Context Length with RoPE, Part 3 -- Unlocking the Unlimited E
 categories: LLM
 ---
 
-> Translated from the [post](https://kexue.fm/archives/9676), originally written in Chinese by Su, Jianlin
+> Translated from the [post](https://kexue.fm/archives/9708), originally written in Chinese by Su, Jianlin
 >
 > Translated by Norm Inui
 
