@@ -63,40 +63,42 @@ Let’s revisit extending methods we have through the lens of the definition of 
 Besides NTK Scaled RoPE, is there any other method that can realize both extrapolation and interpolation? The answer is **YES**.
 Suppose we set a window with size $$w$$, the interval between positions inside the window is $$1$$, while the interval outside the window is $$1/k$$, the Toepiltz matrix is shown as:
 
-$$ \begin{equation} \begin{pmatrix}
-\color{red}0 &  &  &  &  &  &  & & \\ 
-\color{red}1 & \color{red}0 &  &  &  &  &  & & \\
-\color{red}2 & \color{red}1 & \color{red}0 &  &  &  &  & & \\  
-\color{red}\ddots & \color{red}2 & \color{red}1 & \color{red}0 &  &  &  & & \\
-\color{red}w-1 & \color{red}\ddots & \color{red}2 & \color{red}1 & \color{red}0 &  &  & & \\ 
-w & \color{red}w-1 & \color{red}\ddots & \color{red}2 & \color{red}1 & \color{red}0 &  & & \\ 
-w + 1/k  & w & \color{red}\ddots & \color{red}\ddots & \color{red}2 & \color{red}1 & \color{red}0 & & \\ 
-w + 2/k  & w + 1/k  & \ddots & \color{red}\ddots & \color{red}\ddots & \color{red}2 & \color{red}1 & \color{red}0 & & \\ 
-\ddots & w  + 2/k & \ddots & \ddots & \color{red}\ddots & \color{red}\ddots & \color{red}2 & \color{red}1 & \color{red}0 & & \\
-\ddots & \ddots & \ddots & w + 2/k  & w + 1/k & w & \color{red}w-1 & \color{red} \ddots & \color{red}2 & \color{red}1 & \color{red}0 & & \\
-w + (L-1-w)/k  & \ddots & \ddots & \ddots & w  + 2/k  & w  + 1/k & w & \color{red}w-1 & \color{red} \ddots & \color{red}2 & \color{red}1 & \color{red}0 & & \\
-\end{pmatrix} \end{equation} $$
+$$ \begin{equation}\begin{pmatrix} 
+\color{red}{0} & \\ 
+\color{red}{1} & \color{red}{0} & \\ 
+\color{red}{2} & \color{red}{1} & \color{red}{0} & \\ 
+\color{red}{\ddots} & \color{red}{2} & \color{red}{1} & \color{red}{0} & \\ 
+\color{red}{\tiny{w - 1}} & \color{red}{\ddots} & \color{red}{2} & \color{red}{1} & \color{red}{0} & \\ 
+\color{green}{w} & \color{red}{\tiny{w - 1}} & \color{red}{\ddots} & \color{red}{2} & \color{red}{1} & \color{red}{0} & \\ 
+\color{green}{\tiny{w + \frac{1}{k}}} & \color{green}{w} & \color{red}{\ddots} & \color{red}{\ddots} & \color{red}{2} & \color{red}{1} & \color{red}{0} & \\ 
+\color{green}{\tiny{w + \frac{2}{k}}} & \color{green}{\tiny{w + \frac{1}{k}}} & \color{green}{\ddots} & \color{red}{\ddots} & \color{red}{\ddots} & \color{red}{2} & \color{red}{1} & \color{red}{0} & \\ 
+\color{green}{\ddots} & \color{green}{\tiny{w + \frac{2}{k}}} & \color{green}{\ddots} & \color{green}{\ddots} & \color{red}{\ddots} & \color{red}{\ddots} & \color{red}{2} & \color{red}{1} & \color{red}{0} & \\ 
+\color{green}{\ddots} & \color{green}{\ddots} & \color{green}{\ddots} & \color{green}{\ddots} & \color{green}{\ddots} & \color{red}{\ddots} & \color{red}{\ddots} & \color{red}{\ddots} & \color{red}{\ddots} & \color{red}{\ddots} & \\ 
+\color{green}{\ddots} & \color{green}{\ddots} & \color{green}{\ddots} & \color{green}{\tiny{w + \frac{2}{k}}} & \color{green}{\tiny{w + \frac{1}{k}}} & \color{green}{w} & \color{red}{\tiny{w - 1}} & \color{red}{\ddots} & \color{red}{2} & \color{red}{1} & \color{red}{0} & \\ 
+\color{green}{\tiny{w + \frac{L-1-w}{k}}} & \color{green}{\ddots} & \color{green}{\ddots} & \color{green}{\ddots} & \color{green}{\tiny{w + \frac{2}{k}}} & \color{green}{\tiny{w + \frac{1}{k}}} & \color{green}{w} & \color{red}{\tiny{w - 1}} & \color{red}{\ddots} & \color{red}{2} & \color{red}{1} & \color{red}{0} & \\ 
+\end{pmatrix}\end{equation} $$
 
-Numbers in $$\color{red} \text{red}$$ are within the sliding window, in $$ \text{black}$$ are outside the sliding window.
+Numbers in $$\color{red} \text{red}$$ are within the sliding window, in $$ \color{green} \text{green}$$ are outside the sliding window.
 
 
 By adjusting $$k$$, we can ensure $$w < \text{max pretraining length}$$, which allows us to maintain locality while keeping the position encoding within the pretraining length. This sliding window approach to the input sequence achieves interpolation outside the window and preserves locality within the window concurrently.
 
 Moreover, when we extend the context length $$\to \infty$$, then $$k \to \infty$$, the matrix can be formulated as:
 
-$$ \begin{equation} \begin{pmatrix}
-\color{red}0 &  &  &  &  &  &  & & \\ 
-\color{red}1 & \color{red}0 &  &  &  &  &  & & \\
-\color{red}2 & \color{red}1 & \color{red}0 &  &  &  &  & & \\  
-\color{red}\ddots & \color{red}2 & \color{red}1 & \color{red}0 &  &  &  & & \\
-\color{red}w-1 & \color{red}\ddots & \color{red}2 & \color{red}1 & \color{red}0 &  &  & & \\ 
-w & \color{red}w-1 & \color{red}\ddots & \color{red}2 & \color{red}1 & \color{red}0 &  & & \\ 
-w  & w & \color{red}\ddots & \color{red}\ddots & \color{red}2 & \color{red}1 & \color{red}0 & & \\ 
-w & w + 1/k  & \ddots & \color{red}\ddots & \color{red}\ddots & \color{red}2 & \color{red}1 & \color{red}0 & & \\ 
-\ddots & w   & \ddots & \ddots & \color{red}\ddots & \color{red}\ddots & \color{red}2 & \color{red}1 & \color{red}0 & & \\
-\ddots & \ddots & \ddots & w   & w  & w & \color{red}w-1 & \color{red} \ddots & \color{red}2 & \color{red}1 & \color{red}0 & & \\
-w  & \ddots & \ddots & \ddots & w   & w  & w & \color{red}w-1 & \color{red} \ddots & \color{red}2 & \color{red}1 & \color{red}0 & & \\
-\end{pmatrix} \end{equation} $$
+$$ \begin{equation}\begin{pmatrix} 
+\color{red}{0} & \\ 
+\color{red}{1} & \color{red}{0} & \\ 
+\color{red}{2} & \color{red}{1} & \color{red}{0} & \\ 
+\color{red}{\ddots} & \color{red}{2} & \color{red}{1} & \color{red}{0} & \\ 
+\color{red}{\tiny{w - 1}} & \color{red}{\ddots} & \color{red}{2} & \color{red}{1} & \color{red}{0} & \\ 
+\color{green}{w} & \color{red}{\tiny{w - 1}} & \color{red}{\ddots} & \color{red}{2} & \color{red}{1} & \color{red}{0} & \\ 
+\color{green}{w} & \color{green}{w} & \color{red}{\ddots} & \color{red}{\ddots} & \color{red}{2} & \color{red}{1} & \color{red}{0} & \\ 
+\color{green}{w} & \color{green}{w} & \color{green}{\ddots} & \color{red}{\ddots} & \color{red}{\ddots} & \color{red}{2} & \color{red}{1} & \color{red}{0} & \\ 
+\color{green}{\ddots} & \color{green}{w} & \color{green}{\ddots} & \color{green}{\ddots} & \color{red}{\ddots} & \color{red}{\ddots} & \color{red}{2} & \color{red}{1} & \color{red}{0} & \\ 
+\color{green}{\ddots} & \color{green}{\ddots} & \color{green}{\ddots} & \color{green}{\ddots} & \color{green}{\ddots} & \color{red}{\ddots} & \color{red}{\ddots} & \color{red}{\ddots} & \color{red}{\ddots} & \color{red}{\ddots} & \\ 
+\color{green}{\ddots} & \color{green}{\ddots} & \color{green}{\ddots} & \color{green}{w} & \color{green}{w} & \color{green}{w} & \color{red}{\tiny{w - 1}} & \color{red}{\ddots} & \color{red}{2} & \color{red}{1} & \color{red}{0} & \\ 
+\color{green}{w} & \color{green}{\ddots} & \color{green}{\ddots} & \color{green}{\ddots} & \color{green}{w} & \color{green}{w} & \color{green}{w} & \color{red}{\tiny{w - 1}} & \color{red}{\ddots} & \color{red}{2} & \color{red}{1} & \color{red}{0} & \\ 
+\end{pmatrix}\end{equation} $$
 
 We can notice the locality can still be preserved within the window.
 In conclusion, we can find a relation between **eq(3)**, **eq(4)** and **eq(1)**
