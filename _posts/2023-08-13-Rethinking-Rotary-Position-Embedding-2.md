@@ -130,7 +130,7 @@ We follow the same experiment setup as in part 1 and compare the NTK-RoPE-mixed 
 | NTK-RoPE-fixed            | 49.41%       | 51.86%               | 39.61%                   |
 | NTK-RoPE-$$\log n$$-fixed | 49.40%       | 62.85%               | 44.14%                   |
 | NTK-RoPE-mixed            | 49.41%       | 53.09%               | 40.12%                   |
-| NTK-RoPE-$$\log n$$-mixed | 49.40%       | ***68.91%***         | ***45.41%***             |
+| NTK-RoPE-$$\log n$$-mixed | 49.40%       | ***<u>68.91%</u>***  | ***<u>45.41%</u>***      |
 
 From the **Table 1**, we can clearly see when compared to the "NTK-RoPE-old" and "NTK-RoPE-fixed," the mixture-of-base "NTK-RoPE-mixed" shows a significant accuracy improvement without fine-tuning. This effectively provides a 'free lunch' approach to enhance LLM performance in a longer context. In addition, the table shows the scale factor $$\log n$$ can benefit as well. But this trick requires $$\log n$$ to be inserted into attention during the pre-training phase, unaffordable and expensive. 
 
@@ -151,7 +151,7 @@ For LLaMA-1, it is $$2048$$, and for LLaMA-2, it is $$4096$$; we can scale the a
 | NTK-RoPE-fixed              | 49.41%       | 51.86%               | 39.61%                   |
 | NTK-RoPE-$$\log n^*$$-fixed | 49.41%       | 55.94%               | 41.11%                   |
 | NTK-RoPE-mixed              | 49.41%       | 53.09%               | 40.12%                   |
-| NTK-RoPE-$$\log n^*$$-mixed | 49.41%       | ***59.11%***         | ***42.38%***             |
+| NTK-RoPE-$$\log n^*$$-mixed | 49.41%       | ***<u>59.11%</u>***  | ***<u>42.38%</u>***      |
 
 **Table 2:** $$\log n^{*}$$ denotes we apply the scale factor $$\log n$$ is applied to the attention matrix only for text exceeding the max sequence length, without any pretraining
 

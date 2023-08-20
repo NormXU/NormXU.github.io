@@ -176,7 +176,7 @@ In **Table 5**, the model has 100M parameters, with a training length of 512. Th
 We follow the same experiment setup as in [part 1](https://normxu.github.io/Rethinking-Rotary-Position-Embedding/) on an 100M [GAU](https://arxiv.org/abs/2202.10447) model. The result is shown below.
 
 | context length                | 512(trained) | 4096 (repeated text) | 4096 (non-repeated text) |
-| ----------------------------- | ------------ | -------------------- |--------------------------|
+| ----------------------------- | ------------ |----------------------|--------------------------|
 | Baseline                      | 49.41%       | 24.17%               | 23.16%                   |
 | Baseline-$$\log n$$           | 49.40%       | 24.60%               | 24.02%                   |
 | PI-RoPE                       | 49.41%       | 15.04%               | 13.54%                   |
@@ -191,23 +191,23 @@ We follow the same experiment setup as in [part 1](https://normxu.github.io/Reth
 | NTK-RoPE-$$\log n$$-mixed     | 49.40%       | 68.91%               | 45.41%                   |
 | ReRoPE-w256                   | 49.41%       | 77.90%               | 48.48%                   |
 | ReRoPE-w256-$$\log n^{*}$$    | 49.41%       | 82.40%               | 48.85%                   |
-| ReRoPE-w256-$$\log n$$        | 49.40%       | ***85.12%***         | ***49.07%***             |
+| ReRoPE-w256-$$\log n$$        | 49.40%       | ***<u>85.12%</u>***  | ***<u>49.07%</u>***      |
 
 **Table 1**: the average accuracy of predicting next token to match the ground-truth next token given previous context. The experiment is based on a hybrid Transformer-GAU (Gated Attention Unit) model with a size of 100M parameters. $$\log n$$ indicates we add the scale factor $$\log n$$ at pretraining stage; $$\log n^{*}$$ denotes we apply the scale factor $$\log n$$ is applied to the attention matrix only for text exceeding the max sequence length, without any pretraining ; $$w256$$ denotes $$w=256$$
 
 
 
 | context length             | 512(trained) | 4096 (repeated text) | 4096 (non-repeated text) |
-|----------------------------|--------------|----------------------|--------------------------|
+| -------------------------- | ------------ |----------------------| ------------------------ |
 | ReRoPE-w64                 | 49.41%       | 69.39%               | 45.19%                   |
 | ReRoPE-w64-$$\log n^{*}$$  | 49.41%       | 78.58%               | 47.42%                   |
 | ReRoPE-w64-$$\log n$$      | 49.40%       | 84.38%               | 48.14%                   |
 | ReRoPE-w128                | 49.41%       | 76.11%               | 47.82%                   |
 | ReRoPE-w128-$$\log n^{*}$$ | 49.41%       | 82.28%               | 48.78%                   |
-| ReRoPE-w128-$$\log n$$     | 49.40%       | ***85.47%***         | 48.87%                   |
+| ReRoPE-w128-$$\log n$$     | 49.40%       | ***<u>85.47%</u>***  | 48.87%                   |
 | ReRoPE-w256                | 49.41%       | 77.90%               | 48.48%                   |
 | ReRoPE-w256-$$\log n^{*}$$ | 49.41%       | 82.40%               | 48.85%                   |
-| ReRoPE-w256-$$\log n$$     | 49.40%       | 85.12%               | ***49.07%***             |
+| ReRoPE-w256-$$\log n$$     | 49.40%       | 85.12%               | ***<u>49.07%</u>***      |
 | ReRoPE-w384                | 49.41%       | 70.72%               | 48.15%                   |
 | ReRoPE-w384-$$\log n^{*}$$ | 49.41%       | 76.42%               | 48.31%                   |
 | ReRoPE-w384-$$\log n$$     | 49.40%       | 83.24%               | 48.62%                   |
@@ -223,10 +223,10 @@ From **Table 2**, we can learn $$w$$ is robust to the performance; the optimal *
 
 | context length                   | 512(trained) | 4096 (repeated text) | 4096 (non-repeated text) |
 |----------------------------------| ------------ |----------------------|--------------------------|
-| ReRoPE-w128-$$\log n$$           |  49.40%            | ***85.47%***         | 48.87%                   |
+| ReRoPE-w128-$$\log n$$           |  49.40%            | ***<u>85.47%</u>***  | 48.87%                   |
 | Leaky-ReRoPE-w128-k64-$$\log n$$ |   49.40%           | 85.29%               | 48.96%                   |
 | Leaky-ReRoPE-w128-k32-$$\log n$$ |   49.40%           | 85.31%               | 49.03%                   |
-| Leaky-ReRoPE-w128-k16-$$\log n$$ |   49.40%           | 85.15%               | ***49.10%***             |
+| Leaky-ReRoPE-w128-k16-$$\log n$$ |   49.40%           | 85.15%               | ***<u>49.10%</u>***      |
 | Leaky-ReRoPE-w128-k8-$$\log n$$  |   49.40%           | 80.00%               | 48.11%                   |
 | ReRoPE-w256-$$\log n$$           |   49.40%           | 85.12%               | 49.07%                   |
 | Leaky-ReRoPE-w256-k64-$$\log n$$ |   49.40%           | 84.60%               | 49.03%                   |
@@ -265,7 +265,7 @@ ReRoPE effectively achieves near-optimal results, aligning with our intuition th
 | NTK-RoPE-$$\log n$$-mixed     | 49.40%       | 68.91%               | 45.41%                   |
 | ReRoPE-w256                   | 49.41%       | 77.90%               | 48.48%                   |
 | ReRoPE-w256-$$\log n^{*}$$    | 49.41%       | 82.40%               | 48.85%                   |
-| ReRoPE-w256-$$\log n$$        | 49.40%       | ***85.12%***         | ***49.07%***             |
+| ReRoPE-w256-$$\log n$$        | 49.40%       | ***<u>85.12%</u>***  | ***<u>49.07%</u>***      |
 | InvLeaky ReRoPE-w128-$$\log n$$        | 49.38%       | 82.25%               | 48.32%                   |
 | InvLeaky ReRoPE-w128-b8-$$\log n$$        | 49.62%       | 81.15%               | 48.85%                   |
 
