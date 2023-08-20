@@ -124,7 +124,9 @@ You can see the frequency remains relatively stable w.r.t $$\lambda$$, indicatin
 From the derivation, we can see that NTK-aware Scaled RoPE cleverly combines interpolation and extrapolation together. Besides scaling the base, I believe any transformations on the frequencies will be also effective as long as it ensures the extrapolation in high frequencies and interpolation in low-frequencies.
 
 ### Experiments
-> **from translator**: the table shows: the average accuracy of the predicted next token matching the ground-truth next token given previous context. However, the author didn't specify what model he uses for the experiment and what dataset he tested on.
+> **from translator**: the table shows: the average accuracy of predicting next token to match the ground-truth next token given previous context. The experiment is based on a hybrid Transformer-GAU (Gated Attention Unit) model with a size of 100M parameters.
+> 
+> For more details on the GAU,  please refer to: [https://arxiv.org/abs/2202.10447](https://arxiv.org/abs/2202.10447)
 
  When $$k=8$$
 
