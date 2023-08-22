@@ -231,7 +231,7 @@ class LlamaAttention(nn.Module):
         ...
         query_states, key_states = apply_rotary_pos_emb(query_states, key_states, cos, sin, position_ids)
         # ---- + new code
-        query_states = max(1, math.log(q_len, self.max_position_embeddings)) * query_states
+        query_states *= ((position_ids + 1)[:, None, :, None].log() / np.log(training_length)).clip(1).to(query_states.dtype)
         # -------
         ...
         # repeat k/v heads if n_kv_heads < n_heads
