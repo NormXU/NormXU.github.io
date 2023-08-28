@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Expand the Context Length with RoPE, Part 1 -- RoPE is a β-based Encoding"
-categories: LLM
+tags: ["LLM"]
 ---
 
 > Translated from the [post](https://kexue.fm/archives/9675), originally written in Chinese by Su, Jianlin

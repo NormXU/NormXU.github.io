@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "A Potential Rotation Inconsistency of Dynamic Scaled RoPE"
-categories: LLM
+tags: ["LLM"]
 ---
 ### TL;DR
 

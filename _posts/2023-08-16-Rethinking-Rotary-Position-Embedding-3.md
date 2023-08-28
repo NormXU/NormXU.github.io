@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Expand the Context Length with RoPE, Part 3 -- Unlocking the Unlimited Extrapolation Potential with ReRoPE"
-categories: LLM
+tags: ["LLM"]
 ---
 
 > Translated from the [post](https://kexue.fm/archives/9708) and [post](https://kexue.fm/archives/9728), originally written in Chinese by Su, Jianlin
