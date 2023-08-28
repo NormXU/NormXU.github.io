@@ -1,7 +1,7 @@
 ---
 layout: tag
 title: "Tag: LLM"
-permalink: /t/LLM
+permalink: /t/llm
 ---
 
 <ul class="post-list">
