@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "The compatibility b/t CUDA, GPU, base image, and Pytorch"
+title: "The Compatibility between CUDA, GPU, Base Image, and PyTorch"
 tags: ["Engineering"]
 ---
 
@@ -9,7 +9,7 @@ The relationship between the CUDA version, GPU architecture, and PyTorch version
 To clarify this complicated compatible problem,  let’s take a quick recap of the key terminologies we mentioned above. 
 
 
-
+## Basic Concepts
 ### GPU Architecture
 
 VIDIA releases new generations of GPUs every year that are based on different architectures, such as Kepler, Maxwell, Pascal, Volta, Turing, Ampere, and up to Hopper as of 2023. These architectures have different capabilities and features, specified by their Compute Capability version (e.g., sm_35, sm_60, sm_80, etc.). "sm" stands for "streaming multiprocessor," which is a key GPU component responsible for carrying out computations. The number following "sm" represents the architecture's version. We denote it as GPU code in the following context.
@@ -38,9 +38,9 @@ Copied from NVIDIA docker homepage:
 >
 > devel: Builds on the runtime and includes headers, development tools for building CUDA images. These images are particularly useful for multi-stage builds.
 
-### Clarify the Interrelation
+## Interrelation
 
-#### CUDA and Base Image
+### CUDA and Base Image
 
 The base image only contains the minimum required dependencies to deploy a pre-built CUDA application.  Importantly, there's no requirement for the CUDA version in the base image to match the CUDA version on the host machine. Back to our deployment scenario, our service is built based on `nvidia-cuda:10.2-base-ubuntu20.04` image. However, it will not utilize CUDA 10.2 from the image; instead, it will rely on the host's CUDA, which is CUDA 11.7. One critical point you still need to consider is that if the driver version on the host is too old for the base image's CUDA, our service will fail to start and you will see an error message as:
 
@@ -62,7 +62,7 @@ Up till now,
 
 - host driver 460.32.03 meets the minimum requirements of CUDA 10.2 ✅
 
-#### PyTorch and CUDA
+### PyTorch and CUDA
 
 Each version of PyTorch is usually compatible with one or a few specific CUDA versions. Using an incompatible version might lead to errors or sub-optimal performance.
 
@@ -83,13 +83,14 @@ Up till now,
 
 
 
-#### CUDA and GPU
+### CUDA and GPU
 
 Each CUDA version is compatible with only certain GPU architectures. 
 
 
 
-**PyTorch and GPU**: A particular version of PyTorch will be compatible only with the set of GPUs whose compatible CUDA versions overlap with the CUDA versions that PyTorch supports. 
+### PyTorch and GPU 
+A particular version of PyTorch will be compatible only with the set of GPUs whose compatible CUDA versions overlap with the CUDA versions that PyTorch supports. 
 
 PyTorch libraries can be compiled from source codes into two forms, binary *cubin* objects and forward-compatible *PTX* assembly for each kernel. Both cubin and PTX are generated for a certain target compute capability. A cubin generated for a certain compute capability is supported to run on any GPU with the same major revision and same or higher minor revision of compute capability. For example, a cubin generated for compute capability 7.0 is supported to run on a GPU with compute capability 7.5, however a cubin generated for compute capability 7.5 is *not* supported to run on a GPU with compute capability 7.0, and a cubin generated with compute capability 7.x is *not* supported to run on a GPU with compute capability 8.x.
 
