@@ -8,7 +8,7 @@ tags: ["Engineering"]
 
 - **Host CUDA VS Base Image CUDA**: The CUDA verision within a runtime docker image has no relationship with the CUDA version on the host machie. The only thing we need to care about is whether the driver version on the host supports the base image's CUDA runtime
 - **PyTorch VS CUDA**: PyTorch is compatible with one or a few specific CUDA versions, more precisely, CUDA runtime APIs. Check the compatible matrix [here](https://github.com/pytorch/pytorch/blob/main/RELEASE.md#release-compatibility-matrix)
-- **CUDA VS GPU**: Each GPU architectures is compatible with certain CUDA versions, more precisely, CUDA driver versions. Quick check [here](https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/)
+- **CUDA VS GPU**: Each GPU architecture is compatible with certain CUDA versions, more precisely, CUDA driver versions. Quick check [here](https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/)
 
 - **PyTorch and GPU**:  PyTorch only supports GPU specified in ``TORCH_CUDA_ARCH_LIST`` when compiled
 
@@ -16,7 +16,7 @@ The relationship between the CUDA version, GPU architecture, and PyTorch version
 
 Suppose you're planning to deploy your awesome service on an **NVIDIA A100-PCIE-40Gb** server with **CUDA 11.2** and **Driver Version 460.32.03**. You've built your service using **PyTorch 1.12.1**, and your Docker image is built based on an NVIDIA base image, specifically [**nvidia-cuda:10.2-base-ubuntu20.04**](https://hub.docker.com/layers/andrewseidl/nvidia-cuda/10.2-base-ubuntu20.04/images/sha256-3d4e2bbbf5a85247db30cd3cc91ac4695dc0d093a1eead0933e0dbf09845d1b9?context=explore). How can you judge whether your service can run smoothly on the machine without iterative attempts?
 
-To clarify this complicated compatible problem,  let’s take a quick recap of the key terminologies we mentioned above. 
+To clarify this complicated Compatibility problem,  let’s take a quick recap of the key terminologies we mentioned above. 
 
 
 ## Basic Concepts
