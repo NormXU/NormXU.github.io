@@ -69,7 +69,7 @@ Therefore, the service container will use the CUDA 10.2 runtime API, and because
 
 Therefore, the only one critical point you need to consider is that 
 
-**Whether the driver version on the host supports the base image's CUDA runtime**
+<b><font color='red'>Whether the driver version on the host supports the base image's CUDA runtime</font></b>
 
 The CUDA runtime version inside the container must be less than or equal to the CUDA driver version on the host system, or else you might encounter compatibility issues and the service will fail to start with an error message as:
 
