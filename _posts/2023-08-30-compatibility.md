@@ -4,7 +4,14 @@ title: "The Compatibility between CUDA, GPU, Base Image, and PyTorch"
 tags: ["Engineering"]
 ---
 
-The relationship between the CUDA version, GPU architecture, and PyTorch version can be a bit complex but is crucial for the proper functioning of PyTorch-based deep learning tasks on a GPU.  Suppose you're planning to deploy your awesome service on an **NVIDIA A100-PCIE-40Gb** server with **CUDA 11.2** and **Driver Version 460.32.03**. You've built your service using **PyTorch 1.12.1**, and your Docker image is built based on an NVIDIA base image, specifically **nvidia-cuda:10.2-base-ubuntu20.04**. How can you judge whether your service can run smoothly on the machine without iterative attempts?
+### TL; DR
+
+- Introduce basic concepts for compatibility evaluation
+- Provide a step-by-step guide to evaluating compatibility among CUDA, GPU, Base Image, and PyTorch.
+
+The relationship between the CUDA version, GPU architecture, and PyTorch version can be a bit complex but is crucial for the proper functioning of PyTorch-based deep learning tasks on a GPU.  
+
+Suppose you're planning to deploy your awesome service on an **NVIDIA A100-PCIE-40Gb** server with **CUDA 11.2** and **Driver Version 460.32.03**. You've built your service using **PyTorch 1.12.1**, and your Docker image is built based on an NVIDIA base image, specifically [**nvidia-cuda:10.2-base-ubuntu20.04**](https://hub.docker.com/layers/andrewseidl/nvidia-cuda/10.2-base-ubuntu20.04/images/sha256-3d4e2bbbf5a85247db30cd3cc91ac4695dc0d093a1eead0933e0dbf09845d1b9?context=explore). How can you judge whether your service can run smoothly on the machine without iterative attempts?
 
 To clarify this complicated compatible problem,  let’s take a quick recap of the key terminologies we mentioned above. 
 
@@ -12,13 +19,11 @@ To clarify this complicated compatible problem,  let’s take a quick recap of t
 ## Basic Concepts
 ### GPU Architecture
 
-VIDIA releases new generations of GPUs every year that are based on different architectures, such as Kepler, Maxwell, Pascal, Volta, Turing, Ampere, and up to Hopper as of 2023. These architectures have different capabilities and features, specified by their Compute Capability version (e.g., sm_35, sm_60, sm_80, etc.). "sm" stands for "streaming multiprocessor," which is a key GPU component responsible for carrying out computations. The number following "sm" represents the architecture's version. We denote it as GPU code in the following context.
+NVIDIA releases new generations of GPUs every year that are based on different architectures, such as Kepler, Maxwell, Pascal, Volta, Turing, Ampere, and up to Hopper as of 2023. These architectures have different capabilities and features, specified by their Compute Capability version (e.g., sm_35, sm_60, sm_80, etc.). "sm" stands for "streaming multiprocessor," which is a key GPU component responsible for carrying out computations. The number following "sm" represents the architecture's version. We denote it as GPU code in the following context.
 
 For example, "sm_70” which corresponds to the Tesla V100 GPU. When you specify a particular architecture with nvcc,  the compiler will optimize your code for that architecture. As a result, your compiled code may not be fully compatible with GPUs based on different architectures.
 
-You can find more detailed explanations in [this](https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/) blog.
-
-
+You can find more detailed explanations in [this](https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/) post.
 
 ### CUDA Version
 
@@ -58,9 +63,9 @@ The base image requires a minimum CUDA version of the host.
 
 Up till now,
 
-- host CUDA11.2 >= 10.2. the base image is compatible with host ✅
+- **host has CUDA11.2 >= 10.2. the base image is compatible with host** ✅
 
-- host driver 460.32.03 meets the minimum requirements of CUDA 10.2 ✅
+- **host driver 460.32.03 meets the minimum requirements of CUDA 10.2** ✅
 
 ### PyTorch and CUDA
 
@@ -77,17 +82,28 @@ Following is the Release Compatibility Matrix for PyTorch, copied from [here](ht
 
 The official PyTorch [webpage](https://pytorch.org/get-started/previous-versions/#v1121) provides three examples of CUDA version that are compatible with PyTorch 1.12, ranging from CUDA 10.2 to CUDA 11.6. Therefore, PyTorch 1.12.1 in our scenario passes the compatible test.
 
-Up till now,
+So far so good, we have:
 
-- PyTorch1.12 is compatible with CUDA 11.2 ✅
+- **PyTorch1.12 is compatible with CUDA 11.2** ✅
 
 
 
 ### CUDA and GPU
 
-Each CUDA version is compatible with only certain GPU architectures. 
+Each CUDA version is compatible with only certain GPU architectures. As for Ampere, the compatibility is shown as below, copied from [this](https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/) post:
 
+> **Ampere (CUDA 11.1 and later)**
+>
+>- **SM80 or `SM_80, compute_80`** –
+>  NVIDIA [A100](https://amzn.to/3GqeDrq) (the name “Tesla” has been dropped – GA100), NVIDIA DGX-A100
+>- **SM86 or `SM_86, compute_86`\** –** (from [CUDA 11.1 onwards](https://docs.nvidia.com/cuda/ptx-compiler-api/index.html))
+>  Tesla GA10x cards, RTX Ampere – RTX 3080, GA102 – RTX 3090, RTX A2000, A3000, [RTX A4000](https://www.amazon.com/PNY-NVIDIA-Quadro-A6000-Graphics/dp/B08NWGS4X1?msclkid=45987a9faa0411ec98c321cb30a0780e&linkCode=ll1&tag=arnonshimoni-20&linkId=ccac0fed7c3cac61b4373d7dac6e7136&language=en_US&ref_=as_li_ss_tl), A5000, [A6000](https://www.amazon.com/PNY-VCNRTXA6000-PB-NVIDIA-RTX-A6000/dp/B09BDH8VZV?crid=3QY8KCKXO3FB8&keywords=rtx+a6000&qid=1647969665&sprefix=rtx+a6000%2Caps%2C174&sr=8-1&linkCode=ll1&tag=arnonshimoni-20&linkId=d292ba4d995d2b034a27441321668ffb&language=en_US&ref_=as_li_ss_tl), NVIDIA A40, GA106 – [RTX 3060](https://www.amazon.com/gp/product/B08W8DGK3X/ref=as_li_qf_asin_il_tl?ie=UTF8&tag=arnonshimoni-20&creative=9325&linkCode=as2&creativeASIN=B08W8DGK3X&linkId=5cb5bc6a11eb10aab6a98ad3f6c00cb9), GA104 – RTX 3070, GA107 – RTX 3050, RTX A10, RTX A16, RTX A40, A2 Tensor Core GPU
+>
+>- **SM87 or `SM_87, compute_87`\** –** (from [CUDA 11.4 onwards](https://docs.nvidia.com/cuda/ptx-compiler-api/index.html), introduced with PTX ISA 7.4 / Driver r470 and newer) – for Jetson AGX Orin and Drive AGX Orin only
 
+We therefore draw the conclusion:
+
+- **NVIDIA A100-PCIE-40Gb is compatible with CUDA 11.2** ✅
 
 ### PyTorch and GPU 
 A particular version of PyTorch will be compatible only with the set of GPUs whose compatible CUDA versions overlap with the CUDA versions that PyTorch supports. 
@@ -96,7 +112,7 @@ PyTorch libraries can be compiled from source codes into two forms, binary *cubi
 
 When the developers of PyTorch release a new version, they include a flag, ``TORCH_CUDA_ARCH_LIST``, in the [setup.py](https://github.com/pytorch/pytorch/blob/78810d78e82f8e18dbc1c049a2b92e559ab567b2/setup.py#L134). In this flag, they can specify which CUDA architecture to build for, such as ``TORCH_CUDA_ARCH_LIST="3.5 5.2 6.0 6.1 7.0+PTX 8.0"``. Remember numbers in ``TORCH_CUDA_ARCH_LIST`` are not CUDA versions, these numbers refers to the NVIDIA GPU architectures, such as 7.5 for the Turing architecture and 8.x for the Ampere architecture.
 
-Here is a good table for reference, credit to [dagelf](https://stackoverflow.com/questions/68496906/pytorch-installation-for-different-cuda-architectures/74962874#74962874)
+Here is a helpful table for reference, credit to [dagelf](https://stackoverflow.com/questions/68496906/pytorch-installation-for-different-cuda-architectures/74962874#74962874)
 
 | nvcc tag                | TORCH_CUDA_ARCH_LIST | GPU Arch                                                     | Year | eg. GPU           |
 | ----------------------- | -------------------- | ------------------------------------------------------------ | ---- | ----------------- |
@@ -120,9 +136,45 @@ If the PyTorch libraries you are using is either compiled with corresponding ``T
 
 Back to our scenarios, this time, the combability test fails.
 
-- Pytorch 1.12.1 fails to be compatible with  NVIDIA A100-PCIE-40Gb ❌
+- **Pytorch 1.12.1 fails to be compatible with  NVIDIA A100-PCIE-40Gb** ❌
 
-### Reference
+
+
+## Conclusion 
+
+Now we can certainly know if the service which is built with **PyTorch 1.12.1**, and based on **nvidia-cuda:10.2-base-ubuntu20.04**, is compatible with an **NVIDIA A100-PCIE-40Gb** machine with **CUDA 11.2** and **Driver Version 460.32.03**.
+
+| Compatibility       | Status |
+| ------------------- | ------ |
+| CUDA and Base Image | ✅      |
+| PyTorch and GPU     | ❌      |
+| PyTorch and CUDA    | ✅      |
+| CUDA and GPU        | ✅      |
+
+The answer is <u><b>NO</b></u>. Then, how do we fix it?
+
+Since current PyTorch fails to be compatible with A100, we might want to upgrade to PyTorch 1.13.1 or even later version. Besisdes, since PyTorch 1.13.1 needs CUDA >= 11.6, we also need to upgrade host CUDA version to the latest, like CUDA 11.7 or latest version.
+
+One good recipe is as below:
+
+**host:** CUDA 11.7, NVIDIA A100-PCIE-40Gb, Driver Version: 525.116.03
+
+**service:** PyTorch: 1.13.1
+
+The compatitibilty matrix now passes all checks.
+
+| Compatibility       | Status |
+| ------------------- | ------ |
+| CUDA and Base Image | ✅      |
+| PyTorch and GPU     | ✅      |
+| PyTorch and CUDA    | ✅      |
+| CUDA and GPU        | ✅      |
+
+
+
+## Reference
 
 - [NVIDIA Ampere GPU Architecture Compatibility Guide for CUDA Applications](https://docs.nvidia.com/cuda/ampere-compatibility-guide/index.html#building-applications-with-ampere-support)
-
+- [Matching CUDA arch and CUDA gencode for various NVIDIA architectures](https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/)
+- [Install previous versions of Pytorch under different CUDA machine](https://pytorch.org/get-started/previous-versions/)
+- [CUDA Compatibility Matrix from NVIDIA official documentations](https://docs.nvidia.com/deploy/cuda-compatibility/#minor-version-compatibility)
