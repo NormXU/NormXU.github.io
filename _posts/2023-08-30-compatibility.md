@@ -7,10 +7,10 @@ tags: ["Engineering"]
 ### TL; DR
 
 - **Host CUDA VS Base Image CUDA**: The CUDA verision within a runtime docker image has no relationship with the CUDA version on the host machie. The only thing we need to care about is whether the driver version on the host supports the base image's CUDA runtime
-- **PyTorch VS CUDA**: PyTorch is usually compatible with one or a few specific CUDA versions. Check the compatible matrix [here](https://github.com/pytorch/pytorch/blob/main/RELEASE.md#release-compatibility-matrix)
-- **CUDA VS GPU**: Each GPU architectures is compatible with certain CUDA versions, specifically, driver versions. Quick check [here](https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/)
+- **PyTorch VS CUDA**: PyTorch is compatible with one or a few specific CUDA versions, more precisely, CUDA runtime APIs. Check the compatible matrix [here](https://github.com/pytorch/pytorch/blob/main/RELEASE.md#release-compatibility-matrix)
+- **CUDA VS GPU**: Each GPU architectures is compatible with certain CUDA versions, more precisely, CUDA driver versions. Quick check [here](https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/)
 
-- **PyTorch and GPU**:  PyTorch release only supports GPU specified in TORCH_CUDA_ARCH_LIST prior to compilation
+- **PyTorch and GPU**:  PyTorch only supports GPU specified in ``TORCH_CUDA_ARCH_LIST`` when compiled
 
 The relationship between the CUDA version, GPU architecture, and PyTorch version can be a bit complex but is crucial for the proper functioning of PyTorch-based deep learning tasks on a GPU.  
 
