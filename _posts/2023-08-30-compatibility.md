@@ -6,8 +6,11 @@ tags: ["Engineering"]
 
 ### TL; DR
 
-- Introduce basic concepts for compatibility evaluation
-- Provide a step-by-step guide to evaluating compatibility among CUDA, GPU, Base Image, and PyTorch.
+- **Host CUDA VS Base Image CUDA**: The CUDA verision within a runtime docker image has no relationship with the CUDA version on the host machie. The only thing we need to care about is whether the driver version on the host supports the base image's CUDA runtime
+- **PyTorch VS CUDA**: PyTorch is usually compatible with one or a few specific CUDA versions. Check the compatible matrix [here](https://github.com/pytorch/pytorch/blob/main/RELEASE.md#release-compatibility-matrix)
+- **CUDA VS GPU**: Each GPU architectures is compatible with certain CUDA versions, specifically, driver versions. Quick check [here](https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/)
+
+- **PyTorch and GPU**:  PyTorch release only supports GPU specified in TORCH_CUDA_ARCH_LIST prior to compilation
 
 The relationship between the CUDA version, GPU architecture, and PyTorch version can be a bit complex but is crucial for the proper functioning of PyTorch-based deep learning tasks on a GPU.  
 
@@ -27,7 +30,13 @@ You can find more detailed explanations in [this](https://arnon.dk/matching-sm-a
 
 ### CUDA Version
 
-Different GPUs require different CUDA versions based on their architecture. CUDA serves as an interface between the software (like PyTorch) and the hardware (NVIDIA GPU).
+The terms "CUDA" and "CUDA Toolkits" often appear together. "CUDA XX.X" is shorten for the version of the CUDA Toolkits.It serves as an interface between the software (like PyTorch) and the hardware (like NVIDIA GPU).
+
+CUDA Toolkits include:
+
+1. **Libraries and Utilities**: The CUDA Toolkit provides a collection of libraries and utilities that allow developers to build and profile CUDA-enabled applications, such as CuDNN.
+2. **CUDA Runtime API**: The Toolkit includes the CUDA runtime, which provides the application programming interface (API) used for tasks like allocating memory on the GPU, transferring data between the CPU and GPU, and launching kernels (compute functions) on the GPU. CUDA runtime APIs are generally designed to be forward-compatible with newer drivers.
+3. **NVCC Compiler**: The Toolkit includes the `nvcc` compiler for compiling CUDA code into GPU-executable code.
 
 ### PyTorch Version
 
@@ -47,15 +56,28 @@ Copied from NVIDIA docker [homepage](https://hub.docker.com/r/nvidia/cuda):
 
 ### CUDA and Base Image
 
-The base image only contains the minimum required dependencies to deploy a pre-built CUDA application.  Importantly, there's no requirement for the CUDA version in the base image to match the CUDA version on the host machine. Back to our deployment scenario, our service is built based on `nvidia-cuda:10.2-base-ubuntu20.04` image. However, it will not utilize CUDA 10.2 from the image; instead, it will rely on the host's CUDA, which is CUDA 11.7. One critical point you still need to consider is that if the driver version on the host is too old for the base image's CUDA, our service will fail to start and you will see an error message as:
+The base image only contains the minimum required dependencies to deploy a pre-built CUDA application.  Importantly, there's no requirement for the CUDA version in the base image to match the CUDA version on the host machine. 
+
+Back to our deployment case
+
+- our service is built based on `nvidia-cuda:10.2-base-ubuntu20.04` image
+- The host machine has a CUDA driver that supports up to CUDA 11.2
+
+In this setup, the service built with `nvidia-cuda:10.2-base-ubuntu20.04` image doesn't mean there installs a driver which supports CUDA 10.2 inside the image; instead, it relies on the host's driver which can support up to CUDA 11.7. 
+
+Therefore, the service container will use the CUDA 10.2 runtime API, and because the host driver (supporting up to CUDA 11.2) is forward-compatible with older CUDA runtime versions, the application should run without any issues.
+
+Therefore, the only one critical point you need to consider is that 
+
+**Whether the driver version on the host supports the base image's CUDA runtime**
+
+The CUDA runtime version inside the container must be less than or equal to the CUDA driver version on the host system, or else you might encounter compatibility issues and the service will fail to start with an error message as:
 
 >  CUDA driver version is insufficient for CUDA runtime version
 
 A version-compatible matrix between the CUDA and driver can be found [here](https://docs.nvidia.com/deploy/cuda-compatibility/#minor-version-compatibility).
 
-Besides, there is still one consideration you should never miss,
-
-According to the [dockerfile](https://hub.docker.com/layers/andrewseidl/nvidia-cuda/10.2-base-ubuntu20.04/images/sha256-3d4e2bbbf5a85247db30cd3cc91ac4695dc0d093a1eead0933e0dbf09845d1b9?context=explore) of ``nvidia-cuda:10.2-base-ubuntu20.04``
+Besides, there is still one consideration you should never miss. According to the line 16 in the [dockerfile](https://hub.docker.com/layers/andrewseidl/nvidia-cuda/10.2-base-ubuntu20.04/images/sha256-3d4e2bbbf5a85247db30cd3cc91ac4695dc0d093a1eead0933e0dbf09845d1b9?context=explore) of ``nvidia-cuda:10.2-base-ubuntu20.04``
 
 > ENV NVIDIA_REQUIRE_CUDA=cuda>=10.2
 
@@ -69,7 +91,7 @@ Up till now,
 
 ### PyTorch and CUDA
 
-Each version of PyTorch is usually compatible with one or a few specific CUDA versions. Using an incompatible version might lead to errors or sub-optimal performance.
+PyTorch versions is compatible  with one or a few specific CUDA versions, or more precisely, with corresponding CUDA runtime API versions. Using an incompatible version might lead to errors or sub-optimal performance.
 
 Following is the Release Compatibility Matrix for PyTorch, copied from [here](https://github.com/pytorch/pytorch/blob/main/RELEASE.md#release-compatibility-matrix):
 
@@ -86,11 +108,9 @@ So far so good, we have:
 
 - **PyTorch1.12 is compatible with CUDA 11.2** ✅
 
-
-
 ### CUDA and GPU
 
-Each CUDA version is compatible with only certain GPU architectures. As for Ampere, the compatibility is shown as below, copied from [this](https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/) post:
+Each GPU architectures is compatible with certain CUDA versions, or more precisely, CUDA driver versions. As for Ampere, the compatibility is shown as below, copied from [this](https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/) post:
 
 > **Ampere (CUDA 11.1 and later)**
 >
@@ -153,13 +173,13 @@ Now we can certainly know if the service which is built with **PyTorch 1.12.1**,
 
 The answer is <u><b>NO</b></u>. Then, how do we fix it?
 
-Since current PyTorch fails to be compatible with A100, we might want to upgrade to PyTorch 1.13.1 or even later version. Besisdes, since PyTorch 1.13.1 needs CUDA >= 11.6, we also need to upgrade host CUDA version to the latest, like CUDA 11.7 or latest version.
+Since current PyTorch fails to be compatible with A100, we might want to upgrade to PyTorch 1.13.1 or even later version. Besisdes, since PyTorch 1.13.1 needs CUDA runtime api >= 11.6, we also need to upgrade the base image with a runtime >= 11.6. To be compatible with the CUDA runtime, the host CUDA driver should also be upgraded to the latest, like Driver Version: 525.116.03 which supports up to CUDA 11.7.
 
 One good recipe is as below:
 
-**host:** CUDA 11.7, NVIDIA A100-PCIE-40Gb, Driver Version: 525.116.03
+**host:** NVIDIA A100-PCIE-40Gb, Driver Version: 525.116.03 which supports up to CUDA 11.7
 
-**service:** PyTorch: 1.13.1
+**service:** PyTorch: 1.13.1, base-image: [nvidia/cuda:11.7.1-base-ubuntu20.04](https://hub.docker.com/layers/nvidia/cuda/11.7.1-base-ubuntu20.04/images/sha256-335148f1f4b11529269e668ff3ac57667e5f21458d7f461fd70d667699cf7819?context=explore)
 
 The compatitibilty matrix now passes all checks.
 
@@ -171,6 +191,20 @@ The compatitibilty matrix now passes all checks.
 | CUDA and GPU        | ✅      |
 
 
+
+## One More Thing
+
+**Q:**  I initiate a container with a image without any CUDA runtime installed inside. Then, after I execute ``docker run --gpu all  <image_name>``, I access the container and find all CUDA-related files on the host system, including CUDA runtime api. My assumption is that ``--gpu all`` will map all CUDA Toolkits to the CPU image, and thereby turn it to a CUDA runtime image. However, this assumption seems wrong for a container initilized from a CUDA 10.2 runtime base image in the same way, since all applications inside such a container still use CUDA 10.2 runtime API, suggesting that the host system's CUDA runtime isn't being mapped into the container. What the hell is going on?
+
+**A:** When you run a Docker container with the `--gpus all` flag, you enable that container to access the host's GPUs. However, this does not mean that all CUDA-related files and libraries from the host are automatically mapped into the container. What happens under the hood may differ based on whether the Docker image itself contains CUDA runtime libraries or not.
+
+### Image without CUDA runtime:
+
+When you start a container based on an image that doesn't contain any CUDA runtime libraries, and you use `--gpus all`, you might observe that certain CUDA functionalities are available in the container. This is often because NVIDIA's Docker runtime (nvidia-docker) ensures that the minimum necessary libraries and binaries related to the GPU are mounted into the container, including the compatible CUDA driver libraries.
+
+### Image with CUDA runtime:
+
+If you start a container from an image that already has a specific CUDA runtime version (say, CUDA 10.2), the container will use that version for its operations. NVIDIA's Docker runtime (nvidia-docker) generally won't override the CUDA libraries in a container that already has them. The container is designed to be a standalone, consistent environment, and one of the benefits of using containers is that they package the application along with its dependencies, ensuring that it runs the same way regardless of where it's deployed.
 
 ## Reference
 
