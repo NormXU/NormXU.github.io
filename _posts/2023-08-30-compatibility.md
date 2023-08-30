@@ -35,7 +35,7 @@ PyTorch releases are often tightly bound to specific CUDA versions for compatibi
 
 ### Base Image
 
-Copied from NVIDIA docker homepage:
+Copied from NVIDIA docker [homepage](https://hub.docker.com/r/nvidia/cuda):
 
 >  base: Includes the CUDA runtime (cudart)
 >
