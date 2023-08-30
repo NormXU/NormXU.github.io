@@ -16,7 +16,7 @@ The relationship between the CUDA version, GPU architecture, and PyTorch version
 
 Suppose you're planning to deploy your awesome service on an **NVIDIA A100-PCIE-40Gb** server with **CUDA 11.2** and **Driver Version 460.32.03**. You've built your service using **PyTorch 1.12.1**, and your Docker image is built based on an NVIDIA base image, specifically [**nvidia-cuda:10.2-base-ubuntu20.04**](https://hub.docker.com/layers/andrewseidl/nvidia-cuda/10.2-base-ubuntu20.04/images/sha256-3d4e2bbbf5a85247db30cd3cc91ac4695dc0d093a1eead0933e0dbf09845d1b9?context=explore). How can you judge whether your service can run smoothly on the machine without iterative attempts?
 
-To clarify this complicated Compatibility problem,  let’s take a quick recap of the key terminologies we mentioned above. 
+To clarify this complicated compatibility problem,  let’s take a quick recap of the key terminologies we mentioned above. 
 
 
 ## Basic Concepts
