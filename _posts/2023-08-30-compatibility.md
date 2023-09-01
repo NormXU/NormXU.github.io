@@ -181,7 +181,7 @@ Since current PyTorch fails to be compatible with A100, we might want to upgrade
 
 One good recipe is as below:
 
-**host:** NVIDIA A100-PCIE-40Gb, no upgrade to the driver is required
+**host:** NVIDIA A100-PCIE-40Gb, No driver update is necessary, but I prefer to keep it updated to the latest version.
 
 **service:** PyTorch: 1.13.1, base-image: [nvidia/cuda:11.7.1-base-ubuntu20.04](https://hub.docker.com/layers/nvidia/cuda/11.7.1-base-ubuntu20.04/images/sha256-335148f1f4b11529269e668ff3ac57667e5f21458d7f461fd70d667699cf7819?context=explore)
 
