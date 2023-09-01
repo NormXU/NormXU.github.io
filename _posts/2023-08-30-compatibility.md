@@ -6,7 +6,7 @@ tags: ["Engineering"]
 
 ### TL; DR
 
-- **Host CUDA VS Base Image CUDA**: The CUDA verision within a runtime docker image has no relationship with the CUDA version on the host machie. The only thing we need to care about is whether the driver version on the host supports the base image's CUDA runtime
+- **Host CUDA VS Base Image CUDA**: The CUDA verision within a runtime docker image has no relationship with the CUDA version on the host machie. The only thing we need to care about is whether the driver version on the host supports the base image's CUDA runtime. Check the driver compatibility [here](https://docs.nvidia.com/deploy/cuda-compatibility/#minor-version-compatibility)
 - **PyTorch VS CUDA**: PyTorch is compatible with one or a few specific CUDA versions, more precisely, CUDA runtime APIs. Check the compatible matrix [here](https://github.com/pytorch/pytorch/blob/main/RELEASE.md#release-compatibility-matrix)
 - **CUDA VS GPU**: Each GPU architecture is compatible with certain CUDA versions, more precisely, CUDA driver versions. Quick check [here](https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/)
 
@@ -173,11 +173,15 @@ Now we can certainly know if the service which is built with **PyTorch 1.12.1**,
 
 The answer is <u><b>NO</b></u>. Then, how do we fix it?
 
-Since current PyTorch fails to be compatible with A100, we might want to upgrade to PyTorch 1.13.1 or even later version. Besisdes, since PyTorch 1.13.1 needs CUDA runtime api >= 11.6, we also need to upgrade the base image with a runtime >= 11.6. To be compatible with the CUDA runtime, the host CUDA driver should also be upgraded to the latest, like Driver Version: 525.116.03 which supports up to CUDA 11.7.
+Since current PyTorch fails to be compatible with A100, we might want to upgrade to PyTorch 1.13.1 or even later version. Besisdes, since PyTorch 1.13.1 needs CUDA runtime api >= 11.6, we also need to upgrade the base image with a runtime >= 11.6. To be compatible with the CUDA runtime, you may also want to upgrade the host CUDA driver to the latest, like Driver Version: 525.116.03 which supports up to CUDA 11.7, but this is not necessary, since according to NVIDIA [compatibility document](https://docs.nvidia.com/deploy/cuda-compatibility/#default-to-minor-version).
+
+| CUDA Toolkit | **Linux x86_64 Minimum Required Driver Versio** | Note                                                         |
+| ------------ | ----------------------------------------------- | ------------------------------------------------------------ |
+| CUDA 11.x    | >= 450.80.02*                                   | CUDA 11.0 was released with an earlier driver version, but by upgrading to Tesla Recommended Drivers 450.80.02 (Linux) / 452.39 (Windows) as indicated, <u>minor version compatibility is possible across the CUDA 11.x family of toolkits</u>. |
 
 One good recipe is as below:
 
-**host:** NVIDIA A100-PCIE-40Gb, Driver Version: 525.116.03 which supports up to CUDA 11.7
+**host:** NVIDIA A100-PCIE-40Gb, no upgrade to the driver is required
 
 **service:** PyTorch: 1.13.1, base-image: [nvidia/cuda:11.7.1-base-ubuntu20.04](https://hub.docker.com/layers/nvidia/cuda/11.7.1-base-ubuntu20.04/images/sha256-335148f1f4b11529269e668ff3ac57667e5f21458d7f461fd70d667699cf7819?context=explore)
 
