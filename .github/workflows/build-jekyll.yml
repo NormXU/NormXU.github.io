@@ -27,7 +27,7 @@ jobs:
         with:
           provider: 'github'
           token: ${{ secrets.GH_TOKEN }} # It's your Personal Access Token(PAT)
-          ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}  # It's your SSH private key (SSH approach)          
+          ssh_private_key: ''  # It's your SSH private key (SSH approach)
           repository: ''             # Default is current repository
           branch: 'gh-pages'         # Default is gh-pages for github provider
           jekyll_src: './'           # Default is root directory
