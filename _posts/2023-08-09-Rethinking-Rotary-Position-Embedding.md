@@ -99,7 +99,7 @@ Regarding numeral base conversion, the objective is to expand the representation
 ### Let’s dig further
 You might wonder why we call it NTK (Neural Tangent Kernel). In fact, it is the academic background of @bloc97 that makes him use this term to name it.
 
-In [Fourier Features Let Networks Learn High-Frequency Functions in Low-Dimensional Domains](https://arxiv.org/abs/2006.10739), authors use NTK methods to demonstrate that neural networks cannot learn high-frequency signals efficiently. Instead, their solution is to transform it into Fourier features, which share the same idea with the Sinusoidal position encoding we mention in **eq1**.
+In "[Fourier Features Let Networks Learn High-Frequency Functions in Low-Dimensional Domains](https://arxiv.org/abs/2006.10739)", authors use NTK methods to demonstrate that neural networks cannot learn high-frequency signals efficiently. Instead, their solution is to transform it into Fourier features, which share the same idea with the Sinusoidal position encoding we mention in **eq1**.
 
 Thus, based on the findings from this NTK paper, @bloc97 proposed the NTK-aware Scaled RoPE. I ask him about how he derived it. Surprisingly, his derivation is quite straightforward. The main idea is to combine extrapolation with interpolation:
 
@@ -132,7 +132,8 @@ You can see the frequency remains relatively stable w.r.t $$\lambda$$, indicatin
 From the derivation, we can see that NTK-aware Scaled RoPE cleverly combines interpolation and extrapolation together. Besides scaling the base, I believe any transformations on the frequencies will be also effective as long as it ensures the extrapolation in high frequencies and interpolation in low-frequencies.
 
 > **from translator**: We can actually inteprete the **extrapolation in high-frequency and  interpolation in low-frequency** by considering from a wavelength perspective in RoPE. Specifically, the wavelength in RoPE is used to define the length of the token sequence required for the encoding at dimension $$d$$ to complete a full rotation, $$2\pi$$. The higher the frequency, the smaller the wavelength and vice verse. Therefore, a longer wavelength can hold more interpolated tokens, while a shorter one cannot. That is why we employ interpolation in low-frequency.
-
+>
+> please refer to [YaRN: Efficient Context Window Extension of Large Language Models](https://github.com/jquesnelle/yarn/tree/master) for more details
 ### Experiments
 > **from translator**: the table shows: the average accuracy of predicting next token to match the ground-truth next token given previous context. The experiment is based on a hybrid Transformer-GAU (Gated Attention Unit) model with a size of 100M parameters.
 > 
