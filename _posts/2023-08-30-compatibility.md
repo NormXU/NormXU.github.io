@@ -95,12 +95,12 @@ PyTorch versions is compatible  with one or a few specific CUDA versions, or mor
 
 Following is the Release Compatibility Matrix for PyTorch, copied from [here](https://github.com/pytorch/pytorch/blob/main/RELEASE.md#release-compatibility-matrix):
 
-| PyTorch version | Python        | Stable CUDA               | Experimental CUDA         |
-| --------------- | ------------- | ------------------------- | ------------------------- |
-| 2.1             | >=3.8, <=3.11 | CUDA 11.8, CUDNN 8.7.0.84 | CUDA 12.1, CUDNN 8.9.2.26 |
-| 2.0             | >=3.8, <=3.11 | CUDA 11.7, CUDNN 8.5.0.96 | CUDA 11.8, CUDNN 8.7.0.84 |
-| 1.13            | >=3.7, <=3.10 | CUDA 11.6, CUDNN 8.3.2.44 | CUDA 11.7, CUDNN 8.5.0.96 |
-| 1.12            | >=3.7, <=3.10 | CUDA 11.3, CUDNN 8.3.2.44 | CUDA 11.6, CUDNN 8.3.2.44 |
+| PyTorch version         | Stable CUDA               | Experimental CUDA         |
+| ---------------  | ------------------------- | ------------------------- |
+| 2.1             | CUDA 11.8, CUDNN 8.7.0.84 | CUDA 12.1, CUDNN 8.9.2.26 |
+| 2.0             | CUDA 11.7, CUDNN 8.5.0.96 | CUDA 11.8, CUDNN 8.7.0.84 |
+| 1.13            | CUDA 11.6, CUDNN 8.3.2.44 | CUDA 11.7, CUDNN 8.5.0.96 |
+| 1.12             | CUDA 11.3, CUDNN 8.3.2.44 | CUDA 11.6, CUDNN 8.3.2.44 |
 
 The official PyTorch [webpage](https://pytorch.org/get-started/previous-versions/#v1121) provides three examples of CUDA version that are compatible with PyTorch 1.12, ranging from CUDA 10.2 to CUDA 11.6. Therefore, PyTorch 1.12.1 in our scenario passes the compatible test.
 
@@ -176,8 +176,8 @@ The answer is <u><b>NO</b></u>. Then, how do we fix it?
 Since current PyTorch fails to be compatible with A100, we might want to upgrade to PyTorch 1.13.1 or even later version. Besisdes, since PyTorch 1.13.1 needs CUDA runtime api >= 11.6, we also need to upgrade the base image with a runtime >= 11.6. To be compatible with the CUDA runtime, you may also want to upgrade the host CUDA driver to the latest, like Driver Version: 525.116.03 which supports up to CUDA 11.7, but this is not necessary, since according to NVIDIA [compatibility document](https://docs.nvidia.com/deploy/cuda-compatibility/#default-to-minor-version).
 
 | CUDA Toolkit | **Linux x86_64 Minimum Required Driver Versio** | Note                                                         |
-| ------------ | ----------------------------------------------- | ------------------------------------------------------------ |
-| CUDA 11.x    | >= 450.80.02*                                   | CUDA 11.0 was released with an earlier driver version, but by upgrading to Tesla Recommended Drivers 450.80.02 (Linux) / 452.39 (Windows) as indicated, <u>minor version compatibility is possible across the CUDA 11.x family of toolkits</u>. |
+| ------------ |-------------------------------------------------| ------------------------------------------------------------ |
+| CUDA 11.x    | $$\ge$$ 450.80.02*                              | CUDA 11.0 was released with an earlier driver version, but by upgrading to Tesla Recommended Drivers 450.80.02 (Linux) / 452.39 (Windows) as indicated, <u>minor version compatibility is possible across the CUDA 11.x family of toolkits</u>. |
 
 One good recipe is as below:
 

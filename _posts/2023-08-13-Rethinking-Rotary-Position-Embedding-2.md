@@ -121,15 +121,15 @@ We follow the same experiment setup as in part 1 and compare the NTK-RoPE-mixed 
 
 | context length            | 512(trained) | 4096 (repeated text) | 4096 (non-repeated text) |
 | ------------------------- | ------------ |----------------------|--------------------------|
-| Baseline                  | 49.41%       | 24.17%               | 23.16%                   |
+| Baseline                  | 49.41%       | 24.17%               | 23.16%                   \
 | Baseline-$$\log n$$       | 49.40%       | 24.60%               | 24.02%                   |
-| PI-RoPE                   | 49.41%       | 15.04%               | 13.54%                   |
+| PI-RoPE                   | 49.41%       | 15.04%               | 13.54%                   \
 | PI-RoPE-$$\log n$$        | 49.40%       | 14.99%               | 16.51%                   |
-| NTK-RoPE                  | 49.41%       | 51.28%               | 39.27%                   |
+| NTK-RoPE                  | 49.41%       | 51.28%               | 39.27%                   \
 | NTK-RoPE-$$\log n$$       | 49.40%       | 61.71%               | 43.75%                   |
-| NTK-RoPE-fixed            | 49.41%       | 51.86%               | 39.61%                   |
-| NTK-RoPE-$$\log n$$-fixed | 49.40%       | 62.85%               | 44.14%                   |
-| NTK-RoPE-mixed            | 49.41%       | 53.09%               | 40.12%                   |
+| NTK-RoPE-fixed            | 49.41%       | 51.86%               | 39.61%                   \
+| NTK-RoPE-$$\log n$$-fixed | 49.40%       | 62.85%               | 44.14%                   \
+| NTK-RoPE-mixed            | 49.41%       | 53.09%               | 40.12%                   \
 | NTK-RoPE-$$\log n$$-mixed | 49.40%       | ***<u>68.91%</u>***  | ***<u>45.41%</u>***      |
 
 From the **Table 1**, we can clearly see when compared to the "NTK-RoPE-old" and "NTK-RoPE-fixed," the mixture-of-base "NTK-RoPE-mixed" shows a significant accuracy improvement without fine-tuning. This effectively provides a 'free lunch' approach to enhance LLM performance in a longer context. In addition, the table shows the scale factor $$\log n$$ can benefit as well. But this trick requires $$\log n$$ to be inserted into attention during the pre-training phase, unaffordable and expensive. 

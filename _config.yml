@@ -27,5 +27,11 @@ comments:
 #  disqus_shortname: ""    # see https://disqus.com/
 #  isso_domain: ""         # see https://posativ.org/isso/
 
+# Where things are
+jekyll-spaceship:
+  # default enabled processors
+  processors:
+    - table-processor
 plugins:
  - jekyll-feed
+ - jekyll-spaceship

@@ -144,11 +144,11 @@ From the derivation, we can see that NTK-aware Scaled RoPE cleverly combines int
 
 | context length      | 512(trained) | 4096 (repeated text) | 4096 (non-repeated text) |
 | ------------------- | ------------ |----------------------|--------------------------|
-| Baseline            | 49.41%       | 24.17%               | 23.16%                   |
+| Baseline            | 49.41%       | 24.17%               | 23.16%                   \
 | Baseline-$$\log n$$ | 49.40%       | 24.60%               | 24.02%                   |
-| PI-RoPE             | 49.41%       | 15.04%               | 13.54%                   |
+| PI-RoPE             | 49.41%       | 15.04%               | 13.54%                   \
 | PI-RoPE-$$\log n$$  | 49.40%       | 14.99%               | 16.51%                   |
-| NTK-RoPE            | 49.41%       | 51.28%               | 39.27%                   |
+| NTK-RoPE            | 49.41%       | 51.28%               | 39.27%                   \
 | NTK-RoPE-$$\log n$$ | 49.40%       | ***<u>61.71%</u>***  | ***<u>43.75%</u>***      |
 
 No fine-tuning is applied on all tests. **Baseline**: use extrapolation; **PI（Positional Interpolation)**: replaces extrapolation in Baseline with interpolation; **NTK-RoPE**: replace extrapolation in Baseline with NTK-aware Scaled RoPE; $$\log n$$: apply a scale to optimize self-attention for long context [ref_1](https://openreview.net/forum?id=qc9O2EtrMI-)
