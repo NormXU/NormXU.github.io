@@ -101,7 +101,10 @@ You might wonder why we call it NTK (Neural Tangent Kernel). In fact, it is the 
 
 In [Fourier Features Let Networks Learn High-Frequency Functions in Low-Dimensional Domains](https://arxiv.org/abs/2006.10739), authors use NTK methods to demonstrate that neural networks cannot learn high-frequency signals efficiently. Instead, their solution is to transform it into Fourier features, which share the same idea with the Sinusoidal position encoding we mention in **eq1**.
 
-Thus, based on the findings from this NTK paper, @bloc97 proposed the NTK-aware Scaled RoPE. I ask him about how he derived it. Surprisingly, his derivation is quite straightforward. The main idea is to combine extrapolation with interpolation — **extrapolation in high-frequency and  interpolation in low-frequency**.
+Thus, based on the findings from this NTK paper, @bloc97 proposed the NTK-aware Scaled RoPE. I ask him about how he derived it. Surprisingly, his derivation is quite straightforward. The main idea is to combine extrapolation with interpolation:
+
+
+<b><font color='red'>extrapolation in high-frequency and  interpolation in low-frequency</font></b>
 
 According to **eq2**, the lowest frequency in each element of the position features is 
 $$\dfrac{n}{\beta^{d/2-1}}$$
@@ -122,11 +125,13 @@ The same idea for the highest frequency in the RoPE feature:
 
 Let's insert the value $$\lambda$$ we solve from **eq3**, which allows a low frequency represented as interpolation, into $$\dfrac{n}{\lambda\beta}$$. Since $$d$$ is very large ( 64 for BERT, 128 for LLAMA-1), $$\lambda \to 1$$, thus, we can conclude from **eq3**:
 
-$$\dfrac{n}{\beta\lambda}\simeq \dfrac{n}{\beta}$$ 
+$$ \begin{equation}\dfrac{n}{\beta\lambda}\simeq \dfrac{n}{\beta}\end{equation} $$ 
 
 You can see the frequency remains relatively stable w.r.t $$\lambda$$, indicating that the corresponding dimension doesn’t become too crowded. Therefore, to represent a larger number, a high-frequency dimension is more likely to extrapolate by using an additional dimension rather than expanding the value range one dimension can hold. This is what we call: extrapolation in high-frequency.
 
 From the derivation, we can see that NTK-aware Scaled RoPE cleverly combines interpolation and extrapolation together. Besides scaling the base, I believe any transformations on the frequencies will be also effective as long as it ensures the extrapolation in high frequencies and interpolation in low-frequencies.
+
+> **from translator**: We can actually inteprete the **extrapolation in high-frequency and  interpolation in low-frequency** by considering from a wavelength perspective in RoPE. Specifically, the wavelength in RoPE is used to define the length of the token sequence required for the encoding at dimension $$d$$ to complete a full rotation, $$2\pi$$. The higher the frequency, the smaller the wavelength and vice verse. Therefore, a longer wavelength can hold more interpolated tokens, while a shorter one cannot. That is why we employ interpolation in low-frequency.
 
 ### Experiments
 > **from translator**: the table shows: the average accuracy of predicting next token to match the ground-truth next token given previous context. The experiment is based on a hybrid Transformer-GAU (Gated Attention Unit) model with a size of 100M parameters.
@@ -166,3 +171,6 @@ In just a few weeks, the open-source community concerning long contexts totally 
 
 ### Future Research
 please check [part-2](https://normxu.github.io/Rethinking-Rotary-Position-Embedding-2/)
+
+### Reference
+- [YaRN: Efficient Context Window Extension of Large Language Models](https://github.com/jquesnelle/yarn/tree/master)
