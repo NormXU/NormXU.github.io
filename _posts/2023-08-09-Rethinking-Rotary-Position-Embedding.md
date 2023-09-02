@@ -134,6 +134,7 @@ From the derivation, we can see that NTK-aware Scaled RoPE cleverly combines int
 > **from translator**: We can actually inteprete the **extrapolation in high-frequency and  interpolation in low-frequency** by considering from a wavelength perspective in RoPE. Specifically, the wavelength in RoPE is used to define the length of the token sequence required for the encoding at dimension $$d$$ to complete a full rotation, $$2\pi$$. The higher the frequency, the smaller the wavelength and vice verse. Therefore, a longer wavelength can hold more interpolated tokens, while a shorter one cannot. That is why we employ interpolation in low-frequency.
 >
 > please refer to [YaRN: Efficient Context Window Extension of Large Language Models](https://github.com/jquesnelle/yarn/tree/master) for more details
+
 ### Experiments
 > **from translator**: the table shows: the average accuracy of predicting next token to match the ground-truth next token given previous context. The experiment is based on a hybrid Transformer-GAU (Gated Attention Unit) model with a size of 100M parameters.
 > 
