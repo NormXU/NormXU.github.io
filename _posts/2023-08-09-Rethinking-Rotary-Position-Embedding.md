@@ -99,12 +99,13 @@ Regarding numeral base conversion, the objective is to expand the representation
 ### Let’s dig further
 You might wonder why we call it NTK (Neural Tangent Kernel). In fact, it is the academic background of @bloc97 that makes him use this term to name it.
 
-In "[Fourier Features Let Networks Learn High-Frequency Functions in Low-Dimensional Domains](https://arxiv.org/abs/2006.10739)", authors use NTK methods to demonstrate that neural networks cannot learn high-frequency signals efficiently. Instead, their solution is to transform it into Fourier features, which share the same idea with the Sinusoidal position encoding we mention in **eq1**.
+In [Fourier Features Let Networks Learn High-Frequency Functions in Low-Dimensional Domains](https://arxiv.org/abs/2006.10739), authors use NTK methods to demonstrate that neural networks cannot learn high-frequency signals efficiently. Instead, their solution is to transform it into Fourier features, which share the same idea with the Sinusoidal position encoding we mention in **eq1**.
 
 Thus, based on the findings from this NTK paper, @bloc97 proposed the NTK-aware Scaled RoPE. I ask him about how he derived it. Surprisingly, his derivation is quite straightforward. The main idea is to combine extrapolation with interpolation — **extrapolation in high-frequency and  interpolation in low-frequency**.
+
 According to **eq2**, the lowest frequency in each element of the position features is 
 $$\dfrac{n}{\beta^{d/2-1}}$$
-Here, we introduce a factor $$\lambda$$ in base, now we have: 
+Here we introduce a factor $$\lambda$$ in base, now we have: 
 $$\dfrac{n}{(\beta\lambda)^{d/2-1}}$$
 
 We expect that scaling the rotation base $$\beta$$ can work as interpolation, therefore
@@ -115,9 +116,13 @@ We can solve from **eq3**:
 
 $$\lambda = k^{2/(d-2)}$$
 
-The same idea for the highest frequency in the RoPE feature: $$\dfrac{n}{\beta}$$ now becomes $$\dfrac{n}{\lambda\beta}$$, since $$d$$ is very large ( 64 for BERT, 128 for LLAMA-1), $$\lambda \to 1$$, thus, we can conclude from **eq3**:
+The same idea for the highest frequency in the RoPE feature:
 
-$$\dfrac{n}{(\beta\lambda)^{d/2-1}}\simeq \dfrac{n}{(\beta)^{d/2-1}}$$ 
+ $$\dfrac{n}{\beta}$$ now becomes $$\dfrac{n}{\lambda\beta}$$. 
+
+Let's insert the value $$\lambda$$ we solve from **eq3**, which allows a low frequency represented as interpolation, into $$\dfrac{n}{\lambda\beta}$$. Since $$d$$ is very large ( 64 for BERT, 128 for LLAMA-1), $$\lambda \to 1$$, thus, we can conclude from **eq3**:
+
+$$\dfrac{n}{\beta\lambda}\simeq \dfrac{n}{\beta}$$ 
 
 You can see the frequency remains relatively stable w.r.t $$\lambda$$, indicating that the corresponding dimension doesn’t become too crowded. Therefore, to represent a larger number, a high-frequency dimension is more likely to extrapolate by using an additional dimension rather than expanding the value range one dimension can hold. This is what we call: extrapolation in high-frequency.
 
