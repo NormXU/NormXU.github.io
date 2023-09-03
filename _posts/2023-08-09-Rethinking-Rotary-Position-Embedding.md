@@ -14,7 +14,7 @@ tags: ["LLM"]
 - Introduce recent developments in the open-source community regarding long contexts. 
 - Some approaches, such as NTK-aware Scale RoPE, can extend context length without fine-tuning.
 
-## RoPE is a β-based encoding 
+<hr>
 For developers who are interested in how to extend the context length of LLMs (Large Language Models), the open-source community has continuously presented us with fascinating methods in the past few weeks. First, [@kaiokendev](https://www.reddit.com/user/kaiokendev) experimented with a "positional linear interpolation" approach in his project [SuperHOT](https://kaiokendev.github.io/til#extending-context-to-8k). 
 
 He demonstrated that with minimal fine-tuning on long texts, existing LLMs can be easily adapted to handle contexts over their pretraining context length. Almost simultaneously, Meta proposed the same idea in the paper titled "[Extending Context Window of Large Language Models via Positional Interpolation](https://arxiv.org/abs/2306.15595)." 

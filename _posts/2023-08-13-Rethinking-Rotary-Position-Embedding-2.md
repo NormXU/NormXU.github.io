@@ -13,7 +13,7 @@ tags: ["LLM"]
 - NTK-Scale RoPE has flaw
 - Introduce a mixture-of-based encoding method, which can significantly enhance LLM performance beyond its pretraining max length, without the need for fine-tuning
 - Introduce a scale factor $$\log n$$ for attention calculation, which can be incorporated either during the pretraining phase or directly applied to an off-the-shell LLM
-
+<hr>
 In [part 1](https://normxu.github.io/Rethinking-Rotary-Position-Embedding/), we interpret RoPE using a β-based encoding and demonstrated why NTK-aware Scaled RoPE can extend the context length without the need for fine-tuning. Viewing position encoding through the lens of β-based encoding indeed offers me some fresh insights and inspiration.
 
 ### Modification to NTK

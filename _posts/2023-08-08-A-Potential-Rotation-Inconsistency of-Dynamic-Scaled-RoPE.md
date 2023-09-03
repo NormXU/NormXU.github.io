@@ -9,7 +9,7 @@ tags: ["LLM"]
 - Current perplexity evaluation cannot faithfully reflect whether the inconsistency problem can harm the perplexity.
 - The inconsistency in DynamicNTK RoPE can be fixed with `use_cache=False`, at the cost of speed.
 
-## A Potential Rotation Inconsistency of Dynamic Scaled RoPE
+<hr>
 
 Weeks ago, [u/emozilla](https://www.reddit.com/user/emozilla) proposed an improvement on NTK-Aware RoPE in this [post](https://www.reddit.com/r/LocalLLaMA/comments/14mrgpr/dynamically_scaled_rope_further_increases/?utm_source=share&utm_medium=web2x&context=3), later named DynamicNTKScalingRotaryEmbedding. 
 

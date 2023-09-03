@@ -2,9 +2,11 @@
 layout: post
 title: "The Compatibility between CUDA, GPU, Base Image, and PyTorch"
 tags: ["Engineering"]
+excerpt_separator: <!--more-->
+toc: true
 ---
 
-### TL; DR
+<h3 class="no_toc"> TL; DR</h3>
 
 - **Host CUDA VS Base Image CUDA**: The CUDA verision within a runtime docker image has no relationship with the CUDA version on the host machie. The only thing we need to care about is whether the driver version on the host supports the base image's CUDA runtime. Check the driver compatibility [here](https://docs.nvidia.com/deploy/cuda-compatibility/#minor-version-compatibility)
 - **PyTorch VS CUDA**: PyTorch is compatible with one or a few specific CUDA versions, more precisely, CUDA runtime APIs. Check the compatible matrix [here](https://github.com/pytorch/pytorch/blob/main/RELEASE.md#release-compatibility-matrix)
@@ -12,6 +14,9 @@ tags: ["Engineering"]
 
 - **PyTorch and GPU**:  PyTorch only supports GPU specified in ``TORCH_CUDA_ARCH_LIST`` when compiled
 
+<!--more-->
+
+<hr>
 The relationship between the CUDA version, GPU architecture, and PyTorch version can be a bit complex but is crucial for the proper functioning of PyTorch-based deep learning tasks on a GPU.  
 
 Suppose you're planning to deploy your awesome service on an **NVIDIA A100-PCIE-40Gb** server with **CUDA 11.2** and **Driver Version 460.32.03**. You've built your service using **PyTorch 1.12.1**, and your Docker image is built based on an NVIDIA base image, specifically [**nvidia-cuda:10.2-base-ubuntu20.04**](https://hub.docker.com/layers/andrewseidl/nvidia-cuda/10.2-base-ubuntu20.04/images/sha256-3d4e2bbbf5a85247db30cd3cc91ac4695dc0d093a1eead0933e0dbf09845d1b9?context=explore). How can you judge whether your service can run smoothly on the machine without iterative attempts?
@@ -202,15 +207,15 @@ The compatitibilty matrix now passes all checks.
 
 **A:** When you run a Docker container with the `--gpus all` flag, you enable that container to access the host's GPUs. However, this does not mean that all CUDA-related files and libraries from the host are automatically mapped into the container. What happens under the hood may differ based on whether the Docker image itself contains CUDA runtime libraries or not.
 
-### Image without CUDA runtime:
+### Image without CUDA runtime
 
 When you start a container based on an image that doesn't contain any CUDA runtime libraries, and you use `--gpus all`, you might observe that certain CUDA functionalities are available in the container. This is often because NVIDIA's Docker runtime (nvidia-docker) ensures that the minimum necessary libraries and binaries related to the GPU are mounted into the container, including the compatible CUDA driver libraries.
 
-### Image with CUDA runtime:
+### Image with CUDA runtime
 
 If you start a container from an image that already has a specific CUDA runtime version (say, CUDA 10.2), the container will use that version for its operations. NVIDIA's Docker runtime (nvidia-docker) generally won't override the CUDA libraries in a container that already has them. The container is designed to be a standalone, consistent environment, and one of the benefits of using containers is that they package the application along with its dependencies, ensuring that it runs the same way regardless of where it's deployed.
 
-## Reference
+<h3 class="no_toc"> Reference </h3>
 
 - [NVIDIA Ampere GPU Architecture Compatibility Guide for CUDA Applications](https://docs.nvidia.com/cuda/ampere-compatibility-guide/index.html#building-applications-with-ampere-support)
 - [Matching CUDA arch and CUDA gencode for various NVIDIA architectures](https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/)

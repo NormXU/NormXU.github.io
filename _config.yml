@@ -35,3 +35,4 @@ jekyll-spaceship:
 plugins:
  - jekyll-feed
  - jekyll-spaceship
+ - jekyll-toc

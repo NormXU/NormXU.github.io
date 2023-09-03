@@ -3,8 +3,24 @@ layout: default
 ---
 
 <article>
+    <script src="https://unpkg.com/vanilla-back-to-top@7.2.1/dist/vanilla-back-to-top.min.js"></script>
+    <script>addBackToTop({
+      diameter: 56,
+      backgroundColor: 'rgb(255, 82, 82)',
+      textColor: '#fff'})
+    </script>
   {% include meta.html post=page %}
-  {{ content }}
+  <div class="entry">
+      <div id="markdown-content">
+          {{ page.excerpt }}
+      </div>
+      <div id="table-of-contents">
+          {% toc %}
+      </div>
+      <div id="markdown-content">
+          {{ page.content | remove: page.excerpt }}
+      </div>
+  </div>
   {% if page.comments != false and site.comments.isso or site.comments.disqus %}
     <hr>
     {% if site.comments.isso_domain %}<div id="isso-thread"></div>{% endif %}
