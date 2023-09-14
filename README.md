@@ -35,7 +35,7 @@ layout: page
 
 Hi, there 👋🏻,
 
-My name is Norm Inui. I am current exploring various state-of-the-art deep learning algorithms in the following areas:
+My name is Norm Inui. I am currently exploring various state-of-the-art deep learning algorithms in the following areas:
 
 - Very-rich Document Understanding
 - Optical Character Recognition
