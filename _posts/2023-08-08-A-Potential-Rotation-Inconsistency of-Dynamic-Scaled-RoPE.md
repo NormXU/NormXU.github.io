@@ -13,7 +13,7 @@ tags: ["LLM"]
 
 Weeks ago, [u/emozilla](https://www.reddit.com/user/emozilla) proposed an improvement on NTK-Aware RoPE in this [post](https://www.reddit.com/r/LocalLLaMA/comments/14mrgpr/dynamically_scaled_rope_further_increases/?utm_source=share&utm_medium=web2x&context=3), later named DynamicNTKScalingRotaryEmbedding. 
 
-The main idea behind Dynamic NTK involves incorporating a scaling factor relative to the present decoding sequence length to improve the base functionality， which means that if we represent the base of NTKRoPE as:
+The main idea behind Dynamic NTK is to use a scaling factor relative to the present decoding sequence length to improve the base functionality， which means that if we represent the base of NTKRoPE as:
 
 $$\theta_j = (\alpha^{dim/dim-2} \times 10000)^{-2j/dim}$$ 
 
@@ -23,17 +23,17 @@ Then the Dynamic NTK is to scale up the $$\alpha$$ as:
 
 $$\alpha_{\text{dynamicNTK}} = \alpha * \dfrac{\text{max\_seq + scale * (seq - max\_seq)}}{ \text{max\_seq}}$$
 
-$$\text{max\_seq}=100$$ is max sequence length of pretrained model, for example, for LLaMA-1-7B, $$\text{ max\_seq } = 2048$$; $$\text{seq}$$ is the current generated sequence ; 
+$$\text{max\_seq}$$ is max sequence length of pretrained model, for example, for LLaMA-1-7B, $$\text{ max\_seq } = 2048$$; $$\text{seq}$$ is the current sequence length; 
 
 According to the equation, we can see that as the sequence length keeps growing, the scaling factor continues to increase as well, which means the larger the base, the slower the rotation speed along all dimensions.
 
-However, there appears to be a possible rotation inconsistency that could result in a relative position mismatch between the key and query as the sequence length increases.
+However, here is a possible rotation inconsistency problem that could result in a relative position mismatch between the key and query as the sequence length growing.
 
 
 
 ### Inconsistency Problem
 
-Let's denote
+Let's denote:
 
 ```python
 key_states = self.k_proj(hidden_states)
@@ -44,15 +44,15 @@ when the decoder tries to generate the 100th token, $$\text{seq}=100$$ and the `
 
 $$\alpha_1 = \alpha * \dfrac{\text{max\_seq} + \text{scale} * (100 - \text{max\_seq)}}{\text{max\_seq}}$$
 
-when the decoder tries to generate the 200th token, $$\text{seq}=200$$ and the ``key_states`` at index $$j$$ is rotated based on a base
+Similarly, for the 200th token, $$\text{seq}=200$$ and the ``key_states`` at index $$j$$ is rotated based on a base
 
 $$\alpha_2 = \alpha * \dfrac{\text{max\_seq} + \text{scale} * (200 - \text{max\_seq)}}{\text{max\_seq}}$$
 
-You can clearly see that these two $$\alpha$$ are different.
+Here we can clearly see that these two $$\alpha$$ are different.
 
 
 
-Since we cache the key in almost every decoder implementation, the multiplication between the key and the query we conduct can be written as:
+Since we cache keys in almost every decoder implementation, the multiplication between the key and the query we conduct can be written as:
 
 $$ \begin{equation} \text{Q}\text{K}^ T =  [r(k_0, \alpha_0), r(k_1, \alpha_1), r(k_2, \alpha_2)] * r(q, \alpha_2) \end{equation} $$
 
@@ -61,7 +61,7 @@ $$ \begin{equation} \text{Q}\text{K}^ T =  [r(k_0, \alpha_0), r(k_1, \alpha_1), 
 
 $$r(k, \alpha)$$: apply RoPE on the key with a rotation base $$\alpha$$
 
-you can notice there is an inconsistency rotation base between the key and query.
+Here, we can clearly see there is an inconsistency rotation base between the key and query.
 
 
 
@@ -89,9 +89,9 @@ I believe that, from a mathematical perspective, keeping consistency in the rota
 
 ### Gap between Evaluation and Inference
 
-There is a gap between how we compute perplexity and how the LLM actually generates tokens. 
+There is actually a gap between how we compute perplexity and how the LLM actually generates tokens. 
 
-During the decoding process in any layer of decoders, the ``key_states`` and ``query_states`` are computed with the hidden features, and they are rotated based on a fixed ``seq_len``, representing the context length. However, while decoding, LLM usually reuses previous cached keys which are rotated based on factors related to ``seq_len`` to save memory. As the ``seq_Len`` keeps increasing, inconsistency arises between keys and queries. 
+During the decoding process in every layer of decoders, the ``key_states`` and ``query_states`` are computed from the hidden features. Then, they are rotated based on a fixed ``seq_len``. However, in the decoding phase, LLM usually reuses previous cached keys which are rotated based on factors related to ``seq_len`` to save memory. As the ``seq_Len`` keeps increasing, inconsistency arises between keys and queries. 
 
 Therefore, our current evaluation methods are unable to accurately reflect whether such inconsistency in Dynamic NTK RoPE can harm perplexity or not. In other words, the way how we currently compute perplexity is more like we keep the rotation base consistent.
 
