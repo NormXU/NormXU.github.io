@@ -42,11 +42,11 @@ Now, we recompute the expanded wavelength $$\lambda^{\prime}_d$$ with the $$b^{\
 
 $$\lambda^{\prime}_d = 2\pi (b\cdot s^{\frac{\|D\|}{\|D\|-2}})^{\frac{2d}{\|D\|}}$$
 
-the expanded wavelength w.r.t the original wavelength along dimension is
+the expanded wavelength w.r.t the original wavelength along all dimensions is
 
 $$\mathrm{scale} = \lambda^{\prime}_d / \lambda_d = s^{\frac{2d}{\|D\|-2}}$$
 
-Attention, here is where "out-of-bound" problem happens. Only the last dimension $$d=\frac{\|D\|}{2} - 1$$ can expand the wavelength by $$s$$.
+Attention, here is why "out-of-bound" problem happens. Only the last dimension $$d=\frac{\|D\|}{2} - 1$$ can expand the wavelength by $$s$$.
 Dimensions lower than $$d=\frac{\|D\|}{2} - 1$$ only scale up its wavelength less than $$s$$
 
 For RoPE-based LLMs pre-trained with context length $$T_{\mathrm{train}}$$, there exists a $$d_{\mathrm{extra}}$$ dimension that for dimensions smaller than it, their corresponding periodic wavelengths are sufficiently trained.
