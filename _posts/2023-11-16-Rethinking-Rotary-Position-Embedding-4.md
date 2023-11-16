@@ -16,7 +16,7 @@ a given context length extension.
 
 To understand how the "out-of-bound" influences the extension scale, we first recall how NTK-aware interpolation works.
 
-For RoPE, the $$\omega = b^{-\frac{2d}{\|D\|}}$$, where we usually set $$b = 10000$$, $$\|D\|$$ is the dimension of each head.
+For RoPE, the $$\theta_{d} = b^{-\frac{2d}{\|D\|}}$$, where we usually set $$b = 10000$$, $$\|D\|$$ is the dimension of each head.
 
 we define $$\lambda_{d}$$ as the wavelength of the RoPE embedding at d-th hidden dimension:
 
@@ -67,11 +67,11 @@ Therefore, only those dimensions whose wavelength are trained at least one perio
 
 ![wavelength](https://raw.githubusercontent.com/NormXU/NormXU.github.io/main/_data/resources/blog/2/wavelength.jpeg)
 
-Figure 1. The visualized relationship among the period, training Length, and extrapolation, the periods of dimensions
+**Figure 1**. The visualized relationship among the period, training Length, and extrapolation, the periods of dimensions
 past the critical dimension (in red) stretch beyond the training context; credited to [Liu, Xiaoran, et al., 2023](https://arxiv.org/abs/2310.05209)
 
-Now back to NTKRoPE, we've concluded that **only** the last dimension $$d=\frac{\|D\|}{2} - 1$$ can expand the wavelength by $$s$$. In other word, suppose we have a model pretrained with 512 context length, we want to
-expand it to 1024, each head dimension is 64, then only the $$\mathrm{dim}=31$$ can ensure all interpolated position ids are just located within the critical dimension. The other dimensions, however, always have some position ids that locate outside the critical dimension where the wave values are under-pretrained, which we denote these as "out-of-bound" values.
+Now back to NTKRoPE, we've concluded that **only** the last dimension $$d=\frac{\|D\|}{2} - 1$$ can expand the wavelength by $$s$$. In other words, suppose we have a model pretrained with 512 context length, we want to
+expand it to 1024, each head dimension is 64, then only the $$\mathrm{dim}=31$$ can ensure all interpolated position ids are just located within the critical dimension. The other dimensions, however, always have some position ids that locate outside the critical dimension where the wave values are under-pretrained, which we denote these values as "out-of-bound" values.
 
 One possible way to mitigate the "out-of-bound" values is slightly increase the scale value so that more dimensions can ensure the interpolated position ids to locate within the critical dimension. OR
 we do what [CodeLLaMA](https://arxiv.org/abs/2308.12950) does: scale up the rotation base to **1M**.
