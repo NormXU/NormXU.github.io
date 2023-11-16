@@ -1,13 +1,14 @@
 ---
 layout: post
-title: "Why YaRN could be currently the best method to expand the context length"
+title: "Why could YaRN be currently the best method to expand the context length"
+excerpt_separator: <!--more-->
 tags: ["LLM"]
 ---
 
-
 <hr>
 
-### The "Out-of-Bound" Problem
+## The "Out-of-Bound" Problem
+
 In [YaRN](https://arxiv.org/pdf/2309.00071.pdf) paper, the author mentioned a flaw in current NTK-RoPE:
 > Due to the "out-of-bound" values, the theoretical scale factor $$s$$ does not accurately describe the true
 context extension scale. In practice, the scale value $$s$$ has to be set higher than the expected scale for
@@ -25,16 +26,11 @@ From **eq1** that, we can see that as $$d$$ increases, the $$\lambda_{d}$$ will 
 
 NTK-RoPE expects the longest wavelength to be interpolated so that it can hold more position ids.
 
-$$ \begin{equation}
-\lambda{max}=2\pi b^{\frac{2d}{\|D\|}} |_{ d=\frac{\|D\|}{2} - 1}
- \end{equation} $$ 
+$$ \begin{equation} \lambda{max}=2\pi b^{\frac{2d}{\|D\|}} |_{ d=\frac{\|D\|}{2} - 1} \end{equation} $$ 
 
 we want to expand the context length \lambda_{max} by scaling up $$b$$ to $$b^{\prime}$$:
 
-$$ \begin{equation}
-\lambda^{\prime}{max} = s \lambda{max} = 2\pi b^{\frac{2d}{\|D\|}} |_{ d=\frac{\|D\|}{2} - 1}
-= 2\pi b^{\prime \frac{2d}{\|D\|}} |_{ d=\frac{\|D\|}{2} - 1}
-\end{equation} $$
+$$ \begin{equation} \lambda^{\prime}{max} = s \lambda{max} = 2\pi b^{\frac{2d}{\|D\|}} |_{ d=\frac{\|D\|}{2} - 1} = 2\pi b^{\prime \frac{2d}{\|D\|}} |_{ d=\frac{\|D\|}{2} - 1} \end{equation} $$
 
 where $$s$$ is the expected scale for a given context length extension.
 
@@ -78,4 +74,9 @@ Now back to NTKRoPE, we've concluded that **only** the last dimension $$d=\frac{
 expand it to 1024, each head dimension is 64, then only the $$\mathrm{dim}=31$$ can ensure all interpolated position ids are just located within the critical dimension. The other dimensions, however, always have some position ids that locate outside the critical dimension where the wave values are under-pretrained, which we denote these as "out-of-bound" values.
 
 One possible way to mitigate the "out-of-bound" values is slightly increase the scale value so that more dimensions can ensure the interpolated position ids to locate within the critical dimension. OR
-we do what [CodeLLaMA](https://arxiv.org/abs/2308.12950) does: scale up the rotation base to **1M**
+we do what [CodeLLaMA](https://arxiv.org/abs/2308.12950) does: scale up the rotation base to **1M**.
+
+### Reference
+- [YaRN: Efficient Context Window Extension of Large Language Models](https://github.com/jquesnelle/yarn/tree/master)
+- [Liu, Xiaoran, et al., 2023](https://arxiv.org/abs/2310.05209)
+- [CodeLLaMA](https://arxiv.org/abs/2308.12950)
