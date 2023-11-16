@@ -71,7 +71,7 @@ Therefore, only those dimensions whose wavelength are trained at least one perio
 past the critical dimension (in red) stretch beyond the training context; credited to [Liu, Xiaoran, et al., 2023](https://arxiv.org/abs/2310.05209)
 
 Now back to NTKRoPE, we've concluded that **only** the last dimension $$d=\frac{\|D\|}{2} - 1$$ can expand the wavelength by $$s$$. In other words, suppose we have a model pretrained with 512 context length, we want to
-expand it to 1024, each head dimension is 64, then only the $$\mathrm{dim}=31$$ can ensure all interpolated position ids are just located within the critical dimension. The other dimensions, however, always have some position ids that locate outside the critical dimension where the wave values are under-pretrained, which we denote these values as "out-of-bound" values.
+expand it to 1024, each head dimension is 64, then only the $$\mathrm{dim}=31$$ can ensure all interpolated position ids are just located within the wavelength of the critical dimension that are sufficiently trained. The other dimensions, however, always have some position ids that locate outside the sufficiently trained wavelength of the critical dimension, which we denote these values as "out-of-bound" values.
 
 One possible way to mitigate the "out-of-bound" values is slightly increase the scale value so that more dimensions can ensure the interpolated position ids to locate within the critical dimension. OR
 we do what [CodeLLaMA](https://arxiv.org/abs/2308.12950) does: scale up the rotation base to **1M**.
