@@ -28,7 +28,7 @@ NTK-RoPE expects the longest wavelength to be interpolated so that it can hold m
 
 $$ \begin{equation} \lambda{max}=2\pi b^{\frac{2d}{\|D\|}} |_{ d=\frac{\|D\|}{2} - 1} \end{equation} $$ 
 
-we want to expand the context length \lambda_{max} by scaling up $$b$$ to $$b^{\prime}$$:
+we want to expand the context length $$\lambda{max}$$ by scaling up $$b$$ to $$b^{\prime}$$:
 
 $$ \begin{equation} \lambda^{\prime}{max} = s \lambda{max} = 2\pi b^{\frac{2d}{\|D\|}} |_{ d=\frac{\|D\|}{2} - 1} = 2\pi b^{\prime \frac{2d}{\|D\|}} |_{ d=\frac{\|D\|}{2} - 1} \end{equation} $$
 
