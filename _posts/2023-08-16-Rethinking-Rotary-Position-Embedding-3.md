@@ -23,9 +23,9 @@ tags: ["LLM"]
   
 
 <hr>
-In a previous blog, I introduced the mixture-of-base encoding and believed we might have maxed out the potential of RoPE regarding extrapolation. It appeared we might need to explore other avenues for any further enhancement on context length. However, I remembered a method I previously set aside due to its complexity. Since we have run out of ideas, why not revisit it and see what can we learn from it? Sometimes, 'The best solution is the only solution'.
+In the previous blog, I introduced the mixture-of-base encoding and believed we might have maxed out the potential of RoPE regarding extrapolation. It appeared we might need to explore another method for further extending on context length. It reminds me a method I previously set aside due to its complexity. Since we have run out of ideas, why not revisit it and see what we can learn from it. Sometimes, 'The best solution is the only solution'.
 
-Surprisingly, even though this method will increase time complexity, the experimental results are promising and even shows a potential to unlock the unlimited extrapolation ability of the language model. I can’t wait to write this article and share the method with you. Due to its similarity with the ReLU activation function, I've named this method **ReRoPE (Rectified Rotary Position Embeddings)**
+Surprisingly, even though this method will increase time complexity, the experimental results are promising and even shows a potential to unlock the unlimited extrapolation ability of the language model. I can’t wait to write this article and share the method. Due to its similarity with the ReLU activation function, I've named this method **ReRoPE (Rectified Rotary Position Embeddings)**
 
 ### Background
 

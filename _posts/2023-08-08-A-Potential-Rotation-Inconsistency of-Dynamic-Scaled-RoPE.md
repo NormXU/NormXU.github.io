@@ -52,7 +52,7 @@ Here we can clearly see that these two $$\alpha$$ are different.
 
 
 
-Since we cache keys in almost every decoder implementation, the multiplication between the key and the query we conduct can be written as:
+Since we use key-value caches to speed up generation, the multiplication between the key and the query can be written as:
 
 $$ \begin{equation} \text{Q}\text{K}^ T =  [r(k_0, \alpha_0), r(k_1, \alpha_1), r(k_2, \alpha_2)] * r(q, \alpha_2) \end{equation} $$
 
@@ -61,11 +61,11 @@ $$ \begin{equation} \text{Q}\text{K}^ T =  [r(k_0, \alpha_0), r(k_1, \alpha_1), 
 
 $$r(k, \alpha)$$: apply RoPE on the key with a rotation base $$\alpha$$
 
-Here, we can clearly see there is an inconsistency rotation base between the key and query.
+Here, we can clearly see there is an inconsistent rotation base between the keys and queries.
 
 
 
-From my understanding, a consistent rotation between key and query should be like this:
+From my understanding, a consistent rotation between keys and queries should be like this:
 
 Firstly,
 
@@ -74,7 +74,7 @@ $$ \begin{equation} \text{Q}\text{K}^ T=  [r(k_0, \alpha_1), r(k_1, \alpha_1)] *
 
 
 
-when seq length increasing
+when seq length increases
 
 $$ \begin{equation} \text{Q}\text{K}^ T =  [r(k_0, \alpha_2), r(k_1, \alpha_2), r(k_2, \alpha_2)] * r(q, \alpha_2) \end{equation} $$
 
@@ -87,7 +87,7 @@ I believe that, from a mathematical perspective, keeping consistency in the rota
 
 
 
-### Gap between Evaluation and Inference
+### The Gap between Perplexity Evaluation and Generation
 
 There is actually a gap between how we compute perplexity and how the LLM actually generates tokens. 
 
@@ -167,6 +167,6 @@ According to the table above: The throughput of consistent is impaired compared 
 
 ### Limitation
 
-In fact, I haven't found any practical downstream tasks where the consistent RoPE can bring significant performance boost. The only advantage convinces me to replace it is its potential to achieve better perplexity scores when dealing with very long contexts.. Therefore, it looks, it is not necessary to correct this inconsistency in the RoPE. Speed does matter more than correctness :)
+In fact, I haven't found any practical downstream tasks where the consistent RoPE can bring significant performance improvement. The only advantage convinces me to replace it is its potential to achieve better perplexity scores on very long contexts. However, considering that it trades consistency with speed, it is less necessary to correct this inconsistency in the RoPE. Speed does matter more than correctness :)
 
 Still, my experiments have some limitations. I only test it on one dataset with limited samples. I hope my finds can be helpful to you. If there is any mistake in my codes or experiments, I'll appreciate it if you could kindly point it out. Please feel free to raise an issue in the repo as well.
