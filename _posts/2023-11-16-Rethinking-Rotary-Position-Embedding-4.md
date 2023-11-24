@@ -85,7 +85,7 @@ So, why could YaRN be the best choice for you to expand the context? Because it 
 As for positional embedding function, where $$m$$ denotes absolute position
 $$f_{\bf W}^{\prime}({\bf x}_{m},m,\theta_{d})=f_{\bf W}({\bf x}_{m},g(m),h(\theta_{d}))$$
 
-$$\begin{array}{l}{{g(m)=m}}\\ {{\ }}\\ {{h(\theta_{d})=\biggl(1-\gamma\bigl(r(d)\bigr)\biggr)\frac{\theta_{d}}{s}+\gamma\bigl(r(d)\bigr)\theta_{d}.}}\end{array}$$, where
+$$\begin{array}{l}{{g(m)=m}}\end{array}$$, $$h(\theta_{d})=\biggl(1-\gamma\bigl(r(d)\bigr)\biggr)\frac{\theta_{d}}{s}+\gamma \bigl(r(d)\bigr)\theta_{d}$$, where
 
 $$\gamma(r)={\left\{\begin{array}{l l}{0,}&{{\mathrm{if~}}r<\alpha}\\ {1,}&{{\mathrm{if~}}r>\beta}\\ {\displaystyle{\frac{r-\alpha}{\beta-\alpha}},}&{{\mathrm{otherwise}}.}\end{array}\right.}$$
 
