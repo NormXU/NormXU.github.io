@@ -26,7 +26,7 @@ From **eq1** that, we can see that as $$d$$ increases, the $$\lambda_{d}$$ will 
 
 NTK-RoPE expects the longest wavelength to be interpolated so that it can hold more position ids.
 
-$$ \begin{equation} \lambda{max}=2\pi b^{\frac{2d}{\|D\|}} |_{ d=\frac{\|D\|}{2} - 1} \end{equation} $$ 
+$$ \begin{equation} \lambda{max}= s \cdot 2\pi b^{\frac{2d}{\|D\|}} |_{ d=\frac{\|D\|}{2} - 1} \end{equation} $$ 
 
 we want to expand the context length $$\lambda{max}$$ by scaling up $$b$$ to $$b^{\prime}$$:
 
@@ -63,7 +63,7 @@ during the pre-training phase and are adequately trained. In other words, the la
 sufficient training, contributing to the extrapolation challenges seen in RoPE-based LLMs (Chen
 et al., 2023; Han et al., 2023). The critical dimension plays a key role in enhancing extrapolation.
 
-Therefore, only those dimensions whose wavelength are trained at least one period can be extrapolated.
+Therefore, only those dimensions whose wavelength are trained at least one complete period can be extrapolated.
 
 ![wavelength](https://raw.githubusercontent.com/NormXU/NormXU.github.io/main/_data/resources/blog/2/wavelength.jpeg)
 
@@ -74,8 +74,24 @@ Now back to NTKRoPE, we've concluded that **only** the last dimension $$d=\frac{
 expand it to 1024, each head dimension is 64, then only the $$\mathrm{dim}=31$$ can ensure all interpolated position ids are just located within the wavelength of the critical dimension that are sufficiently trained. The other dimensions, however, always have some position ids that locate outside the sufficiently trained wavelength of the critical dimension, which we denote these values as "out-of-bound" values. 
 The farther the dimension deviates from the critical dimension, the more interpolated position ids fall outside the range of wavelengths that have been adequately trained.
 
-One possible way to mitigate the "out-of-bound" values is slightly increase the scale value so that more dimensions can ensure the interpolated position ids to locate within the critical dimension. OR
+One possible way to mitigate the "out-of-bound" values is slightly increase the scale value so that more dimensions can ensure the interpolated position ids to locate within the critical dimension. 
+
+OR
+
 we do what [CodeLLaMA](https://arxiv.org/abs/2308.12950) does: scale up the rotation base to **1M**.
+
+So, why could YaRN be the best choice for you to expand the context? Because it fixes the "Out-of-Bound" Problem in a less elegant but more effective way:
+
+As for positional embedding function, where $$m$$ denotes absolute position
+$$f_{\bf W}^{\prime}({\bf x}_{m},m,\theta_{d})=f_{\bf W}({\bf x}_{m},g(m),h(\theta_{d}))$$
+
+$$\begin{array}{l}{{g(m)=m}}\\ {{\ }}\\ {{h(\theta_{d})=\biggl(1-\gamma\bigl(r(d)\bigr)\biggr)\frac{\theta_{d}}{s}+\gamma\bigl(r(d)\bigr)\theta_{d}.}}\end{array}$$, where
+
+$$\gamma(r)={\left\{\begin{array}{l l}{0,}&{{\mathrm{if~}}r<\alpha}\\ {1,}&{{\mathrm{if~}}r>\beta}\\ {\displaystyle{\frac{r-\alpha}{\beta-\alpha}},}&{{\mathrm{otherwise}}.}\end{array}\right.}$$
+
+YaRN set an up-bound frequency and a low-bound by hand. For frequencies lower than the low-bound one, we do interpolation only. As long as the low-bound frequency is set just as the sweet point, there will no longer "Out-of-Bound" Problem.
+
+
 
 ### Reference
 - [YaRN: Efficient Context Window Extension of Large Language Models](https://github.com/jquesnelle/yarn/tree/master)
