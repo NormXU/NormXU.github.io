@@ -1,13 +1,15 @@
 ---
 layout: post
-title: "Why could YaRN be currently the best method to expand the context length"
+title: "When YaRN meets LongLoRA"
 excerpt_separator: <!--more-->
 tags: ["LLM"]
 ---
 
 <hr>
 
-## The "Out-of-Bound" Problem
+>  Work In Process 🚧
+
+## How YaRN Solves The "Out-of-Bound" Problem
 
 In [YaRN](https://arxiv.org/pdf/2309.00071.pdf) paper, the author mentioned a flaw in current NTK-RoPE:
 
@@ -73,7 +75,7 @@ Therefore, only those dimensions whose wavelength are trained at least one compl
 past the critical dimension (in red) stretch beyond the training context; credited to [Liu, Xiaoran, et al., 2023](https://arxiv.org/abs/2310.05209)
 
 Now back to NTKRoPE, we've concluded that **only** the last dimension $$d=\frac{\|D\|}{2} - 1$$ can expand the wavelength by $$s$$. In other words, suppose we have a model pretrained with 512 context length, we want to
-expand it to 1024, each head dimension is 64, then only the $$\mathrm{dim}=31$$ can ensure all interpolated position ids are just located within the wavelength of the critical dimension that are sufficiently trained. The other dimensions, however, always have some position ids that locate outside the sufficiently trained wavelength of the critical dimension, which we denote these values as "out-of-bound" values. 
+expand it to 1024, each head dimension is 64, then only the $$\mathrm{dim}=31$$ can ensure all interpolated position ids are just located within the wavelength that are sufficiently trained. The other dimensions, however, always have some position ids that locate outside the sufficiently trained wavelength, which we denote these values as "out-of-bound" values. 
 The farther the dimension deviates from the critical dimension, the more interpolated position ids fall outside the range of wavelengths that have been adequately trained.
 
 One possible way to mitigate the "out-of-bound" values is slightly increase the scale value so that more dimensions can ensure the interpolated position ids to locate within the critical dimension. 
@@ -82,9 +84,9 @@ OR
 
 we do what [CodeLLaMA](https://arxiv.org/abs/2308.12950) does: scale up the rotation base to **1M**.
 
-### In conclusion
+ 
 
-Why could YaRN be the best choice to expand the context? 
+In conclusion, why could YaRN be the best choice to expand the context? 
 
 It is because it fixes the "Out-of-Bound" Problem in a less elegant but more effective way. In YaRN, we manually define upper and lower frequency bounds. These bounds can vary depending on the specific model in use. When dealing with frequencies below the lower bound, we do interpolation. Conversely, for frequencies beyond the upper bound, we apply extrapolation. For frequencies falling within the range between the lower and upper bounds, we apply a combination of both interpolation and extrapolation.
 
