@@ -10,9 +10,10 @@ tags: ["LLM"]
 ## The "Out-of-Bound" Problem
 
 In [YaRN](https://arxiv.org/pdf/2309.00071.pdf) paper, the author mentioned a flaw in current NTK-RoPE:
+
 > Due to the "out-of-bound" values, the theoretical scale factor $$s$$ does not accurately describe the true
-context extension scale. In practice, the scale value $$s$$ has to be set higher than the expected scale for
-a given context length extension.
+> context extension scale. In practice, the scale value $$s$$ has to be set higher than the expected scale for
+> a given context length extension.
 
 To understand how the "out-of-bound" influences the extension scale, we first recall how NTK-aware interpolation works.
 
@@ -26,11 +27,11 @@ From **eq1** that, we can see that as $$d$$ increases, the $$\lambda_{d}$$ will 
 
 NTK-RoPE expects the longest wavelength to be interpolated so that it can hold more position ids.
 
-$$ \begin{equation} \lambda{max}= s \cdot 2\pi b^{\frac{2d}{\|D\|}} |_{ d=\frac{\|D\|}{2} - 1} \end{equation} $$ 
+$$ \begin{equation} \lambda{max}=  2\pi b^{\frac{2d}{\|D\|}} |_{ d=\frac{\|D\|}{2} - 1} \end{equation} $$ 
 
 we want to expand the context length $$\lambda{max}$$ by scaling up $$b$$ to $$b^{\prime}$$:
 
-$$ \begin{equation} \lambda^{\prime}{max} = s \lambda{max} = 2\pi b^{\frac{2d}{\|D\|}} |_{ d=\frac{\|D\|}{2} - 1} = 2\pi b^{\prime \frac{2d}{\|D\|}} |_{ d=\frac{\|D\|}{2} - 1} \end{equation} $$
+$$ \begin{equation} \lambda^{\prime}{max} = s \lambda{max} = 2\pi s \cdot b^{\frac{2d}{\|D\|}} |_{ d=\frac{\|D\|}{2} - 1} = 2\pi b^{\prime \frac{2d}{\|D\|}} |_{ d=\frac{\|D\|}{2} - 1} \end{equation} $$
 
 where $$s$$ is the expected scale for a given context length extension.
 
@@ -57,11 +58,12 @@ T_{n}=2\pi\cdot b^{\frac{2n}{\|D\|}}>T_{\mathrm{train}},\mathrm{for}\,n=d_{\math
 \end{split}$$
 
 According to [Liu, Xiaoran, et al., 2023](https://arxiv.org/abs/2310.05209)
+
 > For LLaMA2(Touvron et al., 2023b), the critical dimension $$d_{\mathrm{extra}}$$ is 92. This implies that only the
-first 92 dimensions of the qt, ks vectors of LLaMA2 have seen the complete positional information
-during the pre-training phase and are adequately trained. In other words, the last 36 dimensions lack
-sufficient training, contributing to the extrapolation challenges seen in RoPE-based LLMs (Chen
-et al., 2023; Han et al., 2023). The critical dimension plays a key role in enhancing extrapolation.
+> first 92 dimensions of the qt, ks vectors of LLaMA2 have seen the complete positional information
+> during the pre-training phase and are adequately trained. In other words, the last 36 dimensions lack
+> sufficient training, contributing to the extrapolation challenges seen in RoPE-based LLMs (Chen
+> et al., 2023; Han et al., 2023). The critical dimension plays a key role in enhancing extrapolation.
 
 Therefore, only those dimensions whose wavelength are trained at least one complete period can be extrapolated.
 
@@ -80,20 +82,16 @@ OR
 
 we do what [CodeLLaMA](https://arxiv.org/abs/2308.12950) does: scale up the rotation base to **1M**.
 
-So, why could YaRN be the best choice for you to expand the context? Because it fixes the "Out-of-Bound" Problem in a less elegant but more effective way:
+### In conclusion
 
-As for positional embedding function, where $$m$$ denotes absolute position
-$$f_{\bf W}^{\prime}({\bf x}_{m},m,\theta_{d})=f_{\bf W}({\bf x}_{m},g(m),h(\theta_{d}))$$
+Why could YaRN be the best choice to expand the context? 
 
-$$\begin{array}{l}{{g(m)=m}}\end{array}$$, $$h(\theta_{d})=\biggl(1-\gamma\bigl(r(d)\bigr)\biggr)\frac{\theta_{d}}{s}+\gamma \bigl(r(d)\bigr)\theta_{d}$$, where
+It is because it fixes the "Out-of-Bound" Problem in a less elegant but more effective way. In YaRN, we manually define upper and lower frequency bounds. These bounds can vary depending on the specific model in use. When dealing with frequencies below the lower bound, we do interpolation. Conversely, for frequencies beyond the upper bound, we apply extrapolation. For frequencies falling within the range between the lower and upper bounds, we apply a combination of both interpolation and extrapolation.
 
-$$\gamma(r)={\left\{\begin{array}{l l}{0,}&{{\mathrm{if~}}r<\alpha}\\ {1,}&{{\mathrm{if~}}r>\beta}\\ {\displaystyle{\frac{r-\alpha}{\beta-\alpha}},}&{{\mathrm{otherwise}}.}\end{array}\right.}$$
-
-YaRN set an up-bound frequency and a low-bound by hand. For frequencies lower than the low-bound one, we do interpolation only. As long as the low-bound frequency is set just as the sweet point, there will no longer "Out-of-Bound" Problem.
-
-
+As long as we can find the sweet point low-bound frequency, the "Out-of-Bound" Problem will be effectively solved.
 
 ### Reference
+
 - [YaRN: Efficient Context Window Extension of Large Language Models](https://github.com/jquesnelle/yarn/tree/master)
 - [Liu, Xiaoran, et al., 2023](https://arxiv.org/abs/2310.05209)
 - [CodeLLaMA](https://arxiv.org/abs/2308.12950)
