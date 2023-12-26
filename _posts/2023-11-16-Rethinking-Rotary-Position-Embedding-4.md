@@ -88,7 +88,7 @@ It is because it fixes the "Out-of-Bound" Problem in a less elegant but more eff
 
 As long as we can find the sweet point low-bound frequency, the "Out-of-Bound" Problem will be effectively solved.
 
-### How Mistral solves the long context problem
+## How Mistral solves the long context problem
 
 Mistral first introduced the sliding window in their [blog](https://mistral.ai/news/announcing-mistral-7b/). They claim the sliding window attention mechanism can both save compute cost and expand the context length by stacking layers of transformers.
 
