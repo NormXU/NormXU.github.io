@@ -123,7 +123,7 @@ and so on.
 After Mixtral-8x7B is released recently, people supersingly find that MoE can magically extend the context length without any interpolation / extrapolation tricks we used in DynamicNTKRoPE, YaRN, etc. 
 
 ![Mixtral](https://raw.githubusercontent.com/NormXU/NormXU.github.io/main/_data/resources/blog/2/mixtral.jpg)
-Figure 3. Perplexity evaluation; Mixtral (SMoE) works quite effectively even without the need for any fine-tuning. Moreover, it's worth noting that disabling sliding window attention can actually enhance model's the long context ability. Credit to [@theemozilla](https://twitter.com/theemozilla/status/1735351012699849164?s=46&t=poxa0AsGDnYfo1XBLblf4Q)
+**Figure 3**. Perplexity evaluation; Mixtral (SMoE) works quite effectively even without the need for any fine-tuning. Moreover, it's worth noting that disabling sliding window attention can actually enhance model's the long context ability. Credit to [@theemozilla](https://twitter.com/theemozilla/status/1735351012699849164?s=46&t=poxa0AsGDnYfo1XBLblf4Q)
 
 I have to say Figure 3 is hilarious. It shows that extending the context length is only a byproduct of MoE models, yet it still outperforms YaRN-Mistral, which I once bellieve to be the most promising way for manipulating RoPE to expand the context length.
 
