@@ -1,13 +1,11 @@
 ---
 layout: post
-title: "When YaRN meets LongLoRA"
+title: "The Input Context Length Problem Seems to be Solved"
 excerpt_separator: <!--more-->
 tags: ["LLM"]
 ---
 
 <hr>
-
->  Work In Process 🚧
 
 ## How YaRN Solves The "Out-of-Bound" Problem
 
@@ -84,13 +82,51 @@ OR
 
 we do what [CodeLLaMA](https://arxiv.org/abs/2308.12950) does: scale up the rotation base to **1M**.
 
- 
-
 In conclusion, why could YaRN be the best choice to expand the context? 
 
 It is because it fixes the "Out-of-Bound" Problem in a less elegant but more effective way. In YaRN, we manually define upper and lower frequency bounds. These bounds can vary depending on the specific model in use. When dealing with frequencies below the lower bound, we do interpolation. Conversely, for frequencies beyond the upper bound, we apply extrapolation. For frequencies falling within the range between the lower and upper bounds, we apply a combination of both interpolation and extrapolation.
 
 As long as we can find the sweet point low-bound frequency, the "Out-of-Bound" Problem will be effectively solved.
+
+### How Mistral solves the long context problem
+
+Mistral first introduced the sliding window in their [blog]([Mistral 7B | Mistral AI | Open source models](https://mistral.ai/news/announcing-mistral-7b/)). They claim the sliding window attention mechanism can both save compute cost and expand the context length by stacking layers of transformers.
+
+![SWA](https://raw.githubusercontent.com/NormXU/NormXU.github.io/main/_data/resources/blog/2/sw_mistral.png)
+**Figure 2**. Sliding Window Mechanism (SWM); At each attention layer, information can move forward by W tokens at most: after two attention layers, information can move forward by 2W tokens, etc.
+
+At first glance, it seems that Figure 2 is trying to show me that there exists a layer-wise shifting sliding window that can propogate token information to the next layer so that the context input can be extrapolated very long. However, the purpose of Figure is just to explain how information propogates throughout the depth of the network.
+
+The main idea of the sliding window mechanism is to restrict each token to only attend to other tokens within a fixed-size window W. Nevertheless, the propagation of information through the network does not solely rely on the size of the attention window, it also relies on the stacking of multiple attention layers, more like an indirectly access.
+
+For example, we have a sequence of tokens **[A, B, C, D, E, F, G, H]**, and let's say oursliding window (W) is 3 tokens wide
+
+The output of **Layer 1**:
+
+Token $$\hat{A}$$ integrates information from [A, B, C].  
+Token  $$\hat{B}$$ integrates information from [A, B, C, D].  
+Token  $$\hat{C}$$ integrates information from [A, B, C, D, E].
+
+**Layer 2:**
+when token $$\hat{A}$$ in the second layer attends to token $$\hat{B}$$, it's indirectly also getting information about token D, and when it attends to token $$\hat{C}$$, it's getting information about tokens D and E.
+
+This means token A in layer 2 has a "reach" that extends itself to token E, even though it can only directly attend to [A, B, C].
+
+As for a decoder-only model, the  SWM is more straightforward, as tokens can only attend to previous tokens in an auto-regression way.
+
+The output of **Layer 1**:  
+Token $$\hat{A}$$ integrates information from **only** A.  
+Token  $$\hat{B}$$ integrates from A, B.  
+Token  $$\hat{C}$$ integrates from A, B, C  
+and so on.  
+
+After Mixtral-8x7B is released recently, people supersingly find that MoE can magically extend the context length without any interpolation / extrapolation tricks we used in DynamicNTKRoPE, YaRN, etc. 
+![Mixtral](https://raw.githubusercontent.com/NormXU/NormXU.github.io/main/_data/resources/blog/2/mixtral.jpg)
+Figure 3. Perplexity evaluation; Mixtral (SMoE) works quite effectively even without the need for any fine-tuning. Moreover, it's worth noting that disabling sliding window attention can actually enhance model's the long context ability. Credit to [@theemozilla](https://twitter.com/theemozilla/status/1735351012699849164?s=46&t=poxa0AsGDnYfo1XBLblf4Q)
+
+I have to say Figure 3 is hilarious and promising. It shows that extending the context length is only a byproduct of MoE models, yet it still outperforms YaRN-Mistral, which I once bellieve to be the most promising for manipulating RoPE to augment the context length.
+
+Why it works? I think it is because every expert is assigned only part of a long token sequecne. Imagine there are eight experts simultaneously reading a 1000-token article, with each person assigned a portion of those 1000 tokens. Afterwards, they collaborate to integrate their individual understandings, and that's how the expansion occurs.
 
 ### Reference
 
