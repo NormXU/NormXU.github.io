@@ -90,9 +90,9 @@ As long as we can find the sweet point low-bound frequency, the "Out-of-Bound" P
 
 ### How Mistral solves the long context problem
 
-Mistral first introduced the sliding window in their [blog]([Mistral 7B | Mistral AI | Open source models](https://mistral.ai/news/announcing-mistral-7b/)). They claim the sliding window attention mechanism can both save compute cost and expand the context length by stacking layers of transformers.
+Mistral first introduced the sliding window in their [blog](https://mistral.ai/news/announcing-mistral-7b/). They claim the sliding window attention mechanism can both save compute cost and expand the context length by stacking layers of transformers.
 
-![SWA](https://raw.githubusercontent.com/NormXU/NormXU.github.io/main/_data/resources/blog/2/sw_mistral.png)
+![SWA](https://raw.githubusercontent.com/NormXU/NormXU.github.io/main/_data/resources/blog/2/sw_mistral.png)<br>
 **Figure 2**. Sliding Window Mechanism (SWM); At each attention layer, information can move forward by W tokens at most: after two attention layers, information can move forward by 2W tokens, etc.
 
 At first glance, it seems that Figure 2 is trying to show me that there exists a layer-wise shifting sliding window that can propogate token information to the next layer so that the context input can be extrapolated very long. However, the purpose of Figure is just to explain how information propogates throughout the depth of the network.
@@ -121,12 +121,15 @@ Token  $$\hat{C}$$ integrates from A, B, C
 and so on.  
 
 After Mixtral-8x7B is released recently, people supersingly find that MoE can magically extend the context length without any interpolation / extrapolation tricks we used in DynamicNTKRoPE, YaRN, etc. 
+
 ![Mixtral](https://raw.githubusercontent.com/NormXU/NormXU.github.io/main/_data/resources/blog/2/mixtral.jpg)
 Figure 3. Perplexity evaluation; Mixtral (SMoE) works quite effectively even without the need for any fine-tuning. Moreover, it's worth noting that disabling sliding window attention can actually enhance model's the long context ability. Credit to [@theemozilla](https://twitter.com/theemozilla/status/1735351012699849164?s=46&t=poxa0AsGDnYfo1XBLblf4Q)
 
 I have to say Figure 3 is hilarious and promising. It shows that extending the context length is only a byproduct of MoE models, yet it still outperforms YaRN-Mistral, which I once bellieve to be the most promising for manipulating RoPE to augment the context length.
 
-Why it works? I think it is because every expert is assigned only part of a long token sequecne. Imagine there are eight experts simultaneously reading a 1000-token article, with each person assigned a portion of those 1000 tokens. Afterwards, they collaborate to integrate their individual understandings, and that's how the expansion occurs.
+Why it works? 
+
+I think it is because every expert is assigned only part of a long token sequecne. Imagine there are eight experts simultaneously reading a 1000-token article, with each person assigned a portion of those 1000 tokens. Afterwards, they collaborate to integrate their individual understandings, and that's how the expansion occurs.
 
 ### Reference
 
