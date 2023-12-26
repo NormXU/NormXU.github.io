@@ -95,7 +95,7 @@ Mistral first introduced the sliding window in their [blog](https://mistral.ai/n
 ![SWA](https://raw.githubusercontent.com/NormXU/NormXU.github.io/main/_data/resources/blog/2/sw_mistral.png)<br>
 **Figure 2**. Sliding Window Mechanism (SWM); At each attention layer, information can move forward by W tokens at most: after two attention layers, information can move forward by 2W tokens, etc.
 
-At first glance, it seems that Figure 2 is trying to show me that there exists a layer-wise shifting sliding window that can propogate token information to the next layer so that the context input can be extrapolated very long. However, the purpose of Figure is just to explain how information propogates throughout the depth of the network.
+At first glance, it seems that Figure 2 is trying to show me that there exists a layer-wise shifting sliding window that can propogate token information to the next layer so that the context input can be extrapolated very long. However, Figure 2 is just to explain how information propagates along the depth of the network.
 
 The main idea of the sliding window mechanism is to restrict each token to only attend to other tokens within a fixed-size window W. Nevertheless, the propagation of information through the network does not solely rely on the size of the attention window, it also relies on the stacking of multiple attention layers, more like an indirectly access.
 
