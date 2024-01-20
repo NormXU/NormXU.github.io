@@ -5,7 +5,7 @@ permalink: /t/diffusion
 ---
 
 <ul class="post-list">
-  {%- for post in site.tags["Engineering"] -%}
+  {%- for post in site.tags["Diffusion"] -%}
     <li>
       {%- assign date_format = site.minima.date_format | default: "%Y-%m-%d" -%}
       <span class="post-meta">
