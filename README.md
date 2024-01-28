@@ -33,16 +33,16 @@ layout: page
 </body>
 
 
-Hi, there 👋🏻,
+Hello! There! 👋🏻
 
-My name is Norm Inui. I am currently exploring various state-of-the-art deep learning algorithms in the following areas:
+This is Norm Inui. I'm currently working on developing a multi-modality model at a startup. My deep learning interests cover various domains, including:
 
-- Very-rich Document Understanding
+- Very-Rich Document Understanding
 - Optical Character Recognition
 - Object Detection
 - Large Language Models
 - Stable Diffusion
 
-I usually spend most of my holiday time at Kyoto, Japan. ️
+I can speak English, Japanese, and Chinese. My preferred holiday destination is Kyoto, Japan. 
 
-Hope my work can be helpful to you.
+This website is a platform to catalog and share my inspirations. Hope my posts can be helpful to you.
