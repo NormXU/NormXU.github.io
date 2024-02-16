@@ -129,12 +129,34 @@ I have to say Figure 3 is hilarious. It shows that extending the context length 
 
 Why it works? 
 
-I think it is because every expert is assigned only part of a long token sequecne. Imagine there are eight experts simultaneously reading a 1000-token article, with each person assigned a portion of those 1000 tokens. Afterwards, they collaborate to integrate their individual understandings, and that's how the expansion occurs.
+I think it is because every expert is assigned only part of a long token sequence. Imagine there are eight experts simultaneously reading a 1000-token article, with each person assigned a portion of those 1000 tokens. Afterwards, they collaborate to integrate their individual understandings, and that's how the expansion occurs.
+
+### One More Thing (updated on Feb, 2024)
+
+Before [Needle-in-a-Haystack](https://github.com/gkamradt/LLMTest_NeedleInAHaystack) test comes out, researchers often use perplexity (negative log-likelihood of the next token) for evaluation. But is it really a reliable metric? Does low loss always mean high retrival performance on long context? The answer is: **NO**
+
+[Chen, Mark, et al.](https://arxiv.org/pdf/2402.10171) shows us in the paper:
+
+> similar test loss could result in substantially different behavior when performing precise retrieval
+
+If you ask me how to expand the LLM context length in Feb, 2024, I will answer you: 
+
+<mark>Only data matters. </mark>
+
+By continual pretraining with a carefully mix of domains dataset, and increasing the RoPE base without any modifications such as YaRN, it's possible to achieve a longer context length than what was initially pre-trained.
+
+Therefore, we need no more modification on RoPE. Prepare a lightweight, curated mixed dataset, inflate your models into MoE, and continue training. These are all you need.
 
 ### Reference
 
 - [YaRN: Efficient Context Window Extension of Large Language Models](https://github.com/jquesnelle/yarn/tree/master)
+
 - [Liu, Xiaoran, et al., 2023](https://arxiv.org/abs/2310.05209)
+
 - [CodeLLaMA](https://arxiv.org/abs/2308.12950)
+
 - [@theemozilla](https://twitter.com/theemozilla/status/1735351012699849164?s=46&t=poxa0AsGDnYfo1XBLblf4Q)
+
 - [Mistral-7B](https://mistral.ai/news/announcing-mistral-7b/)
+
+- [Chen, Mark, et al.](https://arxiv.org/pdf/2402.10171)
