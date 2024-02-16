@@ -35,7 +35,7 @@ layout: page
 
 Hello! There! 👋🏻
 
-This is Norm Inui. I'm currently working on developing a multi-modality model at a startup. My deep learning interests cover various domains, including:
+This is Norm Inui. I'm currently working on developing a multimodal model at a startup. My deep learning interests cover various domains, including:
 
 - Very-Rich Document Understanding
 - Optical Character Recognition
