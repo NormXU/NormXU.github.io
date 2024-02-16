@@ -143,7 +143,7 @@ If you ask me how to expand the LLM context length in Feb, 2024, I will answer y
 
 <mark>Only data matters. </mark>
 
-By continual pretraining with a carefully mix of domains dataset, and increasing the RoPE base without any modifications such as YaRN, it's possible to achieve a longer context length than what was initially pre-trained.
+By continual pretraining with a carefully domain-mixed dataset, and increasing the RoPE base without any modifications such as YaRN, it's possible to achieve a longer context length than what was initially pre-trained.
 
 Therefore, we need no more modification on RoPE. Prepare a lightweight, curated mixed dataset, inflate your models into MoE, and continue training. These are all you need.
 
