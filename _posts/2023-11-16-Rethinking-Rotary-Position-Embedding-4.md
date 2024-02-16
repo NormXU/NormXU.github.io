@@ -145,7 +145,7 @@ If you ask me how to expand the LLM context length in Feb, 2024, I will answer y
 
 By continual pretraining with a carefully domain-mixed dataset, and increasing the RoPE base without any modifications such as YaRN, it's possible to achieve a longer context length than what was initially pre-trained.
 
-Therefore, we need no more modifications on RoPE anymore. Preparing a lightweight and highly curated dataset, inflate your models into MoE, and continue pre=training. These are all you need to expand your LLM context length.
+Therefore, we need no more modifications on RoPE. Preparing a lightweight and highly curated dataset, inflate your models into MoE, and continue pre=training. These are all we need to expand an LLM context length.
 
 ### Reference
 
