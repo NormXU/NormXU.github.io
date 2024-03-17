@@ -143,9 +143,19 @@ If you ask me how to expand the LLM context length in Feb, 2024, I will answer y
 
 <mark>Only data matters. </mark>
 
-By continual pretraining with a carefully domain-mixed dataset, and increasing the RoPE base without any modifications such as YaRN, it's possible to achieve a longer context length than what was initially pre-trained.
+In a word, by continual pretraining with a carefully domain-mixed dataset, and increasing the RoPE base without any modifications such as YaRN, it's possible to achieve a longer context length than what was initially pre-trained.
 
-Therefore, we need no more modifications on RoPE. Prepare a lightweight and highly curated dataset, inflate your models into MoE, and continue pre-training. These are all we need to expand an LLM context length.
+
+
+Hence, there's no necessity for further modifications to RoPE. Simply build a carefully curated dataset, inflate your models into MoE, and continue pre-training. These are all steps that's required to extend the LLM context length. Besides, using the verb 'activate' to describe the process sounds more reasonable, given that LLMs naturally acquire this capability during its pretraining stage.
+
+
+
+Just like what [Fu, Yao, et al.](https://arxiv.org/abs/2402.10171) claims
+
+> We hypothesize that the capability to utilize information at  arbitrary locations within long context length is (mostly) already acquired during pretraining, even for models pretrained on substantially shorter 4K contexts.
+
+
 
 ### Reference
 
@@ -160,3 +170,5 @@ Therefore, we need no more modifications on RoPE. Prepare a lightweight and high
 - [Mistral-7B](https://mistral.ai/news/announcing-mistral-7b/)
 
 - [Chen, Mark, et al.](https://arxiv.org/pdf/2402.10171)
+
+- [Fu, Yao, et al.](https://arxiv.org/abs/2402.10171)
