@@ -147,7 +147,7 @@ In a word, by continual pretraining with a carefully domain-mixed dataset, and i
 
 
 
-Hence, there's no necessity for further modifications to RoPE. Simply build a carefully curated dataset, inflate your models into MoE, and continue pre-training. These are all steps that's required to extend the LLM context length. Besides, using the verb 'activate' to describe the process sounds more reasonable, given that LLMs naturally acquire this capability during its pretraining stage.
+Hence, there's no necessity for further modifications to RoPE. Simply build a carefully curated dataset, inflate your models into MoE, and continue pre-training. These are all steps that's required to extend the LLM context length. Besides, I think using 'activate the LLM context length' to describe the process sounds more reasonable, given that LLMs have already acquired this capability during its pretraining stage.
 
 
 
