@@ -8,8 +8,6 @@ toc: true
 
 <h3 class="no_toc"> TL; DR</h3>
 
-
-
 When starting a new project, I often ponder which codebase would be the best foundation. While the open-source community offers numerous impressive repositories, they often cater to specific demos and may not prioritize training or inference efficiency.
 
 As a result, I've chosen to construct my own codebase by drawing inspiration from several awesome open-source projects.
@@ -23,7 +21,6 @@ The codebase should be designed with the following key characteristics:
 - **Reproducibility:** Ensuring that results can be replicated precisely using the same configuration file.
 
 - **Extensibility:** Can easily integrate operators or modules from other codebases, such as Megatron-LM.
-
 
 <hr>
 
@@ -77,7 +74,6 @@ Tensor model parallelism involves splitting the model itself across multiple GPU
 
 Adjacent GPUs often have faster or more direct communication paths between them. This can be due to their physical proximity on the motherboard or their direct connection via high-speed links like NVLink (in NVIDIA GPUs). Therefore, for tensor parallel groups, we arrange them using adjacent order.
 
-
 #### **4 pipeline model-parallel groups**
 
 ```
@@ -99,14 +95,15 @@ For instance,
 
 **Total GPUs**: 8 (g0 to g7)
 **Context Parallel Size**: 4
-**Tensor Parallel Groups**: Since context parallel size is 4, let's assume we have 2 tensor parallel groups containing 4 GPUs each, but they are actually divided into 4 groups for the purpose of context parallelism, each handling different segments of the data.
 
-- Group A:  `[g0, g1]`
+**Tensor Parallel Groups**: Since context parallel size is 4, let's assume we have 2 tensor parallel groups containing 4 GPUs each. Specifically, the tensor parallel groups are arranged as follows:
+
+- Group A: `[g0, g1]`
 - Group B: `[g2, g3]`
 - Group C: `[g4, g5]`
 - Group D: `[g6, g7]`
 
-Each context parallel group needs to contain one GPU from each tensor parallel group that corresponds to handling a portion of the sequence:
+However, they are actually divided into 4 groups for the purpose of context parallelism, each handling different segments of the data. Each context parallel group needs to contain one GPU from each tensor parallel group that corresponds to handling a portion of the sequence:
 
 **Context Parallel**
 
@@ -121,10 +118,7 @@ Each context parallel group can communicate within itself (g0 with g2, g4, g6 an
 
 #### **Virtual Pipline Parallel**
 
-If tensor_model_parallel_size is 1, pipeline_model_parallel_size is 4, virtual_pipeline_model_parallel_size is 2, and there are
-16 transformer layers in the model, the model will be
-split into 8 stages with two layers each and each GPU
-would get 2 stages as such (layer number starting with 1):
+If **tensor_model_parallel_size is 1**, **pipeline_model_parallel_size is 4**, **virtual_pipeline_model_parallel_size is 2**, and there are 16 transformer layers in the model, the model will be split into 8 stages with two layers each and each GPU would get 2 stages as such (layer number starting with 1):
 
             GPU 0: [1, 2] [9, 10]
             GPU 1: [3, 4] [11, 12]
@@ -141,10 +135,47 @@ The dataset class should only handle data retrieval and define the  `__getitem__
 
 For instance, when utilizing the ImageNet dataset for downstream tasks such as classification and object detection, the required data formats vary significantly. For classification tasks, the expected format is (image_path, label), whereas for contrastive learning, it's (image_path, box coordinates).
 
-To prepare the data format that a task want, I strongly suggest using MapDataset, a PyTorch hook-like style to post-process the data stream. There are two types of dataset objects, a [Dataset](https://huggingface.co/docs/datasets/v2.19.0/en/package_reference/main_classes#datasets.Dataset) and an [IterableDataset](https://huggingface.co/docs/datasets/v2.19.0/en/package_reference/main_classes#datasets.IterableDataset). Whichever type of dataset you choose to use or create depends on the size of the dataset. In general, an [IterableDataset](https://huggingface.co/docs/datasets/v2.19.0/en/package_reference/main_classes#datasets.IterableDataset) is ideal for big datasets (think hundreds of GBs!) due to its lazy behavior and speed advantages.
+To prepare the data format that a task want, I strongly suggest using MapDataset, a PyTorch hook-like style to post-process the data stream. 
 
-As for IterableDataset, you can access it using a `for` loop to load the data progressively as you iterate over the dataset. This way, only a small fraction of examples is loaded in memory, and you don’t write anything on disk.
+There are two types of dataset objects, a [Dataset](https://huggingface.co/docs/datasets/v2.19.0/en/package_reference/main_classes#datasets.Dataset) and an [IterableDataset](https://huggingface.co/docs/datasets/v2.19.0/en/package_reference/main_classes#datasets.IterableDataset). Whichever type of dataset you choose to use or create depends on the size of the dataset. In general, an `IterableDataset` is ideal for big datasets (think hundreds of GBs!) due to its lazy behavior and speed advantages.
 
-Due to the “lazy” nature of an `IterableDataset`, your `map` function is applied on-the-fly.
+As for `IterableDataset`, you can access it using a `for` loop to load the data progressively as you iterate over the dataset. This way, only a small fraction of examples is loaded in memory, and you don’t write anything on disk.
 
-If your dataset grows very large, since regular [Dataset](https://huggingface.co/docs/datasets/v2.19.0/en/package_reference/main_classes#datasets.Dataset) objects are based on Arrow for random access to the rows, its indices mapping will become 10x slower. This is because there is an extra step to get the row index to read using the indices mapping, and most importantly, you aren’t reading contiguous chunks of data anymore. While an IterableDataset and leveraging its fast approximate shuffling method. It only shuffles the shards order and adds a shuffle buffer to your dataset, which keeps the speed of your dataset optimal.
+If your dataset grows very large, since regular Dataset objects are based on Arrow for random access to the rows, its indices mapping will become 10x slower. This is because there is an extra step to get the row index to read using the indices mapping, and most importantly, you aren’t reading contiguous chunks of data anymore. While an `IterableDataset` and leveraging its fast approximate shuffling method. It only shuffles the shards order and adds a shuffle buffer to your dataset, which keeps the speed of your dataset optimal.
+
+Currently, iterable-style datasets are incompatible with customized samplers in `torch.utils.data.DataLoader`.  Pytorch Dataloader always expects a map-style dataset. That is why we usually pass sampler inside an iterable-style dataset for initialization. Specifically, please check the code gists in [detectron2](https://github.com/facebookresearch/detectron2/blob/a2e43eab54d28ffbd59f5e9b4e3193b82faeb70f/detectron2/data/common.py#L221).
+
+### Serialization
+
+[This](https://ppwwyyxx.com/blog/2022/Demystify-RAM-Usage-in-Multiprocess-DataLoader/) blog provides a very clear explanation of why dataset serialization is necessary and how to do dataset serialization effectively.
+
+Please check the code gist from [detectron2](https://github.com/facebookresearch/detectron2/blob/a2e43eab54d28ffbd59f5e9b4e3193b82faeb70f/detectron2/data/common.py#L114) for more details.
+
+`_TorchSerializedList` is defined to serialize each object in the list using Python's `pickle` module. It converts the object into a binary format (`pickle.dumps`) and then converts the binary data into a numpy array of unsigned 8-bit integers(`np.frombuffer`). All serialized byte arrays are concatenated into a single numpy array and then converted into a PyTorch tensor (`self._lst`).
+
+To better access data segment by index, the class also calculates the byte length of each serialized object and stores these lengths in another numpy array.
+
+### pytree.map
+
+Pytree was initially introduced within Jax. You can find a comprehensive discussion about pytree on HackerNews [here](https://news.ycombinator.com/item?id=36029368). PyTorch developers may find this feature highly useful, and decide to integrate it in a recent release. Now, we can use it straightforward inside pytorch, without any third-party packages:
+
+```python
+from torch.utils import _pytree as pytree
+
+return_dict = {
+    "pixel_tensors": torch.rand((3, 224, 224)),
+    "labels": torch.tensor(1),
+    "txt": "a dummy example"
+}
+
+return_dict = pytree.tree_map_only(torch.Tensor, 
+                     lambda x: x.cuda(non_blocking=True), return_dict)
+
+# all tensors in return_dict are moved to cuda device
+```
+
+`pytree.tree_map_only` is used to selectively apply operations to only those objects within a nested structure that are PyTorch tensors. This is quite helpful where you might have complex data structures containing a mix of tensors, lists, dictionaries, etc., and you want to process only the tensors.  Start using pytree today, your training codes will receive the following benefits for free !
+
+**Efficiency and Convenience:** Manually checking the type of each element in a nested structure and applying a function to it can be cumbersome and error-prone, especially for deeply nested or complex structures. `pytree.tree_map_only` abstracts this logic, making the code cleaner and more efficient.  
+
+**Data Preparation for Distributed Computing:** The specific use-case involves preparing tensor data for efficient serialization and transfer in a distributed computing environment. Using `tree_map_only` allows for a straightforward, generalized way to ensure all tensor data is correctly processed for this environment, without altering the overall structure or non-tensor elements of the data being processed.  
