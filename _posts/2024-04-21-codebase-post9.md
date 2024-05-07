@@ -34,9 +34,9 @@ The initialize_model_parallel function mentioned 3 use cases:
 
 Let's say we have a total of 16 GPUs denoted by g0 ... g15
 
-#### **8 data_parallel groups**
+#### **Data Parallel**
 
-we arrange groups like:
+When DP=8, we arrange groups like:
 
 ```
 [g0, g2]
@@ -55,7 +55,9 @@ The arrangement indicates an alternating pattern where consecutive groups skip o
 
 2. Alternating GPUs ensures a more uniform distribution of computational load across different parts of the GPU cluster.
 
-#### **8 tensor model-parallel groups:**
+#### **Tensor Parallel**
+
+When TP=8:
 
 ```
 [g0, g1]
@@ -74,7 +76,9 @@ Tensor model parallelism involves splitting the model itself across multiple GPU
 
 Adjacent GPUs often have faster or more direct communication paths between them. This can be due to their physical proximity on the motherboard or their direct connection via high-speed links like NVLink (in NVIDIA GPUs). Therefore, for tensor parallel groups, we arrange them using adjacent order.
 
-#### **4 pipeline model-parallel groups**
+#### **Pipeline Parallel**
+
+When PP=4:
 
 ```
 [g0, g4, g8, g12]
@@ -155,7 +159,7 @@ Please check the code gist from [detectron2](https://github.com/facebookresearch
 
 To better access data segment by index, the class also calculates the byte length of each serialized object and stores these lengths in another numpy array.
 
-### pytree.map
+### pytree
 
 Pytree was initially introduced within Jax. You can find a comprehensive discussion about pytree on HackerNews [here](https://news.ycombinator.com/item?id=36029368). PyTorch developers may find this feature highly useful, and decide to integrate it in a recent release. Now, we can use it straightforward inside pytorch, without any third-party packages:
 
@@ -179,3 +183,22 @@ return_dict = pytree.tree_map_only(torch.Tensor,
 **Efficiency and Convenience:** Manually checking the type of each element in a nested structure and applying a function to it can be cumbersome and error-prone, especially for deeply nested or complex structures. `pytree.tree_map_only` abstracts this logic, making the code cleaner and more efficient.  
 
 **Data Preparation for Distributed Computing:** The specific use-case involves preparing tensor data for efficient serialization and transfer in a distributed computing environment. Using `tree_map_only` allows for a straightforward, generalized way to ensure all tensor data is correctly processed for this environment, without altering the overall structure or non-tensor elements of the data being processed.  
+
+### Sampler
+
+Detectron2 has a good [implementations](https://github.com/facebookresearch/detectron2/blob/5c380fdfc62b0124204155d6be3b1016e3dadb2d/detectron2/data/samplers/distributed_sampler.py#L15) of TrainingSampler.
+
+In training, we only care about the "infinite stream" of training data. Therefore, the training sampler is designed to generate an infinite stream of indices and all workers cooperate to correctly shuffle the indices and sample different indices. Ensure that each rank can access different data. This could always lead to a silent bug for training and really hard to be found. Please pay attention when you build your Sampler.
+
+
+
+```python
+def __init__(self, size: int, shuffle: bool = True, seed: Optional[int] = None):
+    ...
+    self._rank = dist.get_rank()
+    self._world_size = dist.get_world_size()
+
+def __iter__(self):
+    start = self._rank
+    yield from itertools.islice(_infinite_indices, start, None, self._world_size)
+```
