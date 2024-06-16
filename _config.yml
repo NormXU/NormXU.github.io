@@ -1,6 +1,6 @@
 title: "まいどぅー"
 author: "Norm Inui"
-description: "<b style=\"color: #f45;\">Intelligence comes from Compression</b>"
+description: "<b style=\"color: #f45;\">All Generation Tasks are Denoising Tasks.</b>"
 permalink: /:title/
 lang: "en"
 excerpt_separator: "\n\n\n"
