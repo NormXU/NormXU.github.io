@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>All Generation Tasks are Denoising Tasks 🚧 (WIP) | まいどぅー</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Norm Inui">
+<meta name="generator" content="Jekyll v4.2.2">
+<link rel="canonical" href="/post10/">
+
+<link rel="stylesheet" href="/assets/css/frame.css">
+
+<link rel="alternate" href="/feed.xml" type="application/atom+xml" title="まいどぅー">
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script defer src="/assets/katex/katex.min.js"></script>
+<script defer src="/assets/katex/contrib/auto-render.min.js" onload="renderMathInElement(document.body)"></script>
+
+
+
+
+
+
+
+<header>
+  <a href="/" class="title">まいどぅー</a>
+  <nav><a href="/">Home</a><a href="/about/">Norm Inui(戌亥)</a></nav>
+
+</header>
+
+<article><script src="https://unpkg.com/vanilla-back-to-top@7.2.1/dist/vanilla-back-to-top.min.js"></script>
+<script>addBackToTop({
+  diameter: 56,
+  backgroundColor: 'rgb(255, 82, 82)',
+  textColor: '#fff'})
+</script><header>
+  <h1><a href="/post10/">All Generation Tasks are Denoising Tasks 🚧 (WIP)</a></h1>
+<time datetime="2024-05-18T00:00:00+00:00">May 18, 2024</time>
+</header>
+
+  <div class="entry">
+      <div id="markdown-content">
+          <h3 class="no_toc"> TL; DR</h3>
+
+<hr>
+
+<p>No matter what we expect the model to generate—whether it’s a series of words or an image, whether using auto-regressive or inverse diffusion—the underlying mechanism is the same: <b>denoising</b>.</p>
+
+<p>In fact, many works have utilized the denoising process to accelerate inference. In language models, this denoising process is known as parallel decoding. For example, <a href="https://lmsys.org/blog/2023-11-21-lookahead-decoding/">lookahead decoding</a> introduces a N-Gram Pool to mitigate the limitation of Jacobi iteration that generation always go wrong. <a href="https://arxiv.org/pdf/2403.00835">CLLMs</a> fine-tunes a LLM to generate the same n-token as AR decoding. To simplify the task, they map the randomly initially states to an intermediate points on the Jacabi trajectory.</p>
+
+<p>In the image/video generation, the denoising processing is known as <a href="https://arxiv.org/pdf/2209.03003">Rectified Flow</a>. Rectified Flow is one of the most effective denosing algorithms to accelerate image/video generation model. The main idea is that: since mapping directly from \(X_0\) to \(X_1\) is too difficult to learn, we introduces multiple milestones throughout the process, transforming \(X_0 → X_1\) into \(Z_0^{k} → Z_1^{k}\). Here, \(X_0\) is the state sampled from a Gaussian Distribution, \(X_1\) is the target image. \(Z_0^{k}\), \(Z_1^{k}\) is the kth intermediate states during denosing from \(X_0\) to \(X_1\). The optimization target between milestones is velocity, which ensures the overall goal of moving from \(X_0\) to \(X_1\) can still be accomplished effectively.</p>
+
+<p><img src="https://raw.githubusercontent.com/NormXU/NormXU.github.io/main/_data/resources/blog/10/cllm.png" alt="CLLMs"></p>
+
+<p>Figure1. Image Credit to <a href="https://arxiv.org/pdf/2403.00835">CLLMs</a></p>
+
+<h2 id="sft-from-a-denosing-perspective">SFT from a Denosing Perspective</h2>
+
+<p>In a recent study by <a href="https://arxiv.org/pdf/2405.05904">Gekhman, Zorik, et al.</a>, the authors reveal that supervised
+fine-tuning (SFT) struggles to integrate new knowledge into Large Language Model (LLM). The authors propose an approach by categorizing fine-tuning datasets into four categories as below:</p>
+
+<p><img src="https://raw.githubusercontent.com/NormXU/NormXU.github.io/main/_data/resources/blog/10/knowledge_categories.png" alt="knowledge"></p>
+
+<p>Figure 2. Knowledge Categories</p>
+
+<p>Their findings suggest that the most effective fine-tuning datasets should consist of HighlyKnown, MaybeKnown, and WeaklyKnown data, with minimal amount of Unknown data.</p>
+
+<p>This conclusion makes me rethink the nature of SFT. To simplify the problem, let’s take LLMs as a linear systems. Under this assumption, We define \(A\) as the weight matrix of multiple transformer blocks, while \(x\) and \(b\) represent input embeddings and text hidden features, respectively. We link autoregressive generation to denoising process:</p>
+
+\[A \cdot [x_{bos}; x_{prefill}; x_{gen}^{\prime}]\]
+
+<p>As for the input embedding \(x\), since the \(x_{gen}\) is unknown yet, we initialize it randomly as \(x_{gen}^{\prime}\)</p>
+
+<p>During SFT LLM, we actually try to solve the following equation:</p>
+
+\[A \cdot [x_{bos}; x_{prefill}; x_{gen}^{\prime}] = [b_{prefill}; b_{gen}; b_{eos}]\]
+
+<p>Here is an intriguing question: if the linear equation has no solution, can fine-tuning still be effective?</p>
+
+<p>A Hypothesis:</p>
+
+<ul>
+  <li>
+    <p>If \(Ax=b\) has no solution, it is exactly the Unknown case mention
+in <a href="https://arxiv.org/pdf/2405.05904">Gekhman, Zorik, et al.</a> Since we expect LLM always responses, it has to hallucintate with an approximate solution to \(Ax=b\) and this is where hallucination happens.</p>
+  </li>
+  <li>
+    <p>If \(Ax=b\) has a unique solution, it links to the HighlyKnown when Greedy decoding always predicts the correct answer</p>
+  </li>
+  <li>
+    <p>If \(Ax=b\) has infinitely many solutions, it relates to MaybeKnown or WeaklyKnown instances when Greedy decoding sometimes predict the correct answers.</p>
+  </li>
+</ul>
+
+<p>This hypothesis explains why hallucination happens: it is when \(Ax=b\) has no solutions but we force the LLM to return us an approximate solution.</p>
+
+      </div>
+      <div id="table-of-contents">
+          
+      </div>
+      <div id="markdown-content">
+          
+      </div>
+  </div>
+  
+</article>
+
+
+
+<footer>
+  <div><b style="color: #f45;">All Generation Tasks are Denoising Tasks.</b></div>
+  <nav><a href="mailto:nxu8@outlook.com"><svg aria-label="Mail" class="icon"><use xlink:href="/assets/fontawesome/icons.svg#envelope"></use></svg></a><a href="https://github.com/NormXU"><svg aria-label="Github" class="icon"><use xlink:href="/assets/fontawesome/icons.svg#github"></use></svg></a></nav>
+
+</footer>
+
+
+</head>
+</html>
