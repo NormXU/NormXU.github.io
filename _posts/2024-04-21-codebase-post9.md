@@ -10,7 +10,7 @@ toc: true
 
 When starting a new project, I often ponder which codebase would be the best foundation. While the open-source community offers numerous impressive repositories, they often cater to specific demos and may not prioritize training or inference efficiency.
 
-As a result, I've chosen to construct my own codebase by drawing inspiration from several awesome open-source projects.
+As a result, I've chosen to construct my codebase by drawing inspiration from several awesome open-source projects.
 
 <!--more-->
 
@@ -70,7 +70,7 @@ When TP=8:
 [g14, g15]
 ```
 
-While tensor model-parallel groups hve a more straightforward and intuitive pattern.
+While tensor model-parallel groups have a more straightforward and intuitive pattern.
 
 Tensor model parallelism involves splitting the model itself across multiple GPUs. Each GPU handles a part of the model's computations. This is particularly useful for very large models that might not fit into the memory of a single GPU. 
 
@@ -87,11 +87,11 @@ When PP=4:
 [g3, g7, g11, g15]
 ```
 
-We arrange GPUs into 4  groups, ensuring that within each group, GPUs are not placed adjacent to one another. The reasons behind this practice goes the same as the 8 data parallel groups.
+We arrange GPUs into 4  groups, ensuring that within each group, GPUs are not placed adjacent to one another. The reasons behind this practice are the same as the 8 data parallel groups.
 
 #### **Context Parallel**
 
-It is a very interesting concept, but lacks documentations. As for transformer-based models, the sequence length could be very long and a large sequences may not fit entirely within the memory of a single GPU, context parallelism is here used to split the input sequence length across multiple GPUs. However, unlike simpler data or model parallelism, context parallelism requires frequent communication among GPUs to share parts of the input sequence they are processing, because that is how attention mechanism works.
+It is a very interesting concept but lacks documentation. As for transformer-based models, the sequence length could be very long and a large sequence may not fit entirely within the memory of a single GPU, context parallelism is here used to split the input sequence length across multiple GPUs. However, unlike simpler data or model parallelism, context parallelism requires frequent communication among GPUs to share parts of the input sequence they are processing, because that is how the attention mechanism works.
 
 This is critical because each part of the GPU cluster only sees a portion of the input, but computations (like calculating attention scores) require knowledge of the full input array. Therefore, a good practice of Context Group is composed of corresponding GPUs from other tensor parallel groups that handle different segments of the same sequence, which means each context parallel group contains one GPU from each tensor parallel group, ensuring that all segments of the sequence can be combined and communicated across the GPUs as needed.
 
@@ -107,7 +107,7 @@ For instance,
 - Group C: `[g4, g5]`
 - Group D: `[g6, g7]`
 
-However, they are actually divided into 4 groups for the purpose of context parallelism, each handling different segments of the data. Each context parallel group needs to contain one GPU from each tensor parallel group that corresponds to handling a portion of the sequence:
+However, they are divided into 4 groups for context parallelism, each handling different segments of the data. Each context parallel group needs to contain one GPU from each tensor parallel group that corresponds to handling a portion of the sequence:
 
 **Context Parallel**
 
@@ -118,9 +118,9 @@ However, they are actually divided into 4 groups for the purpose of context para
 
 This setup ensures that for any given part of the input sequence, there is one GPU from each of the four context parallel groups that can communicate with GPUs from the other context parallel groups to exchange information about different parts of the sequence.
 
-Each context parallel group can communicate within itself (g0 with g2, g4, g6 and so on) to share and gather information from the different segments of the data that each GPU processes.
+Each context parallel group can communicate within itself (g0 with g2, g4, g6, and so on) to share and gather information from the different segments of the data that each GPU processes.
 
-#### **Virtual Pipline Parallel**
+#### **Virtual Pipeline Parallel**
 
 If **tensor_model_parallel_size is 1**, **pipeline_model_parallel_size is 4**, **virtual_pipeline_model_parallel_size is 2**, and there are 16 transformer layers in the model, the model will be split into 8 stages with two layers each and each GPU would get 2 stages as such (layer number starting with 1):
 
@@ -131,23 +131,23 @@ If **tensor_model_parallel_size is 1**, **pipeline_model_parallel_size is 4**, *
 
 Why do we need VP?
 In standard pipeline parallelism, each GPU executes a fixed set of model layers and then remains idle while waiting for the next batch of data to process. This idle time arises because of dependencies between stages and the sequential nature of execution. Virtual pipeline model parallelism reduces this idle time by interleaving different segments of the workload across GPUs. This way, when one segment is waiting on data dependencies, another segment can be processed, thus keeping the GPUs busier.
-Another reason is to reduced Bubble Time: Pipeline parallelism often suffers from "bubbles" or idle times, particularly when data is being passed between stages or during synchronization points. Virtual pipeline model parallelism can minimize these bubbles by ensuring that different stages are ready to execute as soon as they receive their inputs, thereby reducing the wait times that typically occur between stages.
+Another reason is to reduce Bubble Time: Pipeline parallelism often suffers from "bubbles" or idle times, particularly when data is being passed between stages or during synchronization points. Virtual pipeline model parallelism can minimize these bubbles by ensuring that different stages are ready to execute as soon as they receive their inputs, thereby reducing the wait times that typically occur between stages.
 
 ## Dataloader
 
-The dataset class should only handle data retrieval and define the  `__getitem__` method for various data formats, without be aware of any specific data or transformations required by the downstreaming tasks.
+The dataset class should only handle data retrieval and define the  `__getitem__` method for various data formats, without being aware of any specific data or transformations required by the downstream tasks.
 
 For instance, when utilizing the ImageNet dataset for downstream tasks such as classification and object detection, the required data formats vary significantly. For classification tasks, the expected format is (image_path, label), whereas for contrastive learning, it's (image_path, box coordinates).
 
-To prepare the data format that a task want, I strongly suggest using MapDataset, a PyTorch hook-like style to post-process the data stream. 
+To prepare the data format that a task wants, I strongly suggest using MapDataset, a PyTorch hook-like style to post-process the data stream. 
 
 There are two types of dataset objects, a [Dataset](https://huggingface.co/docs/datasets/v2.19.0/en/package_reference/main_classes#datasets.Dataset) and an [IterableDataset](https://huggingface.co/docs/datasets/v2.19.0/en/package_reference/main_classes#datasets.IterableDataset). Whichever type of dataset you choose to use or create depends on the size of the dataset. In general, an `IterableDataset` is ideal for big datasets (think hundreds of GBs!) due to its lazy behavior and speed advantages.
 
 As for `IterableDataset`, you can access it using a `for` loop to load the data progressively as you iterate over the dataset. This way, only a small fraction of examples is loaded in memory, and you don’t write anything on disk.
 
-If your dataset grows very large, since regular Dataset objects are based on Arrow for random access to the rows, its indices mapping will become 10x slower. This is because there is an extra step to get the row index to read using the indices mapping, and most importantly, you aren’t reading contiguous chunks of data anymore. While an `IterableDataset` and leveraging its fast approximate shuffling method. It only shuffles the shards order and adds a shuffle buffer to your dataset, which keeps the speed of your dataset optimal.
+If your dataset grows very large, since regular Dataset objects are based on Arrow for random access to the rows, its indices mapping will become 10x slower. This is because there is an extra step to get the row index to read using the indices mapping, and most importantly, you aren’t reading contiguous chunks of data anymore. While an `IterableDataset` leverages its fast approximate shuffling method. It only shuffles the shards order and adds a shuffle buffer to your dataset, which keeps the speed of your dataset optimal.
 
-Currently, iterable-style datasets are incompatible with customized samplers in `torch.utils.data.DataLoader`.  Pytorch Dataloader always expects a map-style dataset. That is why we usually pass sampler inside an iterable-style dataset for initialization. Specifically, please check the code gists in [detectron2](https://github.com/facebookresearch/detectron2/blob/a2e43eab54d28ffbd59f5e9b4e3193b82faeb70f/detectron2/data/common.py#L221).
+Currently, iterable-style datasets are incompatible with customized samplers in `torch.utils.data.DataLoader`.  Pytorch Dataloader always expects a map-style dataset. That is why we usually pass a sampler inside an iterable-style dataset for initialization. Specifically, please check the code gists in [detectron2](https://github.com/facebookresearch/detectron2/blob/a2e43eab54d28ffbd59f5e9b4e3193b82faeb70f/detectron2/data/common.py#L221).
 
 ### Serialization
 
@@ -178,11 +178,11 @@ return_dict = pytree.tree_map_only(torch.Tensor,
 # all tensors in return_dict are moved to cuda device
 ```
 
-`pytree.tree_map_only` is used to selectively apply operations to only those objects within a nested structure that are PyTorch tensors. This is quite helpful where you might have complex data structures containing a mix of tensors, lists, dictionaries, etc., and you want to process only the tensors.  Start using pytree today, your training codes will receive the following benefits for free !
+`pytree.tree_map_only` is used to selectively apply operations to only those objects within a nested structure that are PyTorch tensors. This is quite helpful where you might have complex data structures containing a mix of tensors, lists, dictionaries, etc., and you want to process only the tensors.  Start using pytree today, your training codes will receive the following benefits for free!
 
 **Efficiency and Convenience:** Manually checking the type of each element in a nested structure and applying a function to it can be cumbersome and error-prone, especially for deeply nested or complex structures. `pytree.tree_map_only` abstracts this logic, making the code cleaner and more efficient.  
 
-**Data Preparation for Distributed Computing:** The specific use-case involves preparing tensor data for efficient serialization and transfer in a distributed computing environment. Using `tree_map_only` allows for a straightforward, generalized way to ensure all tensor data is correctly processed for this environment, without altering the overall structure or non-tensor elements of the data being processed.  
+**Data Preparation for Distributed Computing:** The specific use case involves preparing tensor data for efficient serialization and transfer in a distributed computing environment. Using `tree_map_only` allows for a straightforward, generalized way to ensure all tensor data is correctly processed for this environment, without altering the overall structure or non-tensor elements of the data being processed.  
 
 ### Sampler
 
