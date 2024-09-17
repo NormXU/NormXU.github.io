@@ -62,9 +62,9 @@ We can clearly see from the equation that DDPM forward process is a curve motion
 
 The reverse process is expressed as:
 
-$$dx_t = \left(f(x_t, t) - g^2(t) \nabla_x \log p(x_t)\right) dt + g(t) d\bar{w}$$
+$$dx_t = \left(f(x_t, t) - g^2(t) \nabla_x \log p(x_t)\right) dt + g(t) d\bar{\mathbf{w}}$$
 
-$$\bar{w}$$ is a reverse Wiener process.
+$$\bar{\mathbf{w}}$$ is a reverse Wiener process.
 
 This process can be solved using any SDE solver you like.
 
@@ -100,13 +100,15 @@ The forward process can be imagined a straight line going from data to noise whe
 
 ### 2.2 Reverse Process
 
-The reverse process follows the Langevin equation:
+$$d\mathbf{x_t} = -\left(\frac{d[\sigma(t)^2]}{dt} \nabla_{\mathbf{x}} \log p(\mathbf{x_t}) \right) dt + \sqrt{\frac{d[\sigma(t)^2]}{dt}} d\bar{\mathbf{w}}$$
+
+The reverse sampling follows the Langevin equation:
 
 $$x_{t+1} = x_t + \tau \nabla_x \log p(x_t) + \sqrt{2\tau} z$$
 
 where  $$z \sim N(0, I)$$ 
 
-Unfortunately, although the forward process is linear, the reverse process is stochastic, which makes score-matching sampling hard to hack.
+We can see from the sampling equation that although the forward process is linear, the reverse process is stochastic, which makes score-matching sampling hard to hack.
 
 ### 2.3 Target
 
