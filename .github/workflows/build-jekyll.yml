@@ -40,4 +40,4 @@ jobs:
           bundler_ver: ''            # Default is latest bundler version
           cname: ''                  # Default is to not use a cname
           actor: ''                  # Default is the GITHUB_ACTOR
-          pre_build_commands: pacman -S --noconfirm git-lfs libvips lcms2 openjpeg2 libpng libwebp libheif imagemagick openslide libjxl poppler-glib
+          pre_build_commands: pacman -S --noconfirm git-lfs libvips lcms2 openjpeg2 libpng libwebp libheif imagemagick openslide libjxl poppler-glib;git config --global http.version HTTP/1.1; git config --global http.postBuffer 524288000;
