@@ -54,9 +54,7 @@ $$x_t = \sqrt{\bar{\alpha_t}} x_{data} + \sqrt{1 - \bar{\alpha_t}} \varepsilon$$
 
 We can express this in the form of a SDE [$$^{\text{ref-Section D}}$$](https://arxiv.org/pdf/2210.02747) :
 
-$$dx_t = f(x_t, t) dt + g(t) dw = -\frac{1}{2} T'(t) x_t \;dt + \sqrt{T'(t)} dw$$
-
-where $$ T(t)=\int_0^1\beta(s)ds$$, $$t \in [0,  1]$$ .
+$$dx_t = f(x_t, t) dt + g(t) dw = -\frac{1}{2} \beta(t) x_t \;dt + \sqrt{\beta(t)} dw$$
 
 We can clearly see from the equation that DDPM forward process is a curve motion, where the magnitude and direction of velocity is time-dependent.
 

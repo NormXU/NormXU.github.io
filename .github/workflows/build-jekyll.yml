@@ -10,7 +10,11 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pages: write
+      id-token: write
+
     steps:
+      #  Checkout the repository with LFS enabled
       - uses: actions/checkout@v3
         with:
           lfs: 'true'
