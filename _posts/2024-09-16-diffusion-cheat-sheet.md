@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Cheat Sheet for Mathematical Diffusion"
-tags: ["Diffusion", "Math"]
+tags: ["Diffusion"]
 ---
 
 This is a cheat sheet of all denoising-based diffusion method. No mathmatica derivations are included. 
