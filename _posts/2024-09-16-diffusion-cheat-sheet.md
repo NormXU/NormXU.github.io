@@ -142,7 +142,7 @@ $$x_t = \sqrt{\bar{\alpha_t}} x_{data} - (1 - \bar{\alpha_t}) s_{\theta}$$  hold
 
 In flow matching, the forward process is:
 
-$$x_t = t x_{data} + (1 - t) \varepsilon = a_t x_{data} + b_t \varepsilon$$, where $$t \in [0, 1]$$
+$$x_t =  (1 - t) x_{data} + t \varepsilon = a_t x_{data} + b_t \varepsilon$$, where $$t \in [0, 1]$$
 
 Flow matching can be regarded as a uniform linear motion between data and noise.
 
@@ -150,9 +150,9 @@ Flow matching can be regarded as a uniform linear motion between data and noise.
 
 The reverse ODE is:
 
-$$\frac{dx_t}{dt} = x_{data} - \varepsilon = v_t(x)$$
+$$\frac{dx_t}{dt} = \varepsilon - x_{data} = v_t(x)$$
 
-You can solve this ODE using Euler's method.
+You can solve this ODE using Euler's method. An interesting fact is that the direction of the velocity in Rectified Flow is from noise to data; whereas in DDPM-v-pred, it is from data to noise.
 
 ### Target
 
