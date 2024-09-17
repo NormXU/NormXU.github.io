@@ -18,7 +18,7 @@ The forward process can be understood as an ODE:
 
 $$dx_{t} = f(x_t, t) \, dt$$
 
-If we add a random disturbance, the ODE is transformed into a SDE,
+If we add stochastic perturbation, the ODE is transformed into a SDE,
 
 $$dx_{t} = f(x_t, t) \, dt + g(t) \, dw$$
 
