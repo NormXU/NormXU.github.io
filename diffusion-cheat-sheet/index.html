@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Cheat Sheet for Mathematical Diffusion | まいどぅー</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Norm Inui">
+<meta name="generator" content="Jekyll v4.2.2">
+<link rel="canonical" href="/diffusion-cheat-sheet/">
+
+<link rel="stylesheet" href="/assets/css/frame.css">
+
+<link rel="alternate" href="/feed.xml" type="application/atom+xml" title="まいどぅー">
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script defer src="/assets/katex/katex.min.js"></script>
+<script defer src="/assets/katex/contrib/auto-render.min.js" onload="renderMathInElement(document.body)"></script>
+
+
+
+
+
+
+
+<header>
+  <a href="/" class="title">まいどぅー</a>
+  <nav><a href="/">Home</a><a href="/about/">Norm Inui(戌亥)</a></nav>
+
+</header>
+
+<article><script src="https://unpkg.com/vanilla-back-to-top@7.2.1/dist/vanilla-back-to-top.min.js"></script>
+<script>addBackToTop({
+  diameter: 56,
+  backgroundColor: 'rgb(255, 82, 82)',
+  textColor: '#fff'})
+</script><header>
+  <h1><a href="/diffusion-cheat-sheet/">Cheat Sheet for Mathematical Diffusion</a></h1>
+<time datetime="2024-09-16T00:00:00+00:00">September 16, 2024</time>
+</header>
+
+  <div class="entry">
+      <div id="markdown-content">
+          <p>This is a cheat sheet of all denoising-based diffusion method. No mathmatica derivations are included.</p>
+
+<p>Current denoising-based generation models consist of three main components:</p>
+
+<ol>
+  <li><strong>Forward Process</strong></li>
+  <li><strong>Reverse Process</strong></li>
+  <li><strong>Target</strong></li>
+</ol>
+
+<h4 id="forward-process">Forward Process</h4>
+
+<p>The forward process can be understood as an ODE:</p>
+
+\[dx_{t} = f(x_t, t) \, dt\]
+
+<p>If we add stochastic perturbation, the ODE is transformed into a SDE,</p>
+
+\[dx_{t} = f(x_t, t) \, dt + g(t) \, dw\]
+
+<p>Here, \(dw\) represents a <strong>Wiener process</strong>, where \(w_t \sim \mathcal{N}(0, t)\). Therefore, \(dw \sim \mathcal{N}(0, dt)\)</p>
+
+<p>This can be approximated as:</p>
+
+<p>\(dw = \sqrt{dt} \; \epsilon\) ,  where \(\epsilon \sim \mathcal{N}(\mu, \sigma^2)\)</p>
+
+<p>Different denoising methods define their own specific functions for \(f(x_t, t)\)  and  \(g(t)\)</p>
+
+<h4 id="reverse-process">Reverse Process</h4>
+
+<p>Once the forward process has added noise, the reverse process aims to denoise it and recover the original data distribution. A common equation is as:</p>
+
+\[x_{t + \Delta t} \sim \mathcal{N}(x_t + f(x_t, t) \Delta t, g^2(t)  \Delta t)\]
+
+<p>The reverse process expects to compute the posterior distribution \(p(x_t \| x_{t + \Delta t})\)</p>
+
+<hr>
+
+<h2 id="ddpm">DDPM</h2>
+
+<h3 id="11-forward-process">1.1 Forward Process</h3>
+
+<p>The forward process is given by:</p>
+
+\[x_t = \sqrt{1-\beta_t} x_{t-1} + \sqrt{\beta_t} \varepsilon\]
+
+<p>This can also be written as:</p>
+
+\[x_t = \sqrt{\bar{\alpha_t}} x_{data} + \sqrt{1 - \bar{\alpha_t}} \varepsilon\]
+
+<p>We can express this in the form of a SDE <a href="https://arxiv.org/pdf/2210.02747">\(^{\text{ref-Section D}}\)</a> :</p>
+
+\[dx_t = f(x_t, t) dt + g(t) dw = -\frac{1}{2} \beta(t) x_t \;dt + \sqrt{\beta(t)} dw\]
+
+<p>We can clearly see from the equation that DDPM forward process is a curve motion, where the magnitude and direction of velocity is time-dependent.</p>
+
+<h3 id="12-reverse-process">1.2 Reverse Process</h3>
+
+<p>The reverse process is expressed as:</p>
+
+\[dx_t = \left(f(x_t, t) - g^2(t) \nabla_x \log p(x_t)\right) dt + g(t) d\bar{\mathbf{w}}\]
+
+<p>\(\bar{\mathbf{w}}\) is a reverse Wiener process.</p>
+
+<p>This process can be solved using any SDE solver you like.</p>
+
+<h3 id="13-target">1.3 Target</h3>
+
+<ul>
+  <li>Predict Velocity</li>
+</ul>
+
+\[v := \sqrt{\bar{\alpha_t}} \epsilon - \sqrt{1-\bar{\alpha_t}} x_{data}\]
+
+<ul>
+  <li>Convert to Predicted Noise \(\epsilon_{pred}\) <a href="https://arxiv.org/pdf/2301.11093">\(^{\text{ref-Appendix A, page 12}}\)</a>; <a href="https://github.com/huggingface/diffusers/blob/6a89a6c93ae38927097f5181030e3ceb7de7f43d/src/diffusers/schedulers/scheduling_ddim.py#L416-L429">\(^{\text{diffusers impl}}\)</a>
+</li>
+</ul>
+
+\[\epsilon_{pred} = \sqrt{\bar{\alpha_t}} v_{pred} + \sqrt{1-\bar{\alpha_t}} x_t\]
+
+\[\bar{\alpha_t} \text{MSE}(v_{pred}, v) = \text{MSE}(\varepsilon_{pred}, \varepsilon)\]
+
+<ul>
+  <li>Convert to Predict \(x_{data}\)</li>
+</ul>
+
+\[\hat{x_0} = \sqrt{\bar{\alpha_t}} x_t - \sqrt{1-\bar{\alpha_t}} v_{pred}\]
+
+\[(1-\bar{\alpha_t}) \text{MSE}(v_{pred}, v) = \text{MSE}(x_{data}, x_{pred})\]
+
+<hr>
+
+<h2 id="score-matching">Score Matching</h2>
+
+<h3 id="21-forward-process">2.1 Forward Process</h3>
+
+<p>The forward process in score matching is:</p>
+
+\[x_t = x_{data} + \sigma_t \varepsilon\]
+
+<p>Here,  \(x_{data} \sim p_{data}(x)\) , where  \(p_{data}(x)\) represents the distribution of the training dataset. The noise variance decreases over time:</p>
+
+\[\sigma_1 &gt; \sigma_2 &gt; \sigma_3 &gt; \dots\]
+
+<p>This means the noise variance added to the data gradually decreases. The corresponding ODE is:</p>
+
+\[dx_t = \sqrt{\frac{d\sigma^2_t}{dt}} dw\]
+
+<p>The forward process can be imagined a straight line going from data to noise where the velocity (variance of noise) gradually decreases from large to small.</p>
+
+<h3 id="22-reverse-process">2.2 Reverse Process</h3>
+
+\[d\mathbf{x_t} = -\left(\frac{d[\sigma(t)^2]}{dt} \nabla_{\mathbf{x}} \log p(\mathbf{x_t}) \right) dt + \sqrt{\frac{d[\sigma(t)^2]}{dt}} d\bar{\mathbf{w}}\]
+
+<p>The reverse sampling follows the Langevin equation:</p>
+
+\[x_{t+1} = x_t + \tau \nabla_x \log p(x_t) + \sqrt{2\tau} z\]
+
+<p>where  \(z \sim N(0, I)\)</p>
+
+<p>We can see from the sampling equation that although the forward process is linear, the reverse process is stochastic, which makes score-matching sampling hard to hack.</p>
+
+<h3 id="23-target">2.3 Target</h3>
+
+<ul>
+  <li>Noise Conditional Score Matching <a href="https://arxiv.org/pdf/2403.18103">\(^{\text{Theorem 3.3}}\)</a>
+</li>
+</ul>
+
+\[J_{\text{NCSM}}(\theta, \sigma_i) = \sum_i^{L} \lambda_i \;\mathbb{E}_{p(\mathbf{x})} \left[ \frac{1}{2} \left\| s_\theta(x_{data} + \sigma_i \varepsilon) + \frac{\varepsilon}{\sigma_i} \right\|^2 \right]\]
+
+<p>Note this is the loss function when we use score matching forward process to add noise progressively.</p>
+
+<p>If we use DDPM noise scheduler, which means \(x_t = \sqrt{\bar{\alpha_t}} x_{data} + \sqrt{1 - \bar{\alpha_t}} \varepsilon\) holds true,</p>
+
+<p>Then, the score can be approximated by \(\varepsilon\)</p>
+
+\[\nabla_x \log p(x_t \|x_{data}) = -\frac{x_t-\sqrt{ \bar{ \alpha_t} } x_{data}}{1-\bar{\alpha_t}} = -\frac{\varepsilon}{\sqrt{1-\bar{\alpha_t}}}\]
+
+<p>We can claim that:</p>
+
+<p>\(x_t = \sqrt{\bar{\alpha_t}} x_{data} - (1 - \bar{\alpha_t}) s_{\theta}\)  holds true. \(s_{\theta}\) is the score predicted by neural network.</p>
+
+<hr>
+
+<h2 id="flow-matching">Flow Matching</h2>
+
+<h3 id="31-forward-process">3.1 Forward Process</h3>
+
+<p>In flow matching, the forward process is:</p>
+
+<p>\(x_t =  (1 - t) x_{data} + t \varepsilon = a_t x_{data} + b_t \varepsilon\), where \(t \in [0, 1]\)</p>
+
+<p>Flow matching can be regarded as a uniform linear motion between data and noise.</p>
+
+<h3 id="32-reverse-process">3.2 Reverse Process</h3>
+
+<p>The reverse ODE is:</p>
+
+\[\frac{dx_t}{dt} = \varepsilon - x_{data} = v_t(x)\]
+
+<p>You can solve this ODE using Euler’s method. An interesting fact is that the direction of the velocity in Rectified Flow is from noise to data; whereas in DDPM-v-pred, it is from data to noise.</p>
+
+<h3 id="target">Target</h3>
+
+<p>The objective function for flow matching <a href="https://arxiv.org/pdf/2403.03206">\(^{\text{ref-Section 2}}\)</a>;  <a href="https://arxiv.org/pdf/2210.02747">\(^{\text{ref-Theorem 3}}\)</a>  is:</p>
+
+\[\text{MSE}(v(x_{data}, t) - u(x_t| \varepsilon))\]
+
+<p>where \(u(x_t \| \varepsilon) = \frac{a'_t}{a_t} x_t - \frac{b_t}{2} \left(\log \frac{a^2_t}{b^2_t}\right)' \varepsilon\)</p>
+
+      </div>
+      <div id="table-of-contents">
+          
+      </div>
+      <div id="markdown-content">
+          
+      </div>
+  </div>
+  
+</article>
+
+
+
+<footer>
+  <div><b style="color: #f45;">All Generation Tasks are Denoising Tasks.</b></div>
+  <nav><a href="mailto:nxu8@outlook.com"><svg aria-label="Mail" class="icon"><use xlink:href="/assets/fontawesome/icons.svg#envelope"></use></svg></a><a href="https://github.com/NormXU"><svg aria-label="Github" class="icon"><use xlink:href="/assets/fontawesome/icons.svg#github"></use></svg></a></nav>
+
+</footer>
+
+
+</head>
+</html>
