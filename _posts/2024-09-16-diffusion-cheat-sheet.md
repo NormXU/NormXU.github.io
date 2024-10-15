@@ -34,7 +34,7 @@ Different denoising methods define their own specific functions for $$f(x_t, t)$
 
 ### Sampling
 
-With the noises added during the forward process, we train the model to reconstruct the distribution of the training data. Therefore, at the inference time, we can sample one image / video from the distribution. The sampling can be either deterministic or stochastic. A common equation is as:
+By adding noise during the forward process, we train the model to reconstruct the distribution of the training data. During inference, this allows us to sample an image or video from the learned distribution. The sampling can be either deterministic or stochastic. A common equation is as:
 
 $$x_{t + \Delta t} \sim \mathcal{N}(x_t + f(x_t, t) \Delta t, g^2(t)  \Delta t)$$
 
