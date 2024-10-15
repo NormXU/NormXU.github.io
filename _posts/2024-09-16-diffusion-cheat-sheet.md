@@ -4,15 +4,17 @@ title: "Cheat Sheet for Mathematical Diffusion"
 tags: ["Diffusion"]
 ---
 
-This is a cheat sheet of all denoising-based diffusion method. No mathmatica derivations are included. 
+This is a cheat sheet of all denoising-based diffusion method. No mathmatica derivations are included for concise. Check the reference links if you're interested in the derivations. 
+
+
 
 Current denoising-based generation models consist of three main components:
 
 1. **Forward Process**
-2. **Reverse Process**
-3. **Target**
+2. **Sampling**
+3. **Model Prediction**
 
-#### Forward Process
+### Forward Process
 
 The forward process can be understood as an ODE:
 
@@ -20,23 +22,29 @@ $$dx_{t} = f(x_t, t) \, dt$$
 
 If we add stochastic perturbation, the ODE is transformed into a SDE,
 
-$$dx_{t} = f(x_t, t) \, dt + g(t) \, dw$$
+$$dx_{t} = f(x_t, t) \, dt + g(t) \, d\mathbf{w}$$
 
-Here, $$dw$$ represents a **Wiener process**, where $$w_t \sim \mathcal{N}(0, t)$$. Therefore, $$dw \sim \mathcal{N}(0, dt)$$
+Here, $$d\mathbf{w}$$ represents a **Wiener process**, where $$\mathbf{w_t} \sim \mathcal{N}(0, t)$$. Therefore, $$d\mathbf{w} \sim \mathcal{N}(0, dt)$$
 
 This can be approximated as:
 
-$$dw = \sqrt{dt} \; \epsilon$$ ,  where $$ \epsilon \sim \mathcal{N}(\mu, \sigma^2)$$
+$$d\mathbf{w} = \sqrt{dt} \; \epsilon$$ ,  where $$ \epsilon \sim \mathcal{N}(\mu, \sigma^2)$$
 
 Different denoising methods define their own specific functions for $$f(x_t, t)$$  and  $$g(t)$$
 
-#### Reverse Process
+### Sampling
 
-Once the forward process has added noise, the reverse process aims to denoise it and recover the original data distribution. A common equation is as:
+With the noises added during the forward process, we train the model to reconstruct the distribution of the training data. Therefore, at the inference time, we can sample one image / video from the distribution. The sampling can be either deterministic or stochastic. A common equation is as:
 
 $$x_{t + \Delta t} \sim \mathcal{N}(x_t + f(x_t, t) \Delta t, g^2(t)  \Delta t)$$
 
 The reverse process expects to compute the posterior distribution $$p(x_t \| x_{t + \Delta t})$$
+
+### Model Prediction
+
+Which objects to learn. It can be score function, velocity, initial data and noises.
+
+
 
 ---
 
@@ -54,11 +62,11 @@ $$x_t = \sqrt{\bar{\alpha_t}} x_{data} + \sqrt{1 - \bar{\alpha_t}} \varepsilon$$
 
 We can express this in the form of a SDE [$$^{\text{ref-Section D}}$$](https://arxiv.org/pdf/2210.02747) :
 
-$$dx_t = f(x_t, t) dt + g(t) dw = -\frac{1}{2} \beta(t) x_t \;dt + \sqrt{\beta(t)} dw$$
+$$dx_t = f(x_t, t) dt + g(t) d\mathbf{w} = -\frac{1}{2} \beta(t) x_t \;dt + \sqrt{\beta(t)} d\mathbf{w}$$
 
 We can clearly see from the equation that DDPM forward process is a curve motion, where the magnitude and direction of velocity is time-dependent.
 
-### 1.2 Reverse Process
+### 1.2 Sampling
 
 The reverse process is expressed as:
 
@@ -68,7 +76,7 @@ $$\bar{\mathbf{w}}$$ is a reverse Wiener process.
 
 This process can be solved using any SDE solver you like.
 
-### 1.3 Target
+### 1.3 Model Prediction
 
 - Predict Velocity
 
@@ -102,11 +110,11 @@ $$\sigma_1 > \sigma_2 > \sigma_3 > \dots$$
 
 This means the noise variance added to the data gradually decreases. The corresponding ODE is:
 
-$$dx_t = \sqrt{\frac{d\sigma^2_t}{dt}} dw$$
+$$dx_t = \sqrt{\frac{d\sigma^2_t}{dt}} d\bar{\mathbf{w}}$$
 
 The forward process can be imagined a straight line going from data to noise where the velocity (variance of noise) gradually decreases from large to small.
 
-### 2.2 Reverse Process
+### 2.2 Sampling
 
 $$d\mathbf{x_t} = -\left(\frac{d[\sigma(t)^2]}{dt} \nabla_{\mathbf{x}} \log p(\mathbf{x_t}) \right) dt + \sqrt{\frac{d[\sigma(t)^2]}{dt}} d\bar{\mathbf{w}}$$
 
@@ -118,7 +126,7 @@ where  $$z \sim N(0, I)$$
 
 We can see from the sampling equation that although the forward process is linear, the reverse process is stochastic, which makes score-matching sampling hard to hack.
 
-### 2.3 Target
+### 2.3 Model Prediction
 
 - Noise Conditional Score Matching [$$^{\text{Theorem 3.3}}$$](https://arxiv.org/pdf/2403.18103)
 
@@ -148,7 +156,7 @@ $$x_t =  (1 - t) x_{data} + t \varepsilon = a_t x_{data} + b_t \varepsilon$$, wh
 
 Flow matching can be regarded as a uniform linear motion between data and noise.
 
-### 3.2 Reverse Process
+### 3.2 Sampling
 
 The reverse ODE is:
 
@@ -156,7 +164,7 @@ $$\frac{dx_t}{dt} = \varepsilon - x_{data} = v_t(x)$$
 
 You can solve this ODE using Euler's method. An interesting fact is that the direction of the velocity in Rectified Flow is from noise to data; whereas in DDPM-v-pred, it is from data to noise.
 
-### Target
+### 3.3 Model Prediction
 
 The objective function for flow matching [$$^{\text{ref-Section 2}}$$](https://arxiv.org/pdf/2403.03206);  [$$^{\text{ref-Theorem 3}}$$](https://arxiv.org/pdf/2210.02747)  is:
 
