@@ -52,7 +52,7 @@ Interestingly, this equation lets us denoise without needing to directly solve f
 
 A common question is: **Why isn't there a forward PFODE process?**
 
-The answer is simple. PFODE is designed for sampling, not for the forward process. Since PFODE is a fully deterministic process, it cannot model a data distribution without incorporating noise. Our objective is to model the distribution of data, and noise injection is essential for this. Because PFODE cannot introduce stochasticity into the forward process, the neural network is unable to learn any distribution from it.
+The answer is simple. PFODE is designed for sampling, not for the forward process. Since PFODE is a fully deterministic process, it cannot model a data distribution without injecting noise. Our objective is to model the distribution of data, and noise injection is essential for this. Because PFODE cannot introduce stochasticity into the forward process, the neural network is unable to learn any distribution from it.
 
 In practice, instead of explicitly computing the score function $$ \nabla_{x_t} \log p_t(x_t) $$, we approximate it with a neural network $$D_\theta$$. 
 
