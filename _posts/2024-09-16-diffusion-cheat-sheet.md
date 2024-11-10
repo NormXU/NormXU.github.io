@@ -47,7 +47,7 @@ The score function $$ D_\theta \left( \frac{\mathbf{x}_t}{s(t)} ; \sigma \right)
 - **Reverse Process**: The reverse process, however, is probabilistic and requires the use of a **neural network** to predict how the noisy image should be transformed back towards the clean image. 
 
 
-In the case of **DDPM**, the forward process shows as below::
+In the case of **DDPM**, the forward process shows as below:
 
 $$ D_\theta (\mathbf{x}_t; \sigma(t)) \approx \frac{\mathbf{x}_t - \sqrt{1 - \bar{\alpha}_t} \, \varepsilon}{\sqrt{\bar{\alpha}_t}} \approx \frac{1}{\sqrt{\bar{\alpha}_t}} \mathbf{x}_t - \frac{\sqrt{1 - \bar{\alpha}_t}}{\sqrt{\bar{\alpha}_t}} \, \varepsilon_\theta (\mathbf{x}_t, t) $$
 
@@ -73,6 +73,7 @@ This equation introduces several new terms, each playing a key role in aligning 
 - **What is $$ C_{\text{in}}(\sigma) $$?**  
   The term $$ C_{\text{in}}(\sigma) $$ scales the input image before it passes through the neural network. In the case of **DDPM** and **Flow Matching**, the input images at different time steps $$ t $$ have ranges from $$[-s(t), s(t)]$$. These terms ensure that the input is correctly scaled before passing into the model’s score network, where $$ s(t) $$ may change depending on the chosen process (e.g., DDPM's $$ s(t) = \sqrt{\bar{\alpha}_t} $$ or FM's $$ s(t) = t $$).
 
+Now, we have a general PFODE equation that models the forward process. After training a neural network to approximate $$D_\theta (\mathbf{x}_t; \sigma(t))$$, we can sample from noise by simply solving the ODE.
 
 To accurately sample from the distribution, we use **2nd-order Heun's method** rather than the simpler Euler method (1st-order). Heun’s method reduces sampling error by averaging the initial and predicted values of the function, providing a more stable path for denoising:
 
