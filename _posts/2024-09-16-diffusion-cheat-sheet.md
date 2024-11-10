@@ -18,29 +18,44 @@ $$p(x_t | x_0) = \mathcal{N}(x_t; s(t)x_0, \sigma^2(t) s^2(t) \mathbf{I})$$
 
 This equation describes how noise is gradually added to an image, represented as  $$x_0$$, over time steps $$t$$. The two functions, $$s(t)$$ and $$\sigma(t)$$, control the scale and variance of the noise, determining the trajectory of noise addition as $$x_t$$ moves further from the original image.
 
-## General Reverse Processs
+### General Reverse Processs
 
-The equation above can be written  into a **Stochastic Differential Equation (SDE)** format defined as:
+The equation above can be written into a **Stochastic Differential Equation (SDE)** format defined as:
 
 $$ dx_t = f(x_t, t) \, dt + g(t) \, d\mathbf{w} $$
+
+This is the Forward Process written in SDE format.
 
 Here, $$s(t) = e^{\int_{0}^{t} f(r) \, dr}$$ and $$\sigma^2(t) = \int_{0}^{t} \frac{g^2(r)}{s^2(r)} \, dr$$
 
 $$d\mathbf{w}$$ represents a **Wiener process**, where $$\mathbf{w_t} \sim \mathcal{N}(0, t)$$; $$d\mathbf{w} = \sqrt{dt} \; \epsilon$$ , where $$ \epsilon \sim \mathcal{N}(\mu, \sigma^2)$$
 
-EDM simply suppose $$s(t) = 1, ; \sigma(t) = t$$.
+Different methods define their own specific functions for $$f(x_t, t)$$ and $$g(t)$$. For example, in diffusion models like **DDPM** and **SMLD** (Score Matching with Langevin Dynamics), $$f(x_t, t)$$ is typically a linear function, $$f(x_t, t) = f(t)x_t$$, where $$f(t)$$ is a time-dependent term that modulates the trajectory of the image's transformation over time.  EDM simply set $$s(t) = 1, ; \sigma(t) = t$$.
 
-Different methods define their own specific functions for $$f(x_t, t)$$ and $$g(t)$$. For example, in diffusion models like **DDPM** and **SMLD** (Score Matching with Langevin Dynamics), $$f(x_t, t)$$ is typically a linear function, $$f(x_t, t) = f(t)x_t$$, where $$f(t)$$ is a time-dependent term that modulates the trajectory of the image's transformation over time. 
+Now we have a forward SDE to corrupt a data into noise. To reverse such as process, we have two choices:
 
-Using the **Fokker-Planck equation**, we can then transform this SDE into an **Ordinary Differential Equation (ODE)**, called the **Probability Flow ODE** **(PFPDE)**:
+```python
+flowchart LR
+    x_data -->|Forward SDE| --> x_noise
+    x_noise -->|Reverse SDE| --> x_data
+    x_noise -->|PFODE| --> x_data
+```
 
-Remeber, this is a deterministic process:
+- Using the **Fokker-Planck equation**, we transform the forward SDE into a reverse SDE.
+
+We skip this part for now.
+
+- Using the **Fokker-Planck equation**, we transform the forward SDE into an **Ordinary Differential Equation (ODE)**, called the **Probability Flow ODE** **(PFPDE)**:
+
+Remeber, PFPDE is a deterministic process:
 
 $$d\mathbf{x}_t = \left[ f(t) x_t - \frac{1}{2} g^2(t) \nabla_{x_t} \log p_t(x_t) \right] \, dt$$
 
 Interestingly, this equation lets us denoise without needing to directly solve for $$f(t)$$ and $$g(t)$$. By knowing only $$s(t)$$ and $$\sigma(t)$$, we can effectively denoise and sample high-quality images. 
 
-An important point to note is that PFODE can only be used for sampling, not for the forward process. Since PFODE is a fully deterministic process, and our objective is to model a data distribution, therefore a noise injection is essential.
+A common question is: Why there isn't a forward PFODE process?
+
+The answer is quite straightforward. PFODE can only be used for sampling, not for the forward process. Since PFODE is a fully deterministic process, and our objective is to model a data distribution, therefore a noise injection is essential.
 
 In practice, instead of explicitly computing the score function $$ \nabla_{x_t} \log p_t(x_t) $$, we approximate it with a neural network $$D_\theta$$. 
 
@@ -49,8 +64,6 @@ $$ \mathrm{d} \mathbf{x}_t = \left[ \left( \frac{\dot{s}(t)}{s(t)} + \frac{\dot{
 The score function can also be derived from a neural network prediction:
 
 $$\nabla_{\mathbf{x}} \log p(\mathbf{x}; \sigma) = \frac{D_{\theta}(\mathbf{x}; \sigma) - \mathbf{x}}{\sigma^2}$$
-
-
 
 Now, we have a general PFODE equation that models the forward process. After training a neural network to approximate $$D_\theta (\mathbf{x}_t; \sigma(t))$$, we can sample from noise by simply solving the ODE.
 
@@ -101,12 +114,6 @@ Since EDM framework supposes that $$s(t) = 1, ; \sigma(t) = t$$ and defining $$\
 $$ \sigma_{i < N} = \left( \sigma_{\text{max}}^{\frac{1}{\rho}} + \frac{i}{N-1} \left( \sigma_{\text{min}}^{\frac{1}{\rho}} - \sigma_{\text{max}}^{\frac{1}{\rho}} \right) \right)^{\rho} \quad \text{and} \quad \sigma_N = 0 $$
 
 With this, the model can handle generation tasks while being independent of the complexities of $$f(t)$$ and $$g(t)$$, focusing only on $$s(t)$$ and $$\sigma(t)$$.
-
-
-
-
-
-
 
 ---
 
