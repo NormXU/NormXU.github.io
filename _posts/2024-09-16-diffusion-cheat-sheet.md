@@ -78,25 +78,21 @@ However, since Heun’s method requires knowing both $$f(x_t, t)$$ and $$f(x_{t 
 
 ### General Model Design
 
-The score function $$ D_\theta \left( \frac{\mathbf{x}_t}{s(t)} ; \sigma \right) $$ has both a **forward** and a **reverse process**.
+The score function $$ D_\theta \left( \frac{\mathbf{x}_t}{s(t)} ; \sigma \right) $$ is to predict how the noisy image should be transformed back towards the clean image. 
 
-- **Forward Process**: The forward process is deterministic and generally involves adding noise to the image data over time. This process is usually designed with a known noise schedule and is entirely predictable based on the given parameters $$ s(t) $$ and $$ \sigma(t) $$.
-
-- **Reverse Process**: The reverse process, however, is probabilistic and requires the use of a **neural network** to predict how the noisy image should be transformed back towards the clean image. 
-
-In the case of **DDPM**, the forward process shows as below:
+In the case of **DDPM**:
 
 $$ D_\theta (\mathbf{x}_t; \sigma(t)) \approx \frac{\mathbf{x}_t - \sqrt{1 - \bar{\alpha}_t} \, \varepsilon}{\sqrt{\bar{\alpha}_t}} \approx \frac{1}{\sqrt{\bar{\alpha}_t}} \mathbf{x}_t - \frac{\sqrt{1 - \bar{\alpha}_t}}{\sqrt{\bar{\alpha}_t}} \, \varepsilon_\theta (\mathbf{x}_t, t) $$
 
-In **Score Matching**, the forward process shows as below:
+In **Score Matching**:
 
 $$ D_\theta (\mathbf{x}; \sigma) \approx \mathbf{x} + \sigma^2 s_\theta (\mathbf{x}; \sigma)$$
 
-In Flow Matching, the forward process shows as below:
+In Flow Matching:
 
 $$ D_\theta (\mathbf{x}_t; \sigma(t)) \approx \mathbf{x}_t + (1 - t) v_\theta (\mathbf{x}_t, t)$$
 
-Although DDPM, Score Matching, and Flow Matching have different formulations, they can be unified into one general equation:
+Although DDPM, Score Matching, and Flow Matching have different formulations, their forward process can be unified into one general equation:
 
 $$ D_\theta (\hat{\mathbf{x}}; \sigma) = C_{\text{skip}}(\sigma) \, \hat{\mathbf{x}} + C_{\text{out}}(\sigma) F_\theta \left( C_{\text{in}}(\sigma) \, \hat{\mathbf{x}}; C_{\text{noise}}(\sigma) \right)$$
 
