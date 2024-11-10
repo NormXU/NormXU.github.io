@@ -40,7 +40,7 @@ Now we have a forward SDE to corrupt a data into noise. To reverse such as proce
 
 - Using the **Fokker-Planck equation**, we transform the forward SDE into a reverse SDE.
 
-We skip this part for now.
+We skip this part for now as I don't quite use a Reverse-SDE-based sampler for inference. It’s kind of tricky to find a stable set of hyperparameters for online inference.
 
 - Or, we use the **Fokker-Planck equation** to transform the forward SDE into an **Ordinary Differential Equation (ODE)**, called the **Probability Flow ODE** **(PFPDE)**:
 
