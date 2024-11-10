@@ -10,11 +10,15 @@ This is a cheat sheet of all denoising-based diffusion method. No mathematics de
 
 ## A Unified Perspective
 
+### General Forward Processs
+
 Noise-adding Process is also known as forward process. The general form of this Forward Process is:
 
 $$p(x_t | x_0) = \mathcal{N}(x_t; s(t)x_0, \sigma^2(t) s^2(t) \mathbf{I})$$
 
 This equation describes how noise is gradually added to an image, represented as  $$x_0$$, over time steps $$t$$. The two functions, $$s(t)$$ and $$\sigma(t)$$, control the scale and variance of the noise, determining the trajectory of noise addition as $$x_t$$ moves further from the original image.
+
+## General Reverse Processs
 
 The equation above can be written  into a **Stochastic Differential Equation (SDE)** format defined as:
 
@@ -23,6 +27,8 @@ $$ dx_t = f(x_t, t) \, dt + g(t) \, d\mathbf{w} $$
 Here, $$s(t) = e^{\int_{0}^{t} f(r) \, dr}$$ and $$\sigma^2(t) = \int_{0}^{t} \frac{g^2(r)}{s^2(r)} \, dr$$
 
 $$d\mathbf{w}$$ represents a **Wiener process**, where $$\mathbf{w_t} \sim \mathcal{N}(0, t)$$; $$d\mathbf{w} = \sqrt{dt} \; \epsilon$$ , where $$ \epsilon \sim \mathcal{N}(\mu, \sigma^2)$$
+
+EDM simply suppose $$s(t) = 1, ; \sigma(t) = t$$.
 
 Different methods define their own specific functions for $$f(x_t, t)$$ and $$g(t)$$. For example, in diffusion models like **DDPM** and **SMLD** (Score Matching with Langevin Dynamics), $$f(x_t, t)$$ is typically a linear function, $$f(x_t, t) = f(t)x_t$$, where $$f(t)$$ is a time-dependent term that modulates the trajectory of the image's transformation over time. 
 
@@ -44,7 +50,17 @@ The score function can also be derived from a neural network prediction:
 
 $$\nabla_{\mathbf{x}} \log p(\mathbf{x}; \sigma) = \frac{D_{\theta}(\mathbf{x}; \sigma) - \mathbf{x}}{\sigma^2}$$
 
-### Forward and Reverse Processes
+
+
+Now, we have a general PFODE equation that models the forward process. After training a neural network to approximate $$D_\theta (\mathbf{x}_t; \sigma(t))$$, we can sample from noise by simply solving the ODE.
+
+To accurately sample from the distribution, we use **2nd-order Heun's method** rather than the simpler Euler method (1st-order). Heun’s method reduces sampling error by averaging the initial and predicted values of the function, providing a more stable path for denoising:
+
+$$ x_{t + \Delta t} = x_t + \frac{1}{2} (f(x_t, t) + f(x_{t + \Delta t}, t + \Delta t)) \Delta t $$
+
+However, since Heun’s method requires knowing both $$f(x_t, t)$$ and $$f(x_{t + \Delta t}, t + \Delta t)$$, we still use an **Euler step** to make an initial estimate before applying Heun’s correction.
+
+### General Model Design
 
 The score function $$ D_\theta \left( \frac{\mathbf{x}_t}{s(t)} ; \sigma \right) $$ has both a **forward** and a **reverse process**.
 
@@ -76,19 +92,21 @@ This equation introduces several new terms, each playing a key role in aligning 
 - **What is $$ C_{\text{in}}(\sigma) $$?**  
   The term $$ C_{\text{in}}(\sigma) $$ scales the input image before it passes through the neural network. In the case of **DDPM** and **Flow Matching**, the input images at different time steps $$ t $$ have ranges from $$[-s(t), s(t)]$$. These terms ensure that the input is correctly scaled before passing into the model’s score network, where $$ s(t) $$ may change depending on the chosen process (e.g., DDPM's $$ s(t) = \sqrt{\bar{\alpha}_t} $$ or FM's $$ s(t) = t $$).
 
-Now, we have a general PFODE equation that models the forward process. After training a neural network to approximate $$D_\theta (\mathbf{x}_t; \sigma(t))$$, we can sample from noise by simply solving the ODE.
+- **$$ F_{\theta}() $$
+  
+  The neural network can be a U-Net or a DiT. The proxy target can be predicting noise, $$x_0$$ or velocity
 
-To accurately sample from the distribution, we use **2nd-order Heun's method** rather than the simpler Euler method (1st-order). Heun’s method reduces sampling error by averaging the initial and predicted values of the function, providing a more stable path for denoising:
+Since EDM framework supposes that $$s(t) = 1, ; \sigma(t) = t$$ and defining $$\sigma$$ based on a fixed schedule, we can achieve precise control over noise levels across different steps. A typical noise schedule could be:
 
-$$ x_{t + \Delta t} = x_t + \frac{1}{2} (f(x_t, t) + f(x_{t + \Delta t}, t + \Delta t)) \Delta t $$
+$$ \sigma_{i < N} = \left( \sigma_{\text{max}}^{\frac{1}{\rho}} + \frac{i}{N-1} \left( \sigma_{\text{min}}^{\frac{1}{\rho}} - \sigma_{\text{max}}^{\frac{1}{\rho}} \right) \right)^{\rho} \quad \text{and} \quad \sigma_N = 0 $$
 
-However, since Heun’s method requires knowing both $$f(x_t, t)$$ and $$f(x_{t + \Delta t}, t + \Delta t)$$, we still use an **Euler step** to make an initial estimate before applying Heun’s correction.
+With this, the model can handle generation tasks while being independent of the complexities of $$f(t)$$ and $$g(t)$$, focusing only on $$s(t)$$ and $$\sigma(t)$$.
 
-EDM frameworkd suppose that $$s(t) = 1, \; \sigma(t) = t$$ and defining $$\sigma$$ based on a fixed schedule so that we can achieve precise control over noise levels across different steps. A typical noise schedule could be:
 
-$$ \sigma_{i < N} = \left( \sigma_{\text{max}}^{\frac{1}{\rho}} + \frac{i}{N-1} \left( \sigma_{\text{min}}^{\frac{1}{\rho}} - \sigma_{\text{max}}^{\frac{1}{\rho}} \right) \right)^{\rho} \quad \text{and} \quad \sigma_N = 0  $$
 
-With this, the model can handle generation tasks while being independent of the complexities of $$f(t)$$ and $$g(t)$$, focusing only on $$s(t)$$ and $$\sigma(t)$$. 
+
+
+
 
 ---
 
