@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Cheat Sheet for Mathematical Diffusion"
+title: "A Unified Perspective of Mathematical Diffusion"
 tags: ["Diffusion"]
 ---
 
@@ -10,7 +10,7 @@ This is a cheat sheet of all denoising-based diffusion method. No mathematics de
 
 ## A Unified Perspective
 
-### General Forward Processs
+### General Forward Process
 
 Noise-adding Process is also known as forward process. The general form of this Forward Process is:
 
@@ -18,7 +18,7 @@ $$p(x_t | x_0) = \mathcal{N}(x_t; s(t)x_0, \sigma^2(t) s^2(t) \mathbf{I})$$
 
 This equation describes how noise is gradually added to an image, represented as  $$x_0$$, over time steps $$t$$. The two functions, $$s(t)$$ and $$\sigma(t)$$, control the scale and variance of the noise, determining the trajectory of noise addition as $$x_t$$ moves further from the original image.
 
-### General Reverse Processs
+### General Reverse Process
 
 The Forward Process equation above can be written into a **Stochastic Differential Equation (SDE)** format as:
 
