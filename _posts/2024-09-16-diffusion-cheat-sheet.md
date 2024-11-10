@@ -99,13 +99,13 @@ $$ D_\theta (\hat{\mathbf{x}}; \sigma) = C_{\text{skip}}(\sigma) \, \hat{\mathbf
 
 This equation introduces several new terms, each playing a key role in aligning the three approaches. Let’s break these down:
 
-- **What is $$ \hat{\mathbf{x}} $$?**  
+- **What is $$ \hat{\mathbf{x}} $$**?  
   To unify the input pixel range across the models, we convert the image from the noisy range $$[-s(t), s(t)]$$ to a normalized range of \([-1, 1]\). The term $$ \hat{\mathbf{x}} $$ represents this normalized version of the input image, making it easier to handle across different processes. Given the noise schedule, any image $$ \mathbf{x} = s(t) \hat{\mathbf{x}} $$ will have its pixel range scaled to $$[-s(t), s(t)]$$, and thus $$ \hat{\mathbf{x}} $$ allows us to operate within a consistent range for training.
 
 - **What is $$ C_{\text{in}}(\sigma) $$?**  
   The term $$ C_{\text{in}}(\sigma) $$ scales the input image before it passes through the neural network. In the case of **DDPM** and **Flow Matching**, the input images at different time steps $$ t $$ have ranges from $$[-s(t), s(t)]$$. These terms ensure that the input is correctly scaled before passing into the model’s score network, where $$ s(t) $$ may change depending on the chosen process (e.g., DDPM's $$ s(t) = \sqrt{\bar{\alpha}_t} $$ or FM's $$ s(t) = t $$).
 
-- **$$ F_{\theta}() $$
+- **What is $$ F_{\theta}() $$?**
   
   The neural network can be a U-Net or a DiT. The proxy target can be predicting noise, $$x_0$$ or velocity
 
