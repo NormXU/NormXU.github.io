@@ -47,15 +47,15 @@ We skip this part for now.
 
 - Using the **Fokker-Planck equation**, we transform the forward SDE into an **Ordinary Differential Equation (ODE)**, called the **Probability Flow ODE** **(PFPDE)**:
 
-Remeber, PFPDE is a deterministic process:
+Remember, PFPDE is a deterministic process:
 
 $$d\mathbf{x}_t = \left[ f(t) x_t - \frac{1}{2} g^2(t) \nabla_{x_t} \log p_t(x_t) \right] \, dt$$
 
 Interestingly, this equation lets us denoise without needing to directly solve for $$f(t)$$ and $$g(t)$$. By knowing only $$s(t)$$ and $$\sigma(t)$$, we can effectively denoise and sample high-quality images. 
 
-A common question is: Why there isn't a forward PFODE process?
+A common question is: Why isn't there a forward PFODE process?
 
-The answer is quite straightforward. PFODE can only be used for sampling, not for the forward process. Since PFODE is a fully deterministic process, and our objective is to model a data distribution, therefore a noise injection is essential.
+The answer is simple. PFODE is designed for sampling, not for the forward process. Since PFODE is a fully deterministic process, it cannot model a data distribution without incorporating noise. Our objective is to model the distribution of data, and noise injection is essential for this. Because PFODE cannot introduce stochasticity into the forward process, the neural network is unable to learn any distribution from it.
 
 In practice, instead of explicitly computing the score function $$ \nabla_{x_t} \log p_t(x_t) $$, we approximate it with a neural network $$D_\theta$$. 
 
