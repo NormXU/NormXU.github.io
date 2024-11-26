@@ -35,13 +35,13 @@ layout: page
 
 Hello! There! 👋🏻
 
-This is Norm Inui. I'm currently working on developing a multimodal model at a startup. My deep learning interests cover various domains, including:
+This is Norm Inui. I'm currently working on developing a video model at a startup, MoonShot AI. My deep learning interests cover various domains, including:
 
 - ~~Very-Rich Document Understanding~~
 - ~~Optical Character Recognition~~
 - ~~Object Detection~~
 - Large Language Models
-- Stable Diffusion
+- Video Generation
 
 I can speak English, Japanese, and Chinese. My preferred holiday destination is Kyoto, Japan. 
 
