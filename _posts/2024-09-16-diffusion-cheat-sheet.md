@@ -38,15 +38,38 @@ Now we have a forward SDE to corrupt a data into noise. To reverse such as proce
     x_noise -->|PFODE| --> x_data
 ```
 
-- Using the **Fokker-Planck equation**, we transform the forward SDE into a reverse SDE.
+Using the **Fokker-Planck equation**, we can transform the forward SDE as:
 
-We skip this part for now as I don't quite use a Reverse-SDE-based sampler for inference. It’s kind of tricky to find a stable set of hyperparameters for online inference.
+$$dx = \left(\frac{1}{2}g^{2}(t) - \dot{\sigma}(t)\sigma(t)\right) \nabla_x \log p(x;\sigma(t)) dt + g(t) dw_t$$
 
-- Or, we use the **Fokker-Planck equation** to transform the forward SDE into an **Ordinary Differential Equation (ODE)**, called the **Probability Flow ODE** **(PFPDE)**:
+1.when $$g(t) = \sqrt{2\beta(t)} \sigma(t)$$
 
-Remember, PFPDE is a deterministic process:
+$$dx_{\pm}=-\dot{\sigma}(t)\sigma(t)\nabla_{x}\log p(x;\sigma(t))dt\pm\beta(t)\sigma^{2}(t)\nabla_{x}\log p(x;\sigma(t))dt+\sqrt{2\beta(t)}\sigma(t)dw_{t}$$
 
-$$d\mathbf{x}_t = \left[ f(t) x_t - \frac{1}{2} g^2(t) \nabla_{x_t} \log p_t(x_t) \right] \, dt$$
+the $$+$$ here means forward process; the $$-$$ here means reverse process.
+
+The equation consists of three key parts:
+
+- **Deterministic Process**: $$-\dot{\sigma}(t)\sigma(t)\nabla_{x}\log p(x;\sigma(t)) dt$$ represents a deterministic process. This term is also present in the formulation of the PFODE.
+
+- **Deterministic Noise Decay**: $$\pm\beta(t)\sigma^{2}(t)\nabla_{x}\log p(x;\sigma(t)) dt$$
+  corresponds to the deterministic decay of noise. Here, $$\beta(t)$$ controls the rate at which noise is reduced over time.
+
+- **Stochastic Noise Injection**: $$\sqrt{2\beta(t)}\sigma(t) dw_{t}$$
+  represents the stochastic part of the equation—noise injection. This term introduces randomness into the system, modeled by the Wiener process $$dw_{t}$$.
+
+The second term can be interpreted as denoising, where noise is systematically removed from the process. The third term, on the other hand, adds noise back into the system. Thus, the equation can be viewed as a process where, for each deterministic ODE, we first perform denoising and then reintroduce random noise. The relative speed at which denoising and noise addition occur is governed by $$\beta(t)$$.
+
+In conclusion,
+
+$$dx_{\pm}=-\underbrace{\dot{\sigma}(t)\sigma(t)\nabla_{x}\log p(x;\sigma(t))dt}_{\text{PFODE}}
+\underbrace{\pm\underbrace{\beta(t)\sigma^{2}(t)\nabla_{x}\log p(x;\sigma(t))dt}_{\text{deterministic noise decay}}+\underbrace{\sqrt{2\beta(t)}\sigma(t)dw_{t}}_{\text{noise injection}}}_{\text{Langevin diffusion SDE}}$$
+
+2.when $$g(t)=0$$, the SDE becomes an **Ordinary Differential Equation (ODE)**, called the **Probability Flow ODE** **(PFODE)**:
+
+Remember, PFODE is a deterministic process:
+
+$$d\mathbf{x}_t = -\dot{\sigma}(t)\sigma(t)\nabla_{x}\log p(x;\sigma(t)) dt$$
 
 Interestingly, this equation lets us denoise without needing to directly solve for $$f(t)$$ and $$g(t)$$. By knowing only $$s(t)$$ and $$\sigma(t)$$, we can effectively denoise and sample high-quality images. 
 
@@ -67,8 +90,6 @@ Now, we have a general PFODE equation that models the reverse process. After tra
 During reverse process, the noise schedule could also influence the sampling quality. An emperical noise scheduler equation is as below:
 
 $$ \sigma_{i < N} = \left( \sigma_{\text{max}}^{\frac{1}{\rho}} + \frac{i}{N-1} \left( \sigma_{\text{min}}^{\frac{1}{\rho}} - \sigma_{\text{max}}^{\frac{1}{\rho}} \right) \right)^{\rho} \quad \text{and} \quad \sigma_N = 0 $$
-
-
 
 Finally, to accurately sample from the distribution, we use **2nd-order Heun's method** rather than the simpler Euler method (1st-order). Heun’s method reduces sampling error by averaging the initial and predicted values of the function, providing a more stable path for denoising:
 
@@ -107,8 +128,6 @@ This equation introduces several new terms, each playing a key role in aligning 
 - **What is $$ F_{\theta}() $$?**
   
   The neural network can be a U-Net or a DiT. The proxy target can be predicting noise, $$x_0$$ or velocity
-
-
 
 ---
 
