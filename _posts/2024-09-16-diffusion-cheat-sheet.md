@@ -56,7 +56,7 @@ The equation consists of three key parts:
   corresponds to the deterministic decay of noise. Here, $$\beta(t)$$ controls the rate at which noise is reduced over time.
 
 - **Stochastic Noise Injection**: $$\sqrt{2\beta(t)}\sigma(t) dw_{t}$$
-  represents the stochastic part of the equation—noise injection. This term introduces randomness into the system, modeled by the Wiener process $$dw_{t}$$.
+  represents the noise injection. This term introduces randomness into the system, modeled by the Wiener process $$dw_{t}$$.
 
 The second term can be interpreted as denoising, where noise is systematically removed from the process. The third term, on the other hand, adds noise back into the system. Thus, the equation can be viewed as a process where, for each deterministic ODE, we first perform denoising and then reintroduce random noise. The relative speed at which denoising and noise addition occur is governed by $$\beta(t)$$.
 
