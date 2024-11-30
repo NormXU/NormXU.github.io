@@ -46,7 +46,7 @@ $$dx = \left(\frac{1}{2}g^{2}(t) - \dot{\sigma}(t)\sigma(t)\right) \nabla_x \log
 
 $$dx_{\pm}=-\dot{\sigma}(t)\sigma(t)\nabla_{x}\log p(x;\sigma(t))dt\pm\beta(t)\sigma^{2}(t)\nabla_{x}\log p(x;\sigma(t))dt+\sqrt{2\beta(t)}\sigma(t)dw_{t}$$
 
-the $$+$$ here means forward process; the $$-$$ here means reverse process.
+the $$dx_+$$ here means forward process; the $$dx_-$$ here means reverse process.
 
 The equation consists of three key parts:
 
