@@ -133,47 +133,85 @@ This equation introduces several new terms, each playing a key role in aligning 
 
 ## DDPM
 
+DDPM is one of the most well-studied diffusion processes.
+
 ### Forward Process
 
-The forward process is given by:
+In the original paper, the forward process is defined as:
 
 $$x_t = \sqrt{1-\beta_t} x_{t-1} + \sqrt{\beta_t} \varepsilon$$
 
-This can also be written as:
+This can also be expressed as:
 
 $$x_t = \sqrt{\bar{\alpha_t}} x_{data} + \sqrt{1 - \bar{\alpha_t}} \varepsilon$$
 
-We can express this in the form of a SDE [$$^{\text{ref-Section D}}$$](https://arxiv.org/pdf/2210.02747) :
+Where:
 
-$$dx_t = f(x_t, t) dt + g(t) d\mathbf{w} = -\frac{1}{2} \beta(t) x_t \;dt + \sqrt{\beta(t)} d\mathbf{w}$$
+- $$\alpha_t := 1 - \beta_t$$
+- $$\bar{\alpha}_t := \prod_{s=1}^t \alpha_s$$
 
-We can clearly see from the equation that DDPM forward process is a curve motion, where the magnitude and direction of velocity is time-dependent.
+In this formulation, $$\beta_t$$ represents the noise variance at time step $$t$$, and it can either be a learnable parameter, a value from a cosine scheduler, or defined using simple schedules like a linear or sigmoid scheduler.
 
-### Reverse Process
+The forward process can be written in a general format:
 
-The reverse process is expressed as:
+$$x_t = \sqrt{ \gamma_t}\ x_{data} + \sqrt{1 − \gamma_t}\ \varepsilon$$
 
-$$dx_t = \left(f(x_t, t) - g^2(t) \nabla_x \log p(x_t)\right) dt + g(t) d\bar{\mathbf{w}}$$
+#### Noise Scheduler Function
 
-$$\bar{\mathbf{w}}$$ is a reverse Wiener process.
+Several noise schedulers have been proposed for DDPM:
 
-This process can be solved using any SDE solver you like.
+1.Original Cosine Noise Scheduler
+
+2. Linear Noise scheduler [$$^{\text{sec 2.1 page 2}}$$](https://arxiv.org/pdf/2301.10972)
+
+$$\gamma_t = 1 - t$$  where   $$t \in U(0, 1)$$
+
+This looks pretty like flow matching method, but it is not. Note there is a square rood under the $$t$$.
+
+- Linear Cumulative Product Noise Scheduler
+
+This scheduler accumulates the noise factor over time, as in the original DDPM paper.
+
+The forward process is defined as:
+
+$$x_t = \sqrt{ \bar{\gamma_t}}\ x_{data} + \sqrt{1 − \bar{\gamma_t}}\ \varepsilon$$
+
+where $$\gamma_t := 1 - t$$ and $$\bar{\gamma}_t := \prod_{s=1}^t \gamma_s$$
+
+This can also be written recursively as:
+
+$$x_t = \sqrt{ 1-t}\ x_{t-1} + \sqrt{t}\ \varepsilon$$
 
 ### Loss Type
 
-- Predict Velocity
+The loss function for DDPM has been extensively studied, with four widely used types:
+
+1. **Predict Velocity** (note: this is different from the velocity defined in the flow matching)
 
 $$v := \sqrt{\bar{\alpha_t}} \epsilon - \sqrt{1-\bar{\alpha_t}} x_{data}$$
+
+2. **Predict $$x_{\text{data}}$$**
+3. **Predict Noise**
+4. **Predict Score**
+
+These loss types can be converted into one another.
+
+let's focus on velocity prediction, where the neural network predicts the velocity $$v_{pred}$$.  This has been used as an optimal loss type for effective training. However, rather than using the predicted velocity directly to calculate the loss, we convert it into either noise or 
+$$x_{\text{data}}$$  and compute the loss based on the converted types.
 
 - Convert to Predicted Noise $$\epsilon_{pred}$$ [$$^{\text{ref-Appendix A, page 12}}$$](https://arxiv.org/pdf/2301.11093); [$$^{\text{diffusers impl}}$$](https://github.com/huggingface/diffusers/blob/6a89a6c93ae38927097f5181030e3ceb7de7f43d/src/diffusers/schedulers/scheduling_ddim.py#L416-L429)
 
 $$\epsilon_{pred} = \sqrt{\bar{\alpha_t}} v_{pred} + \sqrt{1-\bar{\alpha_t}} x_t$$
+
+The MSE loss we use is:
 
 $$\bar{\alpha_t} \text{MSE}(v_{pred}, v) = \text{MSE}(\varepsilon_{pred}, \varepsilon)$$
 
 - Convert to Predict $$x_{data}$$
 
 $$\hat{x_0} = \sqrt{\bar{\alpha_t}} x_t - \sqrt{1-\bar{\alpha_t}} v_{pred} $$
+
+The MSE loss we use is:
 
 $$(1-\bar{\alpha_t}) \text{MSE}(v_{pred}, v) = \text{MSE}(x_{data}, x_{pred})$$
 
