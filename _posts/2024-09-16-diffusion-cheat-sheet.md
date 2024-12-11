@@ -145,10 +145,7 @@ This can also be expressed as:
 
 $$x_t = \sqrt{\bar{\alpha_t}} x_{data} + \sqrt{1 - \bar{\alpha_t}} \varepsilon$$
 
-Where:
-
-- $$\alpha_t := 1 - \beta_t$$
-- $$\bar{\alpha}_t := \prod_{s=1}^t \alpha_s$$
+Where $$\alpha_t := 1 - \beta_t$$ and $$\bar{\alpha}_t := \prod_{s=1}^t \alpha_s$$
 
 In this formulation, $$\beta_t$$ represents the noise variance at time step $$t$$, and it can either be a learnable parameter, a value from a cosine scheduler, or defined using simple schedules like a linear or sigmoid scheduler.
 
@@ -156,15 +153,15 @@ The forward process can be written in a general format:
 
 $$x_t = \sqrt{ \gamma_t}\ x_{data} + \sqrt{1 − \gamma_t}\ \varepsilon$$
 
-#### Noise Scheduler Function
+### Noise Scheduler Function
 
 Several noise schedulers have been proposed for DDPM:
 
-1.Original Cosine Noise Scheduler
+- Original Cosine Noise Scheduler
 
-2. Linear Noise scheduler [$$^{\text{sec 2.1 page 2}}$$](https://arxiv.org/pdf/2301.10972)
+- Linear Noise scheduler [$$^{\text{sec 2.1 page 2}}$$](https://arxiv.org/pdf/2301.10972)
 
-$$\gamma_t = 1 - t$$  where   $$t \in U(0, 1)$$
+$$\gamma_t = 1 - t$$,  where   $$t \in U(0, 1)$$
 
 This looks pretty like flow matching method, but it is not. Note there is a square rood under the $$t$$.
 
