@@ -120,7 +120,7 @@ $$ D_\theta (\hat{\mathbf{x}}; \sigma) = C_{\text{skip}}(\sigma) \, \hat{\mathbf
 This equation introduces several new terms, each playing a key role in aligning the three approaches. Let’s break these down:
 
 - **What is $$ \hat{\mathbf{x}} $$**?  
-  To unify the input pixel range across the models, we convert the image from the noisy range $$[-s(t), s(t)]$$ to a normalized range of \([-1, 1]\). The term $$ \hat{\mathbf{x}} $$ represents this normalized version of the input image, making it easier to handle across different processes. Given the noise schedule, any image $$ \mathbf{x} = s(t) \hat{\mathbf{x}} $$ will have its pixel range scaled to $$[-s(t), s(t)]$$, and thus $$ \hat{\mathbf{x}} $$ allows us to operate within a consistent range for training.
+  To unify the input pixel range across the models, we convert the image from the noisy range $$[-s(t), s(t)]$$ to a normalized range of $$[-1, 1]$$. The term $$ \hat{\mathbf{x}} $$ represents this normalized version of the input image, making it easier to handle across different processes. Given the noise schedule, any image $$ \mathbf{x} = s(t) \hat{\mathbf{x}} $$ will have its pixel range scaled to $$[-s(t), s(t)]$$, and thus $$ \hat{\mathbf{x}} $$ allows us to operate within a consistent range for training.
 
 - **What is $$ C_{\text{in}}(\sigma) $$?**  
   The term $$ C_{\text{in}}(\sigma) $$ scales the input image before it passes through the neural network. In the case of **DDPM** and **Flow Matching**, the input images at different time steps $$ t $$ have ranges from $$[-s(t), s(t)]$$. These terms ensure that the input is correctly scaled before passing into the model’s score network, where $$ s(t) $$ may change depending on the chosen process (e.g., DDPM's $$ s(t) = \sqrt{\bar{\alpha}_t} $$ or FM's $$ s(t) = t $$).
@@ -149,9 +149,6 @@ Where $$\alpha_t := 1 - \beta_t$$ and $$\bar{\alpha}_t := \prod_{s=1}^t \alpha_s
 
 In this formulation, $$\beta_t$$ represents the noise variance at time step $$t$$, and it can either be a learnable parameter, a value from a cosine scheduler, or defined using simple schedules like a linear or sigmoid scheduler.
 
-The forward process can be written in a general format:
-
-$$x_t = \sqrt{ \gamma_t}\ x_{data} + \sqrt{1 − \gamma_t}\ \varepsilon$$
 
 ### Noise Scheduler Function
 
@@ -161,9 +158,11 @@ Several noise schedulers have been proposed for DDPM:
 
 - Linear Noise scheduler [$$^{\text{sec 2.1 page 2}}$$](https://arxiv.org/pdf/2301.10972)
 
-$$\gamma_t = 1 - t$$,  where   $$t \in U(0, 1)$$
+The forward process can be written in a general format:
 
-This looks pretty like flow matching method, but it is not. Note there is a square rood under the $$t$$.
+$$x_t = \sqrt{ 1 - t }\ x_{data} + \sqrt{t}\ \varepsilon$$
+
+This looks pretty like flow matching method, but it is not. Note there is a square rood of the $$t$$.
 
 - Linear Cumulative Product Noise Scheduler
 
@@ -183,12 +182,17 @@ $$x_t = \sqrt{ 1-t}\ x_{t-1} + \sqrt{t}\ \varepsilon$$
 
 The loss function for DDPM has been extensively studied, with four widely used types:
 
-1. **Predict Velocity** (note: this is different from the velocity defined in the flow matching)
+1. **Predict $$x_{\text{data}}$$**
+$$x_{\text{data}}$$ prediction is problematic at low noise levels, because $$x_{\text{data}}$$  as a target is not informative when added noise is small.
+
+2. **Predict Noise**
+Noise prediction can be problematic at high noise levels, because any error in will get amplified in $$x_{\text{pred}} = (x_t - \sqrt{1 − \bar{\gamma_t}}\ \varepsilon) / (\sqrt{\bar{\alpha_t}})$$, as 
+$$\sqrt{\bar{\alpha_t}}$$ is close to 0. It means that small changes create a large loss under some weightings. [$$^{\text{sec Training}}$$](https://diffusionflow.github.io/)
+
+3. **Predict Velocity** (note: this is different from the velocity defined in the flow matching)
 
 $$v := \sqrt{\bar{\alpha_t}} \epsilon - \sqrt{1-\bar{\alpha_t}} x_{data}$$
 
-2. **Predict $$x_{\text{data}}$$**
-3. **Predict Noise**
 4. **Predict Score**
 
 These loss types can be converted into one another.
