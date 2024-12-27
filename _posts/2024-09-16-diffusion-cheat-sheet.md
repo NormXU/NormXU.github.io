@@ -53,7 +53,7 @@ The equation consists of three key parts:
 - **Deterministic Process**: $$-\dot{\sigma}(t)\sigma(t)\nabla_{x}\log p(x;\sigma(t)) dt$$ represents a deterministic process. This term is also present in the formulation of the PFODE.
 
 - **Deterministic Noise Decay**: $$\pm\beta(t)\sigma^{2}(t)\nabla_{x}\log p(x;\sigma(t)) dt$$
-  corresponds to the deterministic decay of noise. Here, $$\beta(t)$$ controls the rate at which noise is reduced over time.
+  corresponds to the deterministic decay of noise. Here, $$\beta(t)$$ controls the rate at which noise is reduced over time. This term needs to point in the direction of higher probability density (i.e., the score direction). Therefore, when $$dt$$ is positive, it's a forward process, the sign in front is $$+$$, and when $$dt$$ is negative, it's a reverse process and the sign in front is $$-$$
 
 - **Stochastic Noise Injection**: $$\sqrt{2\beta(t)}\sigma(t) dw_{t}$$
   represents the noise injection. This term introduces randomness into the system, modeled by the Wiener process $$dw_{t}$$.
@@ -62,8 +62,8 @@ The second term can be interpreted as denoising, where noise is systematically r
 
 In conclusion,
 
-$$dx_{\pm}=-\underbrace{\dot{\sigma}(t)\sigma(t)\nabla_{x}\log p(x;\sigma(t))dt}_{\text{PFODE}}
-\underbrace{\pm\underbrace{\beta(t)\sigma^{2}(t)\nabla_{x}\log p(x;\sigma(t))dt}_{\text{deterministic noise decay}}+\underbrace{\sqrt{2\beta(t)}\sigma(t)dw_{t}}_{\text{noise injection}}}_{\text{Langevin diffusion SDE}}$$
+$$dx_{\pm}=-\underbrace{\dot{\sigma}(t)\sigma(t)\nabla_{x}\log p(x;\sigma(t))dt}_{\text{PFODE}}\;
+\underbrace{\pm\;\underbrace{\beta(t)\sigma^{2}(t)\nabla_{x}\log p(x;\sigma(t))dt}_{\text{deterministic noise decay}}+\underbrace{\sqrt{2\beta(t)}\sigma(t)dw_{t}}_{\text{noise injection}}}_{\text{Langevin diffusion SDE}}$$
 
 2.when $$g(t)=0$$, the SDE becomes an **Ordinary Differential Equation (ODE)**, called the **Probability Flow ODE** **(PFODE)**:
 
@@ -143,16 +143,15 @@ $$x_t = \sqrt{1-\beta_t} x_{t-1} + \sqrt{\beta_t} \varepsilon$$
 
 This can also be expressed as:
 
-$$x_t = \sqrt{\bar{\alpha_t}} x_{data} + \sqrt{1 - \bar{\alpha_t}} \varepsilon$$
+$$x_t = \sqrt{\bar{\alpha_t}} x_{\text{data}} + \sqrt{1 - \bar{\alpha_t}} \varepsilon$$
 
 Where $$\alpha_t := 1 - \beta_t$$ and $$\bar{\alpha}_t := \prod_{s=1}^t \alpha_s$$
 
 In this formulation, $$\beta_t$$ represents the noise variance at time step $$t$$, and it can either be a learnable parameter, a value from a cosine scheduler, or defined using simple schedules like a linear or sigmoid scheduler.
 
-
 ### Noise Scheduler Function
 
-Several noise schedulers have been proposed for DDPM:
+Several noise schedulers have been proposed for DDPM. High-resolution images/ videos have much higher redundancy, so their SNR is higher after noise is added, and the noise scheduler need to be adjusted / shifted. 
 
 - Original Cosine Noise Scheduler
 
@@ -160,47 +159,75 @@ Several noise schedulers have been proposed for DDPM:
 
 The forward process can be written in a general format:
 
-$$x_t = \sqrt{ 1 - t }\ x_{data} + \sqrt{t}\ \varepsilon$$
+$$x_t = \sqrt{ 1 - t }\ x_{\text{data}}+ \sqrt{t}\ \varepsilon$$
 
 This looks pretty like flow matching method, but it is not. Note there is a square rood of the $$t$$.
 
-- Linear Cumulative Product Noise Scheduler
+- offset-noise [$$^{\text{link}}$$](https://www.crosslabs.org/blog/diffusion-with-offset-noise)
+  
+Add noise that looks like an iid sample per pixel added to a single iid sample that is the same over the entire image.
 
-This scheduler accumulates the noise factor over time, as in the original DDPM paper.
-
-The forward process is defined as:
-
-$$x_t = \sqrt{ \bar{\gamma_t}}\ x_{data} + \sqrt{1 − \bar{\gamma_t}}\ \varepsilon$$
-
-where $$\gamma_t := 1 - t$$ and $$\bar{\gamma}_t := \prod_{s=1}^t \gamma_s$$
-
-This can also be written recursively as:
-
-$$x_t = \sqrt{ 1-t}\ x_{t-1} + \sqrt{t}\ \varepsilon$$
+- time-shift [$$^{\text{page 34, Time Shifting}}$$](https://arxiv.org/pdf/2301.10972)
 
 ### Loss Type
 
-The loss function for DDPM has been extensively studied, with four widely used types:
+The loss function for DDPM has been extensively studied:
 
-1. **Predict $$x_{\text{data}}$$**
+#### Predict $$x_{\text{data}}$$
+
 $$x_{\text{data}}$$ prediction is problematic at low noise levels, because $$x_{\text{data}}$$  as a target is not informative when added noise is small.
 
-2. **Predict Noise**
-Noise prediction can be problematic at high noise levels, because any error in will get amplified in $$x_{\text{pred}} = (x_t - \sqrt{1 − \bar{\gamma_t}}\ \varepsilon) / (\sqrt{\bar{\alpha_t}})$$, as 
-$$\sqrt{\bar{\alpha_t}}$$ is close to 0. It means that small changes create a large loss under some weightings. [$$^{\text{sec Training}}$$](https://diffusionflow.github.io/)
+#### Predict Noise
 
-3. **Predict Velocity** (note: this is different from the velocity defined in the flow matching)
+Noise prediction can be problematic at high noise levels, because any error in will get amplified in 
 
-$$v := \sqrt{\bar{\alpha_t}} \epsilon - \sqrt{1-\bar{\alpha_t}} x_{data}$$
+$$x_{\text{pred}} = (x_t - \sqrt{1 − \bar{\gamma_t}}\ \varepsilon) / (\sqrt{\bar{\alpha_t}})$$
 
-4. **Predict Score**
+as  $$\sqrt{\bar{\alpha_t}}$$ is close to 0. It means that small changes create a large loss under some weightings. [$$^{\text{sec Training}}$$](https://diffusionflow.github.io/)
 
-These loss types can be converted into one another.
+#### Predict Velocity
+
+ (note: this is different from the velocity defined in the flow matching, so we denote it as V-Pred to differ from Flow Velocity Predicition)
+
+$$v := \sqrt{\bar{\alpha_t}} \epsilon - \sqrt{1-\bar{\alpha_t}} x_{\text{data}}$$
+
+ V-Pred being a specific case of velocity prediction under the VP path/scheduler, differing only by a scaling/weighting coefficient dependent on time .
+
+If we represent the forward equation as:
+
+$$ \begin{equation} x_t = \alpha_t \cdot x_{\text{data}} + \sigma_t \cdot x_{\text{noise}} \end{equation} $$
+
+As for the Variance Preservation Condition, we always have:
+
+$$\begin{equation} \alpha_t^2 + \sigma_t^2 = 1\end{equation}$$
+
+The **Flow Velocity Prediction** is defined as :
+
+$$\begin{equation}u_t = \frac{dx_t}{dt} = \dot{\alpha_t} \cdot x_{\text{data}} + \dot{\sigma_t} \cdot x_{\text{noise}} \end{equation}$$
+
+Taking the derivative of Equation (2), we get:
+
+we get:
+$$\alpha_t \dot{\alpha_t} + \sigma_t \dot{\sigma_t} = 0$$ 
+
+which implies that:
+
+$$\dot{\sigma_t} = - \frac{\alpha_t \dot{\alpha_t}}{\sigma_t}$$
+
+Substituting into Equation (3) for $$u_t​$$, we get:
+
+$$u_t = \dot{\alpha_t} \cdot x_{\text{data}} - \frac{\alpha_t \dot{\alpha_t}}{\sigma_t} \cdot x_{\text{noise}}$$
+
+$$u_t = - \frac{\dot{\alpha_t}}{\sigma_t} (\alpha_t \cdot x_{\text{noise}} - \sigma_t \cdot x_{\text{data}}) = - \frac{\dot{\alpha_t}}{\sigma_t} v_t$$
+
+
+
+All these loss types can be converted into one another.
 
 let's focus on velocity prediction, where the neural network predicts the velocity $$v_{pred}$$.  This has been used as an optimal loss type for effective training. However, rather than using the predicted velocity directly to calculate the loss, we convert it into either noise or 
 $$x_{\text{data}}$$  and compute the loss based on the converted types.
 
-- Convert to Predicted Noise $$\epsilon_{pred}$$ [$$^{\text{ref-Appendix A, page 12}}$$](https://arxiv.org/pdf/2301.11093); [$$^{\text{diffusers impl}}$$](https://github.com/huggingface/diffusers/blob/6a89a6c93ae38927097f5181030e3ceb7de7f43d/src/diffusers/schedulers/scheduling_ddim.py#L416-L429)
+- **Convert to Predicted Noise $$\epsilon_{pred}$$** [$$^{\text{ref-Appendix A, page 12}}$$](https://arxiv.org/pdf/2301.11093); [$$^{\text{diffusers impl}}$$](https://github.com/huggingface/diffusers/blob/6a89a6c93ae38927097f5181030e3ceb7de7f43d/src/diffusers/schedulers/scheduling_ddim.py#L416-L429)
 
 $$\epsilon_{pred} = \sqrt{\bar{\alpha_t}} v_{pred} + \sqrt{1-\bar{\alpha_t}} x_t$$
 
@@ -208,7 +235,7 @@ The MSE loss we use is:
 
 $$\bar{\alpha_t} \text{MSE}(v_{pred}, v) = \text{MSE}(\varepsilon_{pred}, \varepsilon)$$
 
-- Convert to Predict $$x_{data}$$
+- **Convert to Predict $$x_{data}$$**
 
 $$\hat{x_0} = \sqrt{\bar{\alpha_t}} x_t - \sqrt{1-\bar{\alpha_t}} v_{pred} $$
 
