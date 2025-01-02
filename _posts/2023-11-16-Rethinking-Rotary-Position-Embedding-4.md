@@ -76,7 +76,11 @@ Now back to NTKRoPE, we've concluded that **only** the last dimension $$d=\frac{
 expand it to 1024, each head dimension is 64, then only the $$\mathrm{dim}=31$$ can ensure all interpolated position ids are just located within the wavelength that are sufficiently trained. Dimensions larger than $$d_{extra}$$, however, do not complete a full rotation, and some of their position IDs are located outside the sufficiently trained wavelength, which we denote these position IDs as "out-of-bound" for that dimension. 
 The farther the dimension deviates from the critical dimension $$d_{extra}$$, the more interpolated "out-of-bound" position IDs the dimension have outside the range of its partially trained wavelengths.
 
+What's even worse, if the period of the signal is longer than the truncation length (max context length for LLM pretraining) in time domain, it means that the signal may not complete a full cycle within the max context. This time domain truncation is equivalent to multiplying the original signal by a rectangular window. In the frequency domain, this is equivalent to convolving the original signal's spectrum with a sinc function. The sinc function has the property that its main lobe is concentrated at the major frequency, while the side lobes extend outward. Therefore, the energy originally concentrated at a major frequency will spread out to nearby frequencies, a phenomenon known as **spectral leakage.** Because the energy of the major frequency spreads out to surrounding frequencies, the signal’s energy is "dispersed" across a wider frequency range. This means the dimension beyond $$d_{extra}$$ has a low SNR compared to those within the $$d_{extra}$$, which makes those dimension even less training.
+
 One possible way to mitigate the "out-of-bound" values is slightly increase the scale value so that more dimensions can ensure the interpolated position ids to locate within the critical dimension. 
+
+
 
 OR
 
@@ -145,17 +149,11 @@ If you ask me how to expand the LLM context length in Feb, 2024, I will answer y
 
 In a word, by continual pretraining with a carefully domain-mixed dataset, and increasing the RoPE base without any modifications such as YaRN, it's possible to achieve a longer context length than what was initially pre-trained.
 
-
-
 Hence, there's no necessity for further modifications to RoPE. Simply build a carefully curated dataset, inflate your models into MoE, and continue pre-training. These are all steps that's required to extend the LLM context length. Besides, I think using 'activate the LLM context length' to describe the process sounds more reasonable, given that LLMs have already acquired this capability during its pretraining stage.
-
-
 
 Just like what [Fu, Yao, et al.](https://arxiv.org/abs/2402.10171) claims
 
 > We hypothesize that the capability to utilize information at  arbitrary locations within long context length is (mostly) already acquired during pretraining, even for models pretrained on substantially shorter 4K contexts.
-
-
 
 ### Reference
 
