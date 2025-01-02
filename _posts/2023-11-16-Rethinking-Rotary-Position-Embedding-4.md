@@ -72,9 +72,9 @@ Therefore, only those dimensions whose wavelength are trained at least one compl
 **Figure 1**. The visualized relationship among the period, training Length, and extrapolation, the periods of dimensions
 past the critical dimension (in red) stretch beyond the training context; credited to [Liu, Xiaoran, et al., 2023](https://arxiv.org/abs/2310.05209)
 
-Now back to NTKRoPE, we've concluded that **only** the last dimension $$d=\frac{\|D\|}{2} - 1$$ can expand the wavelength by $$s$$. In other words, suppose we have a model pretrained with 512 context length, we want to
-expand it to 1024, each head dimension is 64, then only the $$\mathrm{dim}=31$$ can ensure all interpolated position ids are just located within the wavelength that are sufficiently trained. The other dimensions, however, always have some position ids that locate outside the sufficiently trained wavelength, which we denote these values as "out-of-bound" values. 
-The farther the dimension deviates from the critical dimension, the more interpolated position ids fall outside the range of wavelengths that have been adequately trained.
+Now back to NTKRoPE, we've concluded that **only** the last dimension $$d=\frac{\|D\|}{2} - 1$$ can expand the wavelength by $$s$$, even it doesn't complete a full rotation ($$2\pi$$). In other words, suppose we have a model pretrained with 512 context length, we want to
+expand it to 1024, each head dimension is 64, then only the $$\mathrm{dim}=31$$ can ensure all interpolated position ids are just located within the wavelength that are sufficiently trained. Dimensions larger than $$d_{extra}$$, however, do not complete a full rotation, and some of their position IDs are located outside the sufficiently trained wavelength, which we denote these position IDs as "out-of-bound" for that dimension. 
+The farther the dimension deviates from the critical dimension $$d_{extra}$$, the more interpolated "out-of-bound" position IDs the dimension have outside the range of its partially trained wavelengths.
 
 One possible way to mitigate the "out-of-bound" values is slightly increase the scale value so that more dimensions can ensure the interpolated position ids to locate within the critical dimension. 
 
