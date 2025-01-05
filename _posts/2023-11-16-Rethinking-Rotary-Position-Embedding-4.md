@@ -19,7 +19,7 @@ To understand how the "out-of-bound" influences the extension scale, we first re
 
 For RoPE, the $$\theta_{d} = b^{-\frac{2d}{\|D\|}}$$, where we usually set $$b = 10000$$, $$\|D\|$$ is the dimension of each head.
 
-we define $$\lambda_{d}$$ as the wavelength of the RoPE embedding at d-th hidden dimension:
+we define $$\lambda_{d}$$ as the wavelength of the RoPE embedding at d-th hidden dimension (Here, $$v$$ represents the unit wave speed. In this blog, We assume $$v=1$$ and we will refer to the period of a wave as its wavelength for simplicity.):
 
 $$ \begin{equation}\lambda_{d}=\frac{2\pi}{\theta_{d}}=2\pi b^{\frac{2d}{\|D\|}} \end{equation} $$ 
 
