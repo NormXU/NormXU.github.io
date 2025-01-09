@@ -131,7 +131,7 @@ This equation introduces several new terms, each playing a key role in aligning 
 
 In [Cosmos](https://github.com/NVIDIA/Cosmos/blob/c47b35b7618a6e263556f3e3fb7cfba3705c08a5/cosmos1/models/diffusion/diffusion/modules/denoiser_scaling.py), the pararmeters of the forward function is implemented as:
 
-$c_{\text{skip}} = \frac{\sigma_{\text{data}}^2}{\sigma^2 + \sigma_{\text{data}}^2}$, $c_{\text{out}} = \frac{\sigma \cdot \sigma_{\text{data}}}{\sqrt{\sigma^2 + \sigma_{\text{data}}^2}}$, $c_{\text{in}} = \frac{1}{\sqrt{\sigma^2 + \sigma_{\text{data}}^2}}$ , $c_{\text{noise}} = 0.25 \cdot \log(\sigma)$
+$$c_{\text{skip}} = \frac{\sigma_{\text{data}}^2}{\sigma^2 + \sigma_{\text{data}}^2}$$, $$c_{\text{out}} = \frac{\sigma \cdot \sigma_{\text{data}}}{\sqrt{\sigma^2 + \sigma_{\text{data}}^2}}$$, $$c_{\text{in}} = \frac{1}{\sqrt{\sigma^2 + \sigma_{\text{data}}^2}}$$ , $$c_{\text{noise}} = 0.25 \cdot \log(\sigma)$$
 
 ---
 
