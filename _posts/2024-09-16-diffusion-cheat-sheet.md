@@ -129,6 +129,10 @@ This equation introduces several new terms, each playing a key role in aligning 
   
   The neural network can be a U-Net or a DiT. The proxy target can be predicting noise, $$x_0$$ or velocity
 
+In [Cosmos](https://github.com/NVIDIA/Cosmos/blob/c47b35b7618a6e263556f3e3fb7cfba3705c08a5/cosmos1/models/diffusion/diffusion/modules/denoiser_scaling.py), the pararmeters of the forward function is implemented as:
+
+$c_{\text{skip}} = \frac{\sigma_{\text{data}}^2}{\sigma^2 + \sigma_{\text{data}}^2}$, $c_{\text{out}} = \frac{\sigma \cdot \sigma_{\text{data}}}{\sqrt{\sigma^2 + \sigma_{\text{data}}^2}}$, $c_{\text{in}} = \frac{1}{\sqrt{\sigma^2 + \sigma_{\text{data}}^2}}$ , $c_{\text{noise}} = 0.25 \cdot \log(\sigma)$
+
 ---
 
 ## DDPM
@@ -164,7 +168,7 @@ $$x_t = \sqrt{ 1 - t }\ x_{\text{data}}+ \sqrt{t}\ \varepsilon$$
 This looks pretty like flow matching method, but it is not. Note there is a square rood of the $$t$$.
 
 - offset-noise [$$^{\text{link}}$$](https://www.crosslabs.org/blog/diffusion-with-offset-noise)
-  
+
 Add noise that looks like an iid sample per pixel added to a single iid sample that is the same over the entire image.
 
 - time-shift [$$^{\text{page 34, Time Shifting}}$$](https://arxiv.org/pdf/2301.10972)
@@ -219,8 +223,6 @@ Substituting into Equation (3) for $$u_t​$$, we get:
 $$u_t = \dot{\alpha_t} \cdot x_{\text{data}} - \frac{\alpha_t \dot{\alpha_t}}{\sigma_t} \cdot x_{\text{noise}}$$
 
 $$u_t = - \frac{\dot{\alpha_t}}{\sigma_t} (\alpha_t \cdot x_{\text{noise}} - \sigma_t \cdot x_{\text{data}}) = - \frac{\dot{\alpha_t}}{\sigma_t} v_t$$
-
-
 
 All these loss types can be converted into one another.
 
