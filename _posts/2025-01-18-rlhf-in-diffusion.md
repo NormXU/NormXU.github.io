@@ -115,7 +115,7 @@ Therefore, in continuous space, the process reward should be:
 
 $$x_{t-1} = U_{\text{att}}(x_t, t) + U_{\text{rep}}(x_t, t)$$
 
-wherer $$x \in [0, 1]$$
+where $$x \in [0, 1]$$
 
 $$U_{\text{att}}$$ is the “attractive” vector field, move the initial noise $$x_1$$ to the goal $$x_0$$
 
