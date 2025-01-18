@@ -73,7 +73,7 @@ Thus, they had to design a diffusion decoder, where discrete token video is trea
 
 ![](https://raw.githubusercontent.com/NormXU/NormXU.github.io/main/_data/resources/blog/9/cosmos-ar.png)
 
-The upper bound of this approach is clear. It depends on the quality and compression rate of the tokenizer, but it still doesn’t drop the continuous space for generation. After all, images and videos are inherently continuous modalities. Furthermore, the long sequence lengths far exceed those of text, which poses a significant challenge for training infrastructure perspective, not even mention to serving such a model.
+The upper bound of this approach is clear. It depends on the quality and compression rate of the tokenizer, but it still doesn’t drop the continuous space for generation. After all, images and videos are inherently continuous modalities. Furthermore, the long sequence lengths far exceed those of text, which poses a significant challenge for training infrastructure perspective, not even mention serving such a model.
 
 ### Search Noise and Path
 
@@ -105,7 +105,7 @@ The current flow-matching method actually starts by randomly initializing noise 
 
 **Figure 2.** potential field for robot path planning.
 
-When you examine potential fields, you'll find many similarities with flow matching. The difference is that in potential fields, the robot is treated as a positive charge, and the goal as a negative charge, with opposite charges attracting each other, creating a potential field that guides the robot’s path planning.
+When you examine potential fields, you'll find many similarities with flow matching. In potential fields, the robot is regarded as a positive charge, and the goal as a negative charge, with opposite charges attracting each other, creating a potential field that guides the robot’s path planning.
 
 However, in the real world, physical obstacles exist. To avoid obstacles, robot often regard obstacles as positive charges, like the robot itself, so that positive charges repel each other, and negative charges attract. 
 
@@ -127,7 +127,7 @@ Thus, the process reward in continuous space should be such that when the probab
 
 **Figure 3**; Repulsive by Obstacles then point locates inside $$Q^*$$
 
-More vividly, this process reward score should be: when a denoising step hits an obstacle/locate inside the $Q^*$, the model should "feel the pain" and revert to the previous step, continuing to search for a collision-free path.
+More specifically, this process reward score should be: when a denoising step hits an obstacle/locate inside the $Q^*$, the model should "feel the pain" and revert to the previous step, continuing to search for a collision-free path.
 
 This is similar to search over paths and also shares similarities with the Langevin dynamics term in SDEs. The algorithm for search over paths is as follows:
 
@@ -152,7 +152,7 @@ $$U_{\text{rep}}(q) = \left\{
 
 where $$D(x_t, t)$$ is the distance from the noisy latent feature $$x_t$$ to the obstacles under the vector field.  
 
-We assume that such a vector field, combining both attractive and repulsive forces, has already been learned through the training data. For the diffusion model, this allows it to self-improve, similar to how LLMs perform data rollouts based on MCT—constantly starting from random points in latent space to search for the best collision-free probabilistic path.
+We assume that such a vector field, combining both attractive and repulsive fields, has already been learned through the training data. For the diffusion model, this allows it to self-improve, similar to how LLMs perform data rollouts based on MCT—constantly starting from random points in latent space to search for the best collision-free probabilistic path.
 
 Now, the key question is: **how do we represent these obstacles in latent space?** In other words, what exactly does the diffusion process reward model look like?
 
@@ -170,9 +170,9 @@ What is a configuration space?
 
 ![](https://raw.githubusercontent.com/NormXU/NormXU.github.io/main/_data/resources/blog/9/c-space.png)
 
-For a robot with two degrees of freedom, $$\alpha$$ and $$\beta$$, the space defined by these two variables is the robot's C-space $$C_{\text{robot}} \in\mathbb{R}^2$$. Each degree of freedom theoretically spans $$[0,2π]$$, but due to physical constraints, $$\alpha \in [0,\pi]$$ and $$\beta\in [0,2\pi]$$. In $$C_{\text{robot}}$$, each point represents a robot's pose configuration. Points that do not satisfy physical laws, or where the robot hit itself, are termed singularity points. All singularity points make the singularity space.
+For a robot with two degrees of freedom, $$\alpha$$ and $$\beta$$, the space defined by these two variables is the robot's C-space $$C_{\text{robot}} \in\mathbb{R}^2$$. Each degree of freedom theoretically spans $$[0,2π]$$, but due to physical constraints, $$\alpha \in [0,\pi]$$ and $$\beta\in [0,2\pi]$$. In $$C_{\text{robot}}$$, each point represents a robot's pose configuration. Points that do not satisfy physical laws, or where the robot hit itself, are termed singularity points. All singularity points form the singularity space.
 
-Therefore, moving collision-free from pose A to pose B in the configuration space becomes a simple point-to-point path planning problem. The space of poses that cause collisions constitutes the obstacles in C-space.
+Therefore, moving collision-freely from pose A to pose B in the configuration space becomes a simple point-to-point path planning problem. The space of poses that cause collisions constitutes the obstacles in C-space.
 
 You may notice that there’s an amazing similarity between C-space and VAE. Both serve as compressed spaces, translating a higher-dimensional path planning problem into a lower-dimensional one. Also, it's common knowledge that VAE's dimensionality is generally not large. Even in temporal and spatial compression, such as 8x16x16, the latent dimension typically remains small (e.g., 8, 12, 16). One reason is that increasing the latent dimension adds redundancy in the latent space, making DiT learning harder. Although scaling up DiT parameters can somewhat mitigate the redundancy of larger latent dimensions, most developers don't follow this practice.
 
@@ -184,6 +184,9 @@ Returning to obstacle representation, we can follow how C-space represent obstac
 Thus, a promising future research for optimizing VAEs seems clear: make the VAE latent features not just a compressed space, but also introduce semantics to align with them. This way, we can project human preferences and physical laws into the VAE latent space, similar to how obstacles are represented in C-space.
 
 Fortunately, some papers have already taken this approach. For example, [Reconstruction vs. Generation](https://arxiv.org/abs/2501.01423) demonstrates that by introducing DINOv2, the latent space not only learns more efficiently but also lays the foundation for expressing human preferences and physical laws in the future.
+
+![](https://raw.githubusercontent.com/NormXU/NormXU.github.io/main/_data/resources/blog/9/taming_vae.png)
+**Figure 4.** The latent space learns more efficiently by aligning DINOv2
 
 Thus, if self-supervision vision foundation models can serve as a bridge for reconstruction and representation, we can project more obstacles into the VAE space and even directly use this feature as a classifier to learn human preferences.
 
