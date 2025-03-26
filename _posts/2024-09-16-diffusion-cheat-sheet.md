@@ -191,6 +191,11 @@ as  $$\sqrt{\bar{\alpha_t}}$$ is close to 0. It means that small changes create 
 
 #### Predict Velocity
 
+V-Pred is first introduced in [$$^{\text{page 14, Appendix D}}$$](https://arxiv.org/pdf/2202.00512) 
+
+V-Pred is the most stable option, as it has the unique property of making DDIM
+step-sizes <mark>independent of the SNR.</mark>
+
  (note: this is different from the velocity defined in the flow matching, so we denote it as V-Pred to differ from Flow Velocity Predicition)
 
 $$v := \sqrt{\bar{\alpha_t}} \epsilon - \sqrt{1-\bar{\alpha_t}} x_{\text{data}}$$
