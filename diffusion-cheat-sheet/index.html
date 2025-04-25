@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>A Unified Perspective of Mathematical Diffusion | まいどぅー</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Norm Inui">
+<meta name="generator" content="Jekyll v4.2.2">
+<link rel="canonical" href="/diffusion-cheat-sheet/">
+
+<link rel="stylesheet" href="/assets/css/frame.css">
+
+<link rel="alternate" href="/feed.xml" type="application/atom+xml" title="まいどぅー">
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script defer src="/assets/katex/katex.min.js"></script>
+<script defer src="/assets/katex/contrib/auto-render.min.js" onload="renderMathInElement(document.body)"></script>
+
+
+
+
+
+
+
+<header>
+  <a href="/" class="title">まいどぅー</a>
+  <nav><a href="/">Home</a><a href="/about/">Nuo Xu</a></nav>
+
+</header>
+
+<article><script src="https://unpkg.com/vanilla-back-to-top@7.2.1/dist/vanilla-back-to-top.min.js"></script>
+<script>addBackToTop({
+  diameter: 56,
+  backgroundColor: 'rgb(255, 82, 82)',
+  textColor: '#fff'})
+</script><header>
+  <h1><a href="/diffusion-cheat-sheet/">A Unified Perspective of Mathematical Diffusion</a></h1>
+<time datetime="2024-09-16T00:00:00+00:00">September 16, 2024</time>
+</header>
+
+  <div class="entry">
+      <div id="markdown-content">
+          <p>This is a cheat sheet of all denoising-based diffusion method. No mathematics derivations are included for concise. Check the reference links if you’re interested in the derivations.</p>
+
+<p><a href="https://arxiv.org/pdf/2206.00364">EDM</a> introduces a <strong>general denoising equation</strong> that nearly unifies all widely recognized denoising and noise-adding processes within its framework.</p>
+
+<h2 id="a-unified-perspective">A Unified Perspective</h2>
+
+<h3 id="general-forward-process">General Forward Process</h3>
+
+<p>Noise-adding Process is also known as forward process. The general form of this Forward Process is:</p>
+
+\[p(x_t | x_0) = \mathcal{N}(x_t; s(t)x_0, \sigma^2(t) s^2(t) \mathbf{I})\]
+
+<p>This equation describes how noise is gradually added to an image, represented as  \(x_0\), over time steps \(t\). The two functions, \(s(t)\) and \(\sigma(t)\), control the scale and variance of the noise, determining the trajectory of noise addition as \(x_t\) moves further from the original image.</p>
+
+<h3 id="general-reverse-process">General Reverse Process</h3>
+
+<p>The Forward Process equation above can be written into a <strong>Stochastic Differential Equation (SDE)</strong> format as:</p>
+
+\[dx_t = f(x_t, t) \, dt + g(t) \, d\mathbf{w}\]
+
+<p>Here, \(s(t) = e^{\int_{0}^{t} f(r) \, dr}\) and \(\sigma^2(t) = \int_{0}^{t} \frac{g^2(r)}{s^2(r)} \, dr\)</p>
+
+<p>\(d\mathbf{w}\) represents a <strong>Wiener process</strong>, where \(\mathbf{w_t} \sim \mathcal{N}(0, t)\); \(d\mathbf{w} = \sqrt{dt} \; \epsilon\) , where \(\epsilon \sim \mathcal{N}(\mu, \sigma^2)\)</p>
+
+<p>Different methods define their own specific functions for \(f(x_t, t)\) and \(g(t)\). For example, in diffusion models like <strong>DDPM</strong> and <strong>SMLD</strong> (Score Matching with Langevin Dynamics), \(f(x_t, t)\) is typically a linear function, \(f(x_t, t) = f(t)x_t\), where \(f(t)\) is a time-dependent term that modulates the trajectory of the image’s transformation over time.  EDM simply set \(s(t) = 1, \, \sigma(t) = t\).</p>
+
+<p>Now we have a forward SDE to corrupt a data into noise. To reverse such as process, we have two choices:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="n">x_data</span> <span class="o">--&gt;|</span><span class="n">Forward</span> <span class="n">SDE</span><span class="o">|</span> <span class="o">--&gt;</span> <span class="n">x_noise</span>
+    <span class="n">x_noise</span> <span class="o">--&gt;|</span><span class="n">Reverse</span> <span class="n">SDE</span><span class="o">|</span> <span class="o">--&gt;</span> <span class="n">x_data</span>
+    <span class="n">x_noise</span> <span class="o">--&gt;|</span><span class="n">PFODE</span><span class="o">|</span> <span class="o">--&gt;</span> <span class="n">x_data</span>
+</code></pre></div></div>
+
+<p>Using the <strong>Fokker-Planck equation</strong>, we can transform the forward SDE as:</p>
+
+\[dx = \left(\frac{1}{2}g^{2}(t) - \dot{\sigma}(t)\sigma(t)\right) \nabla_x \log p(x;\sigma(t)) dt + g(t) dw_t\]
+
+<p>1.when \(g(t) = \sqrt{2\beta(t)} \sigma(t)\)</p>
+
+\[dx_{\pm}=-\dot{\sigma}(t)\sigma(t)\nabla_{x}\log p(x;\sigma(t))dt\pm\beta(t)\sigma^{2}(t)\nabla_{x}\log p(x;\sigma(t))dt+\sqrt{2\beta(t)}\sigma(t)dw_{t}\]
+
+<p>the \(dx_+\) here means forward process; the \(dx_-\) here means reverse process.</p>
+
+<p>The equation consists of three key parts:</p>
+
+<ul>
+  <li>
+    <p><strong>Deterministic Process</strong>: \(-\dot{\sigma}(t)\sigma(t)\nabla_{x}\log p(x;\sigma(t)) dt\) represents a deterministic process. This term is also present in the formulation of the PFODE.</p>
+  </li>
+  <li>
+    <p><strong>Deterministic Noise Decay</strong>: \(\pm\beta(t)\sigma^{2}(t)\nabla_{x}\log p(x;\sigma(t)) dt\)
+corresponds to the deterministic decay of noise. Here, \(\beta(t)\) controls the rate at which noise is reduced over time. This term needs to point in the direction of higher probability density (i.e., the score direction). Therefore, when \(dt\) is positive, it’s a forward process, the sign in front is \(+\), and when \(dt\) is negative, it’s a reverse process and the sign in front is \(-\)</p>
+  </li>
+  <li>
+    <p><strong>Stochastic Noise Injection</strong>: \(\sqrt{2\beta(t)}\sigma(t) dw_{t}\)
+represents the noise injection. This term introduces randomness into the system, modeled by the Wiener process \(dw_{t}\).</p>
+  </li>
+</ul>
+
+<p>The second term can be interpreted as denoising, where noise is systematically removed from the process. The third term, on the other hand, adds noise back into the system. Thus, the equation can be viewed as a process where, for each deterministic ODE, we first perform denoising and then reintroduce random noise. The relative speed at which denoising and noise addition occur is governed by \(\beta(t)\).</p>
+
+<p>In conclusion,</p>
+
+\[dx_{\pm}=-\underbrace{\dot{\sigma}(t)\sigma(t)\nabla_{x}\log p(x;\sigma(t))dt}_{\text{PFODE}}\;
+\underbrace{\pm\;\underbrace{\beta(t)\sigma^{2}(t)\nabla_{x}\log p(x;\sigma(t))dt}_{\text{deterministic noise decay}}+\underbrace{\sqrt{2\beta(t)}\sigma(t)dw_{t}}_{\text{noise injection}}}_{\text{Langevin diffusion SDE}}\]
+
+<p>2.when \(g(t)=0\), the SDE becomes an <strong>Ordinary Differential Equation (ODE)</strong>, called the <strong>Probability Flow ODE</strong> <strong>(PFODE)</strong>:</p>
+
+<p>Remember, PFODE is a deterministic process:</p>
+
+\[d\mathbf{x}_t = -\dot{\sigma}(t)\sigma(t)\nabla_{x}\log p(x;\sigma(t)) dt\]
+
+<p>Interestingly, this equation lets us denoise without needing to directly solve for \(f(t)\) and \(g(t)\). By knowing only \(s(t)\) and \(\sigma(t)\), we can effectively denoise and sample high-quality images.</p>
+
+<p>A common question is: <strong>Why isn’t there a forward PFODE process?</strong></p>
+
+<p>The answer is simple. PFODE is designed for sampling, not for the forward process. Since PFODE is a fully deterministic process, it cannot model a data distribution without injecting noise. Our objective is to model the distribution of data, and noise injection is essential for this. Because PFODE cannot introduce stochasticity into the forward process, the neural network is unable to learn any distribution from it.</p>
+
+<p>In practice, instead of explicitly computing the score function \(\nabla_{x_t} \log p_t(x_t)\), we approximate it with a neural network \(D_\theta\).</p>
+
+\[\mathrm{d} \mathbf{x}_t = \left[ \left( \frac{\dot{s}(t)}{s(t)} + \frac{\dot{\sigma}(t)}{\sigma(t)} \right) \mathbf{x}_t - \frac{s(t) \, \dot{\sigma}(t)}{\sigma(t)} D_\theta \left( \frac{\mathbf{x}_t}{s(t)} ; \sigma \right) \right] \, dt\]
+
+<p>The score function can also be derived from a neural network prediction:</p>
+
+\[\nabla_{\mathbf{x}} \log p(\mathbf{x}; \sigma) = \frac{D_{\theta}(\mathbf{x}; \sigma) - \mathbf{x}}{\sigma^2}\]
+
+<p>Now, we have a general PFODE equation that models the reverse process. After training a neural network to approximate \(D_\theta (\mathbf{x}_t; \sigma(t))\), we can sample from noise by simply solving the ODE.</p>
+
+<p>During reverse process, the noise schedule could also influence the sampling quality. An emperical noise scheduler equation is as below:</p>
+
+\[\sigma_{i &lt; N} = \left( \sigma_{\text{max}}^{\frac{1}{\rho}} + \frac{i}{N-1} \left( \sigma_{\text{min}}^{\frac{1}{\rho}} - \sigma_{\text{max}}^{\frac{1}{\rho}} \right) \right)^{\rho} \quad \text{and} \quad \sigma_N = 0\]
+
+<p>Finally, to accurately sample from the distribution, we use <strong>2nd-order Heun’s method</strong> rather than the simpler Euler method (1st-order). Heun’s method reduces sampling error by averaging the initial and predicted values of the function, providing a more stable path for denoising:</p>
+
+\[x_{t + \Delta t} = x_t + \frac{1}{2} (f(x_t, t) + f(x_{t + \Delta t}, t + \Delta t)) \Delta t\]
+
+<p>However, since Heun’s method requires knowing both \(f(x_t, t)\) and \(f(x_{t + \Delta t}, t + \Delta t)\), we still use an <strong>Euler step</strong> to make an initial estimate before applying Heun’s correction.</p>
+
+<h3 id="general-model-design">General Model Design</h3>
+
+<p>The score function \(D_\theta \left( \frac{\mathbf{x}_t}{s(t)} ; \sigma \right)\) is to predict how the noisy image should be transformed back towards the clean image.</p>
+
+<p>In the case of <strong>DDPM</strong>:</p>
+
+\[D_\theta (\mathbf{x}_t; \sigma(t)) \approx \frac{\mathbf{x}_t - \sqrt{1 - \bar{\alpha}_t} \, \varepsilon}{\sqrt{\bar{\alpha}_t}} \approx \frac{1}{\sqrt{\bar{\alpha}_t}} \mathbf{x}_t - \frac{\sqrt{1 - \bar{\alpha}_t}}{\sqrt{\bar{\alpha}_t}} \, \varepsilon_\theta (\mathbf{x}_t, t)\]
+
+<p>In <strong>Score Matching</strong>:</p>
+
+\[D_\theta (\mathbf{x}; \sigma) \approx \mathbf{x} + \sigma^2 s_\theta (\mathbf{x}; \sigma)\]
+
+<p>In Flow Matching:</p>
+
+\[D_\theta (\mathbf{x}_t; \sigma(t)) \approx \mathbf{x}_t + (1 - t) v_\theta (\mathbf{x}_t, t)\]
+
+<p>Although DDPM, Score Matching, and Flow Matching have different formulations, their forward process can be unified into one general equation:</p>
+
+\[D_\theta (\hat{\mathbf{x}}; \sigma) = C_{\text{skip}}(\sigma) \, \hat{\mathbf{x}} + C_{\text{out}}(\sigma) F_\theta \left( C_{\text{in}}(\sigma) \, \hat{\mathbf{x}}; C_{\text{noise}}(\sigma) \right)\]
+
+<p>This equation introduces several new terms, each playing a key role in aligning the three approaches. Let’s break these down:</p>
+
+<ul>
+  <li>
+    <p><strong>What is \(\hat{\mathbf{x}}\)</strong>?<br>
+To unify the input pixel range across the models, we convert the image from the noisy range \([-s(t), s(t)]\) to a normalized range of \([-1, 1]\). The term \(\hat{\mathbf{x}}\) represents this normalized version of the input image, making it easier to handle across different processes. Given the noise schedule, any image \(\mathbf{x} = s(t) \hat{\mathbf{x}}\) will have its pixel range scaled to \([-s(t), s(t)]\), and thus \(\hat{\mathbf{x}}\) allows us to operate within a consistent range for training.</p>
+  </li>
+  <li>
+    <p><strong>What is \(C_{\text{in}}(\sigma)\)?</strong><br>
+The term \(C_{\text{in}}(\sigma)\) scales the input image before it passes through the neural network. In the case of <strong>DDPM</strong> and <strong>Flow Matching</strong>, the input images at different time steps \(t\) have ranges from \([-s(t), s(t)]\). These terms ensure that the input is correctly scaled before passing into the model’s score network, where \(s(t)\) may change depending on the chosen process (e.g., DDPM’s \(s(t) = \sqrt{\bar{\alpha}_t}\) or FM’s \(s(t) = t\)).</p>
+  </li>
+  <li>
+    <p><strong>What is \(F_{\theta}()\)?</strong></p>
+
+    <p>The neural network can be a U-Net or a DiT. The proxy target can be predicting noise, \(x_0\) or velocity</p>
+  </li>
+</ul>
+
+<p>In <a href="https://github.com/NVIDIA/Cosmos/blob/c47b35b7618a6e263556f3e3fb7cfba3705c08a5/cosmos1/models/diffusion/diffusion/modules/denoiser_scaling.py">Cosmos</a>, the pararmeters of the forward function is implemented as:</p>
+
+<p>\(c_{\text{skip}} = \frac{\sigma_{\text{data}}^2}{\sigma^2 + \sigma_{\text{data}}^2}\), \(c_{\text{out}} = \frac{\sigma \cdot \sigma_{\text{data}}}{\sqrt{\sigma^2 + \sigma_{\text{data}}^2}}\), \(c_{\text{in}} = \frac{1}{\sqrt{\sigma^2 + \sigma_{\text{data}}^2}}\) , \(c_{\text{noise}} = 0.25 \cdot \log(\sigma)\)</p>
+
+<hr>
+
+<h2 id="ddpm">DDPM</h2>
+
+<p>DDPM is one of the most well-studied diffusion processes.</p>
+
+<h3 id="forward-process">Forward Process</h3>
+
+<p>In the original paper, the forward process is defined as:</p>
+
+\[x_t = \sqrt{1-\beta_t} x_{t-1} + \sqrt{\beta_t} \varepsilon\]
+
+<p>This can also be expressed as:</p>
+
+\[x_t = \sqrt{\bar{\alpha_t}} x_{\text{data}} + \sqrt{1 - \bar{\alpha_t}} \varepsilon\]
+
+<p>Where \(\alpha_t := 1 - \beta_t\) and \(\bar{\alpha}_t := \prod_{s=1}^t \alpha_s\)</p>
+
+<p>In this formulation, \(\beta_t\) represents the noise variance at time step \(t\), and it can either be a learnable parameter, a value from a cosine scheduler, or defined using simple schedules like a linear or sigmoid scheduler.</p>
+
+<h3 id="noise-scheduler-function">Noise Scheduler Function</h3>
+
+<p>Several noise schedulers have been proposed for DDPM. High-resolution images/ videos have much higher redundancy, so their SNR is higher after noise is added, and the noise scheduler need to be adjusted / shifted.</p>
+
+<ul>
+  <li>
+    <p>Original Cosine Noise Scheduler</p>
+  </li>
+  <li>
+    <p>Linear Noise scheduler <a href="https://arxiv.org/pdf/2301.10972">\(^{\text{sec 2.1 page 2}}\)</a></p>
+  </li>
+</ul>
+
+<p>The forward process can be written in a general format:</p>
+
+\[x_t = \sqrt{ 1 - t }\ x_{\text{data}}+ \sqrt{t}\ \varepsilon\]
+
+<p>This looks pretty like flow matching method, but it is not. Note there is a square rood of the \(t\).</p>
+
+<ul>
+  <li>offset-noise <a href="https://www.crosslabs.org/blog/diffusion-with-offset-noise">\(^{\text{link}}\)</a>
+</li>
+</ul>
+
+<p>Add noise that looks like an iid sample per pixel added to a single iid sample that is the same over the entire image.</p>
+
+<ul>
+  <li>time-shift <a href="https://arxiv.org/pdf/2301.10972">\(^{\text{page 34, Time Shifting}}\)</a>
+</li>
+</ul>
+
+<h3 id="loss-type">Loss Type</h3>
+
+<p>The loss function for DDPM has been extensively studied:</p>
+
+<h4 id="predict-x_textdata">Predict \(x_{\text{data}}\)</h4>
+
+<p>\(x_{\text{data}}\) prediction is problematic at low noise levels, because \(x_{\text{data}}\)  as a target is not informative when added noise is small.</p>
+
+<h4 id="predict-noise">Predict Noise</h4>
+
+<p>Noise prediction can be problematic at high noise levels, because any error in will get amplified in</p>
+
+\[x_{\text{pred}} = (x_t - \sqrt{1 − \bar{\gamma_t}}\ \varepsilon) / (\sqrt{\bar{\alpha_t}})\]
+
+<p>as  \(\sqrt{\bar{\alpha_t}}\) is close to 0. It means that small changes create a large loss under some weightings. <a href="https://diffusionflow.github.io/">\(^{\text{sec Training}}\)</a></p>
+
+<h4 id="predict-velocity">Predict Velocity</h4>
+
+<p>V-Pred is first introduced in <a href="https://arxiv.org/pdf/2202.00512">\(^{\text{page 14, Appendix D}}\)</a></p>
+
+<p>V-Pred is the most stable option, as it has the unique property of making DDIM
+step-sizes <mark>independent of the SNR.</mark></p>
+
+<p>(note: this is different from the velocity defined in the flow matching, so we denote it as V-Pred to differ from Flow Velocity Predicition)</p>
+
+\[v := \sqrt{\bar{\alpha_t}} \epsilon - \sqrt{1-\bar{\alpha_t}} x_{\text{data}}\]
+
+<p>V-Pred being a specific case of velocity prediction under the VP path/scheduler, differing only by a scaling/weighting coefficient dependent on time .</p>
+
+<p>If we represent the forward equation as:</p>
+
+\[\begin{equation} x_t = \alpha_t \cdot x_{\text{data}} + \sigma_t \cdot x_{\text{noise}} \end{equation}\]
+
+<p>As for the Variance Preservation Condition, we always have:</p>
+
+\[\begin{equation} \alpha_t^2 + \sigma_t^2 = 1\end{equation}\]
+
+<p>The <strong>Flow Velocity Prediction</strong> is defined as :</p>
+
+\[\begin{equation}u_t = \frac{dx_t}{dt} = \dot{\alpha_t} \cdot x_{\text{data}} + \dot{\sigma_t} \cdot x_{\text{noise}} \end{equation}\]
+
+<p>Taking the derivative of Equation (2), we get:</p>
+
+<p>we get:
+\(\alpha_t \dot{\alpha_t} + \sigma_t \dot{\sigma_t} = 0\)</p>
+
+<p>which implies that:</p>
+
+\[\dot{\sigma_t} = - \frac{\alpha_t \dot{\alpha_t}}{\sigma_t}\]
+
+<p>Substituting into Equation (3) for \(u_t​\), we get:</p>
+
+\[u_t = \dot{\alpha_t} \cdot x_{\text{data}} - \frac{\alpha_t \dot{\alpha_t}}{\sigma_t} \cdot x_{\text{noise}}\]
+
+\[u_t = - \frac{\dot{\alpha_t}}{\sigma_t} (\alpha_t \cdot x_{\text{noise}} - \sigma_t \cdot x_{\text{data}}) = - \frac{\dot{\alpha_t}}{\sigma_t} v_t\]
+
+<p>All these loss types can be converted into one another.</p>
+
+<p>let’s focus on velocity prediction, where the neural network predicts the velocity \(v_{pred}\).  This has been used as an optimal loss type for effective training. However, rather than using the predicted velocity directly to calculate the loss, we convert it into either noise or 
+\(x_{\text{data}}\)  and compute the loss based on the converted types.</p>
+
+<ul>
+  <li>
+<strong>Convert to Predicted Noise \(\epsilon_{pred}\)</strong> <a href="https://arxiv.org/pdf/2301.11093">\(^{\text{ref-Appendix A, page 12}}\)</a>; <a href="https://github.com/huggingface/diffusers/blob/6a89a6c93ae38927097f5181030e3ceb7de7f43d/src/diffusers/schedulers/scheduling_ddim.py#L416-L429">\(^{\text{diffusers impl}}\)</a>
+</li>
+</ul>
+
+\[\epsilon_{pred} = \sqrt{\bar{\alpha_t}} v_{pred} + \sqrt{1-\bar{\alpha_t}} x_t\]
+
+<p>The MSE loss we use is:</p>
+
+\[\bar{\alpha_t} \text{MSE}(v_{pred}, v) = \text{MSE}(\varepsilon_{pred}, \varepsilon)\]
+
+<ul>
+  <li><strong>Convert to Predict \(x_{data}\)</strong></li>
+</ul>
+
+\[\hat{x_0} = \sqrt{\bar{\alpha_t}} x_t - \sqrt{1-\bar{\alpha_t}} v_{pred}\]
+
+<p>The MSE loss we use is:</p>
+
+\[(1-\bar{\alpha_t}) \text{MSE}(v_{pred}, v) = \text{MSE}(x_{data}, x_{pred})\]
+
+<hr>
+
+<h2 id="score-matching">Score Matching</h2>
+
+<h3 id="forward-process-1">Forward Process</h3>
+
+<p>The forward process in score matching is:</p>
+
+\[x_t = x_{data} + \sigma_t \varepsilon\]
+
+<p>Here,  \(x_{data} \sim p_{data}(x)\) , where  \(p_{data}(x)\) represents the distribution of the training dataset. The noise variance decreases over time:</p>
+
+\[\sigma_1 &gt; \sigma_2 &gt; \sigma_3 &gt; \dots\]
+
+<p>This means the noise variance added to the data gradually decreases. The corresponding ODE is:</p>
+
+\[dx_t = \sqrt{\frac{d\sigma^2_t}{dt}} d\bar{\mathbf{w}}\]
+
+<p>The forward process can be imagined a straight line going from data to noise where the velocity (variance of noise) gradually decreases from large to small.</p>
+
+<h3 id="reverse-process">Reverse Process</h3>
+
+\[d\mathbf{x_t} = -\left(\frac{d[\sigma(t)^2]}{dt} \nabla_{\mathbf{x}} \log p(\mathbf{x_t}) \right) dt + \sqrt{\frac{d[\sigma(t)^2]}{dt}} d\bar{\mathbf{w}}\]
+
+<p>The reverse sampling follows the Langevin equation:</p>
+
+\[x_{t+1} = x_t + \tau \nabla_x \log p(x_t) + \sqrt{2\tau} z\]
+
+<p>where  \(z \sim N(0, I)\)</p>
+
+<p>We can see from the sampling equation that although the forward process is linear, the reverse process is stochastic, which makes score-matching sampling hard to hack.</p>
+
+<h3 id="loss-type-1">Loss Type</h3>
+
+<ul>
+  <li>Noise Conditional Score Matching <a href="https://arxiv.org/pdf/2403.18103">\(^{\text{Theorem 3.3}}\)</a>
+</li>
+</ul>
+
+\[J_{\text{NCSM}}(\theta, \sigma_i) = \sum_i^{L} \lambda_i \;\mathbb{E}_{p(\mathbf{x})} \left[ \frac{1}{2} \left\| s_\theta(x_{data} + \sigma_i \varepsilon) + \frac{\varepsilon}{\sigma_i} \right\|^2 \right]\]
+
+<p>Note this is the loss function when we use score matching forward process to add noise progressively.</p>
+
+<p>If we use DDPM noise scheduler, which means \(x_t = \sqrt{\bar{\alpha_t}} x_{data} + \sqrt{1 - \bar{\alpha_t}} \varepsilon\) holds true,</p>
+
+<p>Then, the score can be approximated by \(\varepsilon\)</p>
+
+\[\nabla_x \log p(x_t \|x_{data}) = -\frac{x_t-\sqrt{ \bar{ \alpha_t} } x_{data}}{1-\bar{\alpha_t}} = -\frac{\varepsilon}{\sqrt{1-\bar{\alpha_t}}}\]
+
+<p>We can claim that:</p>
+
+<p>\(x_t = \sqrt{\bar{\alpha_t}} x_{data} - (1 - \bar{\alpha_t}) s_{\theta}\)  holds true. \(s_{\theta}\) is the score predicted by neural network.</p>
+
+<hr>
+
+<h2 id="flow-matching">Flow Matching</h2>
+
+<h3 id="forward-process-2">Forward Process</h3>
+
+<p>In flow matching, the forward process is:</p>
+
+<p>\(x_t =  (1 - t) x_{data} + t \varepsilon = a_t x_{data} + b_t \varepsilon\), where \(t \in [0, 1]\)</p>
+
+<p>Flow matching can be regarded as a uniform linear motion between data and noise.</p>
+
+<h3 id="reverse-process-1">Reverse Process</h3>
+
+<p>The reverse ODE is:</p>
+
+\[\frac{dx_t}{dt} = \varepsilon - x_{data} = v_t(x)\]
+
+<p>You can solve this ODE using Euler’s method. An interesting fact is that the direction of the velocity in Rectified Flow is from noise to data; whereas in DDPM-v-pred, it is from data to noise.</p>
+
+<h3 id="loss-type-2">Loss Type</h3>
+
+<p>The objective function for flow matching <a href="https://arxiv.org/pdf/2403.03206">\(^{\text{ref-Section 2}}\)</a>;  <a href="https://arxiv.org/pdf/2210.02747">\(^{\text{ref-Theorem 3}}\)</a>  is:</p>
+
+\[\text{MSE}(v(x_{data}, t) - u(x_t| \varepsilon))\]
+
+<p>where \(u(x_t \| \varepsilon) = \frac{a'_t}{a_t} x_t - \frac{b_t}{2} \left(\log \frac{a^2_t}{b^2_t}\right)' \varepsilon\)</p>
+
+      </div>
+      <div id="table-of-contents">
+          
+      </div>
+      <div id="markdown-content">
+          
+      </div>
+  </div>
+  
+</article>
+
+
+
+<footer>
+  <div><b style="color: #f45;">All Generation Tasks are Denoising Tasks.</b></div>
+  <nav><a href="mailto:nxu8@outlook.com"><svg aria-label="Mail" class="icon"><use xlink:href="/assets/fontawesome/icons.svg#envelope"></use></svg></a><a href="https://github.com/NormXU"><svg aria-label="Github" class="icon"><use xlink:href="/assets/fontawesome/icons.svg#github"></use></svg></a></nav>
+
+</footer>
+
+
+</head>
+</html>

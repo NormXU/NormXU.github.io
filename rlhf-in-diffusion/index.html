@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>What inference-time scaling should be like for Diffusion Model | まいどぅー</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Norm Inui">
+<meta name="generator" content="Jekyll v4.2.2">
+<link rel="canonical" href="/rlhf-in-diffusion/">
+
+<link rel="stylesheet" href="/assets/css/frame.css">
+
+<link rel="alternate" href="/feed.xml" type="application/atom+xml" title="まいどぅー">
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script defer src="/assets/katex/katex.min.js"></script>
+<script defer src="/assets/katex/contrib/auto-render.min.js" onload="renderMathInElement(document.body)"></script>
+
+
+
+
+
+
+
+<header>
+  <a href="/" class="title">まいどぅー</a>
+  <nav><a href="/">Home</a><a href="/about/">Nuo Xu</a></nav>
+
+</header>
+
+<article><script src="https://unpkg.com/vanilla-back-to-top@7.2.1/dist/vanilla-back-to-top.min.js"></script>
+<script>addBackToTop({
+  diameter: 56,
+  backgroundColor: 'rgb(255, 82, 82)',
+  textColor: '#fff'})
+</script><header>
+  <h1><a href="/rlhf-in-diffusion/">What inference-time scaling should be like for Diffusion Model</a></h1>
+<time datetime="2025-01-18T00:00:00+00:00">January 18, 2025</time>
+</header>
+
+  <div class="entry">
+      <div id="markdown-content">
+          
+
+      </div>
+      <div id="table-of-contents">
+          <ul id="toc" class="section-nav">
+<li class="toc-entry toc-h2">
+<a href="#background">Background</a>
+<ul>
+<li class="toc-entry toc-h3"><a href="#sde-vs-ode">SDE V.S. ODE</a></li>
+<li class="toc-entry toc-h3"><a href="#implications-for-world-model-and-video-generation">Implications for World Model and Video Generation</a></li>
+</ul>
+</li>
+<li class="toc-entry toc-h2">
+<a href="#how-can-we-implement-inference-time-scaling-in-diffusion-models">How Can We Implement Inference-Time Scaling in Diffusion Models?</a>
+<ul>
+<li class="toc-entry toc-h3"><a href="#increasing-nfe">Increasing NFE?</a></li>
+<li class="toc-entry toc-h3"><a href="#dpo-for-diffusion">DPO for Diffusion?</a></li>
+<li class="toc-entry toc-h3"><a href="#prm--mct-rollout-like-what-llm-does">PRM + MCT rollout like what LLM does?</a></li>
+<li class="toc-entry toc-h3"><a href="#search-noise-and-path">Search Noise and Path</a></li>
+</ul>
+</li>
+<li class="toc-entry toc-h2">
+<a href="#what-a-rlhf-for-diffusion-should-be-like">What a RLHF For Diffusion should be like?</a>
+<ul>
+<li class="toc-entry toc-h3"><a href="#configuration-space">Configuration Space</a></li>
+<li class="toc-entry toc-h3"><a href="#semantic-vae">Semantic VAE</a></li>
+</ul>
+</li>
+<li class="toc-entry toc-h2"><a href="#conclusion">Conclusion</a></li>
+</ul>
+      </div>
+      <div id="markdown-content">
+          <!--more--><h2 id="background">Background</h2>
+<p>Inference-time scaling in Large Language Models (LLMs) has been a hot topic recently. The concept of “slow thinking” in LLMs, where more computation during inference leads to significant performance improvements, has received widespread attention and has been proved effective. The open-source community has made significant achievement in reproducing the “slow thinking” approach, milestone works such as <a href="https://huggingface.co/papers/2501.07301">Lessons of PRM in Maths</a>, <a href="https://arxiv.org/abs/2501.04519">rStar-Math</a> showing us the use of Monte Carlo Tree Rollout methods to iteratively train Process Reward Models (PRM) and synthesize Chain-of-Thought (CoT) data.</p>
+<p>But what about the diffusion model? Is it necessary to implement inference-time scaling there as well? And could this be just another story told by NVIDIA for their stock prices?</p>
+<p>The answer, in my view, is a definitive “necessary for diffusion model”.</p>
+<h3 id="sde-vs-ode">SDE V.S. ODE</h3>
+<p>In fact, we’ve already seen how inference-time scaling in diffusion models can be beneficial, particularly for the ODE v.s. SDE sampling.</p>\[dx=-\underbrace{\dot{\sigma}(t)\sigma(t)\nabla_{x}\log p(x;\sigma(t))dt}_{\text{PFODE}}\;  \underbrace{-\;\underbrace{\beta(t)\sigma^{2}(t)\nabla_{x}\log p(x;\sigma(t))dt}_{\text{deterministic noise decay}}+\underbrace{\sqrt{2\beta(t)}\sigma(t)dw_{t}}_{\text{noise injection}}}_{\text{Langevin diffusion SDE}}\]<p>Above equation represent the general form of diffusion sampling. As you can see, sampling consists of two main terms: PFODE and Langevin SDE. The most interesting aspect here is that during noise decay, Langevin Diffusion SDE also injects noise (the third term). This dual role of denoising and noise injection helps mitigate the error caused by pure denoising, effectively creating an inference-time scaling effect by increasing computation.</p>
+<p><a href="https://arxiv.org/pdf/2401.08740">SiT paper</a> propose a similar conclusion:</p>
+<p><img src="https://raw.githubusercontent.com/NormXU/NormXU.github.io/main/_data/resources/blog/9/sit-fig5.png" alt=""></p>
+<p><strong>Figure 1.</strong> The ODE converges faster with fewer NFE, while the SDE is capable of reaching a much lower final FID score when given a larger computational budget</p>
+<p>This observation emphasizes an essential trade-off: ODE is computationally cheaper and converges faster, while SDE excels with a larger computational budget, producing more refined results (in terms of FID score). Therefore, while ODE provides faster convergence, SDE’s ability to inject noise in the diffusion process to mitigate accumulated errors during sampling can be computationally scaled up appropriately.</p>
+<h3 id="implications-for-world-model-and-video-generation">Implications for World Model and Video Generation</h3>
+<p>I believe that the inference-time scaling in diffusion models is a critical factor in solving issues in world models and video generation models, especially in cases where physical simulation is important. Intuitively, scaling up computations during inference should be beneficial to achieve higher-quality results, since diffusion models can allocate more computations to render complex scenes and simulate complex physics phenomenon.</p>
+<h2 id="how-can-we-implement-inference-time-scaling-in-diffusion-models">How Can We Implement Inference-Time Scaling in Diffusion Models?</h2>
+<p>If inference-time scaling offers benefits in diffusion-based generation, the next question is: <strong>how can we implement this in diffusion models?</strong></p>
+<p>In fact, this is actually not a simple task. The challenge lies in the principles of Diffusion Models.</p>
+<h3 id="increasing-nfe">Increasing NFE?</h3>
+<p>Diffusion Models work by denoising, gradually transforming pure noise into an image or video latent feature. Therefore, it seems that inference-time scaling for Diffusion Models should be easy, why not just simply increase the denoising steps? This is often known as increasing the number of function evaluations (NFE). However, many studies have already found that increasing NFEs will soon reach a plateau in the generated image/video quality after a certain number of steps. Therefore, merely increasing the NFE is not a viable approach.</p>
+<h3 id="dpo-for-diffusion">DPO for Diffusion?</h3>
+<p>Although there have been methods like <a href="https://arxiv.org/pdf/2405.13637">SD + DPO</a>, DPO’s reward is calculated at the instance level through preference pair data. Whether for images or videos, this level of granularity is too coarse. Coarse-grained rewards struggle to improve training data efficiency, and the model can easily “hack” preference data. This makes preference data challenging to work with. At least, making a preference data for images is one thing, but what about videos? Can we really have a clear preference between frames of two videos?</p>
+<h3 id="prm--mct-rollout-like-what-llm-does">PRM + MCT rollout like what LLM does?</h3>
+<p>Then, Could we just follow LLMs using PRM + MCT rollout? As of the time I’m writing this blog (Jan 18th, 2025), the answer seems to be no.</p>
+<p>Unlike LLMs, where generation happens with discrete tokens, most diffusion models generate in a continuous space. This makes applying PRM + MCT rollout methods to diffusion models infeasible. We cannot create CoT-like data for training diffusion models in the same way we do with text modalities, because images and videos are not discrete tokens. Actually, we even have no idea what CoT-like data shoule be like for diffusion model. We can’t extend CoT chains, manually set terminal points, calculate terminal rewards, and then use various rules to roll the data.</p>
+<p>Of course, one path could be to drop the continuous latent space of diffusion models and switch to a discrete latent space and use AR (autoregressive) generation for images and videos. Once generation becomes a token-by-token process, all of the LLM’s RLHF methods become applicable.</p>
+<p>In this area, I think NVIDIA’s <a href="[[2501.03575]%20Cosmos%20World%20Foundation%20Model%20Platform%20for%20Physical%20AI](https://arxiv.org/abs/2501.03575)">Cosmos-1.0-Autoregressive</a> has made the most solid advancements.</p>
+<p>Cosmos-1.0-Autoregressive has explored extensively and gained many insights into design.</p>
+<p>First,  the key challenge of training an image/video generation in AR fashion is how to develop a tokenizer with sufficient spatial-temporal compression.</p>
+<p>Cosmos uses a discrete tokenizer of 8x16x16, but this compression rate still seems inefficient. The sequence length of high-resolution images and long videos with such a tokenizer will become extremely long, even longer than the training context length that has been validated for text modalities. A natural follow-up is to pursue a tokenizer with even higher compression, such as 16x32x32. However, the Cosmos team considers 8x16x16 to be already quite aggressive.</p>
+<blockquote>  <p>“As a result of aggressive compression, it could sometimes lead to blurriness and visible artifacts in video generation, especially in the autoregressive WFM setting, where only a few integers are used to represent a rich video through discrete tokenization.”</p>
+</blockquote>
+<p>Thus, they had to design a diffusion decoder, where discrete token video is treated as the conditional input to the denoiser. The final image/video output is then generated by the diffusion decoder.</p>
+<p><img src="https://raw.githubusercontent.com/NormXU/NormXU.github.io/main/_data/resources/blog/9/cosmos-ar.png" alt=""></p>
+<p>The upper bound of this approach is clear. It depends on the quality and compression rate of the tokenizer, but it still doesn’t drop the continuous space for generation. After all, images and videos are inherently continuous modalities. Furthermore, the long sequence lengths far exceed those of text, which poses a significant challenge for training infrastructure perspective, not even mention serving such a model.</p>
+<h3 id="search-noise-and-path">Search Noise and Path</h3>
+<p>On January 17th, 2025, DeepMind published a paper on <a href="https://arxiv.org/pdf/2501.09732">scaling Diffusion Models</a>. The paper proposes what seems to be the most promising approach up till now.</p>
+<ul>  <li>    <p><strong>Rollout Initial Noise</strong>, referred to as Zero-Order Search, uses verifiers’ feedback to iteratively refine noise candidates.</p>  </li>  <li>    <p><strong>Search over Paths</strong>, which leverages verifiers’ feedback to iteratively refine diffusion sampling trajectories.</p>  </li>
+</ul>
+<p>The paper also introduces, for the first time, a mechanism similar to PRM within the entire pipeline, referred to as the <strong>verifier</strong>. These verifiers are classifiers trained based on CLIP and DINOv2, which use class label logits to help roll out the Initial Noise and Search over Paths. However, this rollout pipeline is still in its very early stages. The search algorithm is quite easy to hack via the reward verifier.</p>
+<p>From my understanding, although Rollout Initial Noise has some solid theory behind it, as many studies have shown that certain good noise do exist for better generation results. However, no single configuration is universally optimal.</p>
+<h2 id="what-a-rlhf-for-diffusion-should-be-like">What a RLHF For Diffusion should be like?</h2>
+<p>Upon reviewing it again, the problems that need to be solved to run RLHF for the diffusion model are:</p>
+<ul>  <li>    <p>How to define process rewards in continuous space?</p>  </li>  <li>    <p>How to enable the diffusion model to self-improve, similar to how LLMs perform data rollouts based on MCT?</p>  </li>  <li>    <p>What exactly does the diffusion process reward model look like?</p>  </li>
+</ul>
+<p>Below, I propose a method I believe to be feasible.</p>
+<p>The current flow-matching method actually starts by randomly initializing noise and letting the model fit the distribution of training data to construct a vector field. This vector field pushes the initial noise towards the expecting results. Interestingly, in robotics path planning, similar algorithms have existed for a long time, and they are called potential fields.</p>
+<p><img src="https://raw.githubusercontent.com/NormXU/NormXU.github.io/main/_data/resources/blog/9/potential_field.jpeg" alt=""></p>
+<p><strong>Figure 2.</strong> potential field for robot path planning.</p>
+<p>When you examine potential fields, you’ll find many similarities with flow matching. In potential fields, the robot is regarded as a positive charge, and the goal as a negative charge, with opposite charges attracting each other, creating a potential field that guides the robot’s path planning.</p>
+<p>However, in the real world, physical obstacles exist. To avoid obstacles, robot often regard obstacles as positive charges, like the robot itself, so that positive charges repel each other, and negative charges attract.</p>
+<p>Now you see the inspiration: <strong>The current diffusion training only considers the start and end points, without considering obstacles along the probabilistic path.</strong> These obstacles should be human preferences. For example, when generating a video, if a person walks through a wall, this breaks physical laws, and thus the obstacle represents physical law. Similarly, if an image generates a person with six fingers, the obstacle represents human preferences.</p>
+<p>Therefore, in continuous space, the process reward should be:</p>\[x_{t-1} = U_{\text{att}}(x_t, t) + U_{\text{rep}}(x_t, t)\]<p>where \(x \in [0, 1]\)</p>
+<p>\(U_{\text{att}}\) is the “attractive” vector field, move the initial noise \(x_1\) to the goal \(x_0\)</p>
+<p>\(U_{\text{att}}\) is the “repulsive” vector field, make the initial noise \(x_1\) avoid obstacles.</p>
+<p>Thus, the process reward in continuous space should be such that when the probabilistic path approaches obstacles, it is repelled by them. This repulsion force should have a threshold, Q∗, which represents the process reward score that needs to be searched via RLHF.</p>
+<p><img src="https://raw.githubusercontent.com/NormXU/NormXU.github.io/main/_data/resources/blog/9/repulsive.png" alt=""></p>
+<p><strong>Figure 3</strong>; Repulsive by Obstacles then point locates inside \(Q^*\)</p>
+<p>More specifically, this process reward score should be: when a denoising step hits an obstacle/locate inside the $Q^*$, the model should “feel the pain” and revert to the previous step, continuing to search for a collision-free path.</p>
+<p>This is similar to search over paths and also shares similarities with the Langevin dynamics term in SDEs. The algorithm for search over paths is as follows:</p>
+<blockquote>  <p>Step 1: Sample N initial i.i.d. noises and run the ODE solver until a certain noise level \(σ\). The noisy samples \(x_σ\) serve as the starting point for the search.</p>  <p>Step 2: Sample M i.i.d. noises for each noisy sample and simulate the forward noising process from \(σ\) to \(σ+Δf\) to produce \(x_{σ+Δf}\) with size M.</p>  <p>Step 3: Run the ODE solver on each \(x_{σ+Δf}\) to the noise level \(σ+Δf−Δb\), obtaining \(x_{σ+Δf−Δb}\). Run verifiers on these samples and keep the top N candidates. Repeat steps 2-3 until the ODE solver reaches \(σ=0\).</p>  <p>Step 4: Run the remaining N samples through random search and keep the best one.</p>
+</blockquote>
+<p>However, Langevin dynamics does not well incorporate a repulsive potential; it’s more focused on random search. Search over paths relies on verifiers to provide process rewards, but verifiers are vulnerable and can be easily “hacked” by the model.</p>
+<p>Thus, I propose the following process reward:</p>\[U_{\text{rep}}(q) = \left\{\begin{array}{ll}\frac{1}{2} \eta \left( \frac{1}{D(x_t, t)} - \frac{1}{Q^*} \right)^2, &amp; D(x_t, t) \leq Q^* \\0, &amp; D(x_t, t) &gt; Q^*\end{array}\right.\]<p>where \(D(x_t, t)\) is the distance from the noisy latent feature \(x_t\) to the obstacles under the vector field.</p>
+<p>We assume that such a vector field, combining both attractive and repulsive fields, has already been learned through the training data. For the diffusion model, this allows it to self-improve, similar to how LLMs perform data rollouts based on MCT—constantly starting from random points in latent space to search for the best collision-free probabilistic path.</p>
+<p>Now, the key question is: <strong>how do we represent these obstacles in latent space?</strong> In other words, what exactly does the diffusion process reward model look like?</p>
+<p>When we lack ideas, we can look at how robotics addresses this problem.</p>
+<h3 id="configuration-space">Configuration Space</h3>
+<p>Firstly, robotics path planning is not always done in Cartesian space. Some method does path planning in a configuration space.</p>
+<p>What is a configuration space?</p>
+<blockquote>  <p>The space of all configurations is the configuration space or C-space.</p>  <p>— C-space formalism: Lozano-Perez ‘79</p>
+</blockquote>
+<p><img src="https://raw.githubusercontent.com/NormXU/NormXU.github.io/main/_data/resources/blog/9/c-space.png" alt=""></p>
+<p>For a robot with two degrees of freedom, \(\alpha\) and \(\beta\), the space defined by these two variables is the robot’s C-space \(C_{\text{robot}} \in\mathbb{R}^2\). Each degree of freedom theoretically spans \([0,2π]\), but due to physical constraints, \(\alpha \in [0,\pi]\) and \(\beta\in [0,2\pi]\). In \(C_{\text{robot}}\), each point represents a robot’s pose configuration. Points that do not satisfy physical laws, or where the robot hit itself, are termed singularity points. All singularity points form the singularity space.</p>
+<p>Therefore, moving collision-freely from pose A to pose B in the configuration space becomes a simple point-to-point path planning problem. The space of poses that cause collisions constitutes the obstacles in C-space.</p>
+<p>You may notice that there’s an amazing similarity between C-space and VAE. Both serve as compressed spaces, translating a higher-dimensional path planning problem into a lower-dimensional one. Also, it’s common knowledge that VAE’s dimensionality is generally not large. Even in temporal and spatial compression, such as 8x16x16, the latent dimension typically remains small (e.g., 8, 12, 16). One reason is that increasing the latent dimension adds redundancy in the latent space, making DiT learning harder. Although scaling up DiT parameters can somewhat mitigate the redundancy of larger latent dimensions, most developers don’t follow this practice.</p>
+<p>This can be verified in C-space: <strong>as a robot’s degrees of freedom increase, the C-space’s dimensionality increases, and so does the singularity space.</strong> This is why VAE redundancy increases when latent dimension increases.</p>
+<h3 id="semantic-vae">Semantic VAE</h3>
+<p>Returning to obstacle representation, we can follow how C-space represent obstacles. By projecting data or concepts that do not align with human preferences into the VAE space, we can guide the initial noise to avoid falling into singularity or collision spaces. This is what we call rollout initial noise, also known as zero-order search.</p>
+<p>Thus, a promising future research for optimizing VAEs seems clear: make the VAE latent features not just a compressed space, but also introduce semantics to align with them. This way, we can project human preferences and physical laws into the VAE latent space, similar to how obstacles are represented in C-space.</p>
+<p>Fortunately, some papers have already taken this approach. For example, <a href="https://arxiv.org/abs/2501.01423">Reconstruction vs. Generation</a> demonstrates that by introducing DINOv2, the latent space not only learns more efficiently but also lays the foundation for expressing human preferences and physical laws in the future.</p>
+<p><img src="https://raw.githubusercontent.com/NormXU/NormXU.github.io/main/_data/resources/blog/9/taming_vae.png" alt=""><strong>Figure 4.</strong> The latent space learns more efficiently by aligning DINOv2</p>
+<p>Thus, if self-supervision vision foundation models can serve as a bridge for reconstruction and representation, we can project more obstacles into the VAE space and even directly use this feature as a classifier to learn human preferences.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>For the diffusion model, when doing Process Reward in continuous space, we can reference the robotics potential field method. We treat the initial noise as a positive charge, the generated target as a negative charge, and introduce obstacles as positive charges. The repulsive vector fields between the positive charges and the attractive vector field between the positive and negative charges should be superimposed to search for the strength and effective range of the repulsive vector field of each obstacle.</p>
+<p>To achieve this, we need to align the VAE with world knowledge, allowing us to construct obstacles in the VAE space by inputting text, images, or videos. At the same time, the VAE features should ideally integrate reconstruction and representation. By training a large number of human preference classifiers, we can build an effective search space within the VAE space.</p>
+      </div>
+  </div>
+  
+</article>
+
+
+
+<footer>
+  <div><b style="color: #f45;">All Generation Tasks are Denoising Tasks.</b></div>
+  <nav><a href="mailto:nxu8@outlook.com"><svg aria-label="Mail" class="icon"><use xlink:href="/assets/fontawesome/icons.svg#envelope"></use></svg></a><a href="https://github.com/NormXU"><svg aria-label="Github" class="icon"><use xlink:href="/assets/fontawesome/icons.svg#github"></use></svg></a></nav>
+
+</footer>
+
+
+</head>
+</html>

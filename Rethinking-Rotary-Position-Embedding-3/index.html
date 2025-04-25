@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Expand the Context Length with RoPE, Part 3 -- Unlocking the Unlimited Extrapolation Potential with ReRoPE | まいどぅー</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Norm Inui">
+<meta name="generator" content="Jekyll v4.2.2">
+<link rel="canonical" href="/Rethinking-Rotary-Position-Embedding-3/">
+
+<link rel="stylesheet" href="/assets/css/frame.css">
+
+<link rel="alternate" href="/feed.xml" type="application/atom+xml" title="まいどぅー">
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script defer src="/assets/katex/katex.min.js"></script>
+<script defer src="/assets/katex/contrib/auto-render.min.js" onload="renderMathInElement(document.body)"></script>
+
+
+
+
+
+
+
+<header>
+  <a href="/" class="title">まいどぅー</a>
+  <nav><a href="/">Home</a><a href="/about/">Nuo Xu</a></nav>
+
+</header>
+
+<article><script src="https://unpkg.com/vanilla-back-to-top@7.2.1/dist/vanilla-back-to-top.min.js"></script>
+<script>addBackToTop({
+  diameter: 56,
+  backgroundColor: 'rgb(255, 82, 82)',
+  textColor: '#fff'})
+</script><header>
+  <h1><a href="/Rethinking-Rotary-Position-Embedding-3/">Expand the Context Length with RoPE, Part 3 -- Unlocking the Unlimited Extrapolation Potential with ReRoPE</a></h1>
+<time datetime="2023-08-16T00:00:00+00:00">August 16, 2023</time>
+</header>
+
+  <div class="entry">
+      <div id="markdown-content">
+          <blockquote>
+  <p>Translated from the <a href="https://kexue.fm/archives/9708">post</a> and <a href="https://kexue.fm/archives/9728">post</a>, originally written in Chinese by Su, Jianlin</p>
+
+  <p>Translated by Norm Inui</p>
+</blockquote>
+
+<h3 id="tl-dr">TL; DR</h3>
+
+<ul>
+  <li>
+    <p>Introduce ReRoPE (Rectified RoPE), a post-processing optimization approach for RoPE.</p>
+  </li>
+  <li>
+    <p>Experimental results reveal that ReRoPE’s extrapolation capabilities, without fine-tuning, significantly surpass the previous NTK-aware Scaled RoPE</p>
+  </li>
+  <li>
+    <p>ReRoPE appears to consistently perform well across any length</p>
+  </li>
+  <li>
+    <p>ReRoPE significantly reduces inference speed. However, training with ReRoPE and inferring with RoPE can benefit the extrapolation ability of LLMs without sacrificing throughput in inference</p>
+  </li>
+  <li>
+    <p>Code is available <a href="https://github.com/bojone/rerope">here</a></p>
+  </li>
+</ul>
+
+<hr>
+
+<p>In the previous blog, I introduced the mixture-of-base encoding and believed we might have maxed out the potential of RoPE regarding extrapolation. It appeared we might need to explore another method for further extending on context length. It reminds me a method I previously set aside due to its complexity. Since we have run out of ideas, why not revisit it and see what we can learn from it. Sometimes, ‘The best solution is the only solution’.</p>
+
+<p>Surprisingly, even though this method will increase time complexity, the experimental results are promising and even shows a potential to unlock the unlimited extrapolation ability of the language model. I can’t wait to write this article and share the method. Due to its similarity with the ReLU activation function, I’ve named this method <strong>ReRoPE (Rectified Rotary Position Embeddings)</strong></p>
+
+<h3 id="background">Background</h3>
+
+<p>We explain in the previous blog that although RoPE is regarded as an absolute position embedding, it can inject relative positional information into the Attention matrix with a Toeplitz matrix.</p>
+
+\[\begin{equation} \begin{pmatrix}
+0 &amp;  &amp;  &amp;  &amp;  &amp;  &amp;  &amp; &amp; \\ 
+1 &amp; 0 &amp;  &amp;  &amp;  &amp;  &amp;  &amp; &amp; \\ 
+2 &amp;  1&amp; 0 &amp;  &amp;  &amp;  &amp;  &amp; &amp; \\ 
+3  &amp;  2&amp; 1 &amp; 0 &amp;  &amp;  &amp;  &amp; &amp; \\ 
+\ddots  &amp; 3 &amp; 2 &amp; 1 &amp; 0 &amp;  &amp;  &amp; &amp; \\ 
+\ddots  &amp; \ddots &amp; \ddots &amp; \ddots &amp; \ddots &amp; \ddots &amp; \ddots &amp; &amp; \\ 
+L-2 &amp; \ddots &amp; \ddots &amp; \ddots &amp; \ddots &amp; \ddots &amp; \ddots &amp; \ddots &amp; \\ 
+L-1 &amp; L-2 &amp; \ddots &amp; \ddots &amp; \ddots &amp; 3 &amp; 2 &amp; 1 &amp; 0
+\end{pmatrix} \end{equation}\]
+
+<p>\(L\) is the input sequence length. When \(L\) is greatly larger than the pretrained max sequence length, the model typically exhibits poor extrapolation because it hasn’t been adequately trained on longer sequences.</p>
+
+<p>The Position Interpolation modifies the Toeplitz matrix as:</p>
+
+\[\begin{equation} \begin{pmatrix}
+0 &amp;  &amp;  &amp;  &amp;  &amp;  &amp;  &amp; &amp; \\ 
+1/k &amp; 0 &amp;  &amp;  &amp;  &amp;  &amp;  &amp; &amp; \\ 
+2/k &amp;  1/k&amp; 0 &amp;  &amp;  &amp;  &amp;  &amp; &amp; \\ 
+3/k  &amp;  2/k&amp; 1/k &amp; 0 &amp;  &amp;  &amp;  &amp; &amp; \\ 
+\ddots  &amp; 3/k &amp; 2/k &amp; 1/k &amp; 0 &amp;  &amp;  &amp; &amp; \\ 
+\ddots  &amp; \ddots &amp; \ddots &amp; \ddots &amp; \ddots &amp; \ddots &amp; \ddots &amp; &amp; \\ 
+(L-2)/k &amp; \ddots &amp; \ddots &amp; \ddots &amp; \ddots &amp; \ddots &amp; \ddots &amp; \ddots &amp; \\ 
+(L-1)/k &amp; (L-2)/k &amp; \ddots &amp; \ddots &amp; \ddots &amp; 3/k &amp; 2/k &amp; 1/k &amp; 0
+\end{pmatrix} \end{equation}\]
+
+<p>Position Interpolation (PI) ensures that the maximum relative position does not exceed the training length by tuning \(k\), therefore, it is free from any extrapolation on dimension. However, it makes each dimension carry more position information. Consequently, a few fine-tuning steps are necessary to get the model to adapt to the “crowded” dimension. Neural networks are often better at interpolation rather than extrapolation, just consider extrapolation as adding an extra dimension, while interpolation inserts more data into the already trained dimension. Intuitively, neural networks struggle with extrapolation. Therefore, PI is an efficient method to extend the context length with minimal fine-tuning.</p>
+
+<p>As for the NTK-aware Scaled RoPE, it cleverly distributes the “crowded” dimension across every dimension. As a result, it can get even better perplexity value without fine-tuning. However, as we mention above,  neural networks struggle with extrapolation, which explains why an extended long context model can’t quite match a pretrained model with an identical max sequence length.</p>
+
+<h3 id="combine-interpolation-and-extrapolation">Combine Interpolation and Extrapolation</h3>
+
+<p>Let’s revisit extending methods we have through the lens of the definition of the locality. By mentioning ‘locality,’ we try to describe a preference of a language model when it predicts the next token, it heavily relies on the nearing tokens. Extrapolation preserves this locality since position encoding near 0s of the Toeptile matrix is unchanged, but its performance suffers due to the introduction of position encodings beyond the trained length. Although position interpolation doesn’t introduce extrapolated position encodings, it harms the locality since position encoding near 0 is compressed to \(1/k\), leading to necessary fine-tuning. On the other hand, NTK-aware Scaled RoPE combines the advantages of both methods by “high-frequency extrapolation and low-frequency interpolation”. This ensures the preservation of locality without introducing new position encoding, yielding good results even without fine-tuning.
+Besides NTK Scaled RoPE, is there any other method that can realize both extrapolation and interpolation? The answer is <strong>YES</strong>.
+Suppose we set a window with size \(w\), the interval between positions inside the window is \(1\), while the interval outside the window is \(1/k\), the Toepiltz matrix is shown as:</p>
+
+\[\begin{equation}\begin{pmatrix} 
+\color{red}{0} &amp; \\ 
+\color{red}{1} &amp; \color{red}{0} &amp; \\ 
+\color{red}{2} &amp; \color{red}{1} &amp; \color{red}{0} &amp; \\ 
+\color{red}{\ddots} &amp; \color{red}{2} &amp; \color{red}{1} &amp; \color{red}{0} &amp; \\ 
+\color{red}{\tiny{w - 1}} &amp; \color{red}{\ddots} &amp; \color{red}{2} &amp; \color{red}{1} &amp; \color{red}{0} &amp; \\ 
+\color{green}{w} &amp; \color{red}{\tiny{w - 1}} &amp; \color{red}{\ddots} &amp; \color{red}{2} &amp; \color{red}{1} &amp; \color{red}{0} &amp; \\ 
+\color{green}{\tiny{w + \frac{1}{k}}} &amp; \color{green}{w} &amp; \color{red}{\ddots} &amp; \color{red}{\ddots} &amp; \color{red}{2} &amp; \color{red}{1} &amp; \color{red}{0} &amp; \\ 
+\color{green}{\tiny{w + \frac{2}{k}}} &amp; \color{green}{\tiny{w + \frac{1}{k}}} &amp; \color{green}{\ddots} &amp; \color{red}{\ddots} &amp; \color{red}{\ddots} &amp; \color{red}{2} &amp; \color{red}{1} &amp; \color{red}{0} &amp; \\ 
+\color{green}{\ddots} &amp; \color{green}{\tiny{w + \frac{2}{k}}} &amp; \color{green}{\ddots} &amp; \color{green}{\ddots} &amp; \color{red}{\ddots} &amp; \color{red}{\ddots} &amp; \color{red}{2} &amp; \color{red}{1} &amp; \color{red}{0} &amp; \\ 
+\color{green}{\ddots} &amp; \color{green}{\ddots} &amp; \color{green}{\ddots} &amp; \color{green}{\ddots} &amp; \color{green}{\ddots} &amp; \color{red}{\ddots} &amp; \color{red}{\ddots} &amp; \color{red}{\ddots} &amp; \color{red}{\ddots} &amp; \color{red}{\ddots} &amp; \\ 
+\color{green}{\ddots} &amp; \color{green}{\ddots} &amp; \color{green}{\ddots} &amp; \color{green}{\tiny{w + \frac{2}{k}}} &amp; \color{green}{\tiny{w + \frac{1}{k}}} &amp; \color{green}{w} &amp; \color{red}{\tiny{w - 1}} &amp; \color{red}{\ddots} &amp; \color{red}{2} &amp; \color{red}{1} &amp; \color{red}{0} &amp; \\ 
+\color{green}{\tiny{w + \frac{L-1-w}{k}}} &amp; \color{green}{\ddots} &amp; \color{green}{\ddots} &amp; \color{green}{\ddots} &amp; \color{green}{\tiny{w + \frac{2}{k}}} &amp; \color{green}{\tiny{w + \frac{1}{k}}} &amp; \color{green}{w} &amp; \color{red}{\tiny{w - 1}} &amp; \color{red}{\ddots} &amp; \color{red}{2} &amp; \color{red}{1} &amp; \color{red}{0} &amp; \\ 
+\end{pmatrix}\end{equation}\]
+
+<p>Numbers in \(\color{red} \text{red}\) are within the sliding window, in \(\color{green} \text{green}\) are outside the sliding window.</p>
+
+      </div>
+      <div id="table-of-contents">
+          
+      </div>
+      <div id="markdown-content">
+          
+<p>By adjusting \(k\), we can ensure \(w &lt; \text{max pretraining length}\), which allows us to maintain locality while keeping the position encoding within the pretraining length. This sliding window approach to the input sequence achieves interpolation outside the window and preserves locality within the window concurrently.</p>
+
+<p>Moreover, when we extend the context length \(\to \infty\), then \(k \to \infty\), the matrix can be formulated as:</p>
+
+\[\begin{equation}\begin{pmatrix} 
+\color{red}{0} &amp; \\ 
+\color{red}{1} &amp; \color{red}{0} &amp; \\ 
+\color{red}{2} &amp; \color{red}{1} &amp; \color{red}{0} &amp; \\ 
+\color{red}{\ddots} &amp; \color{red}{2} &amp; \color{red}{1} &amp; \color{red}{0} &amp; \\ 
+\color{red}{\tiny{w - 1}} &amp; \color{red}{\ddots} &amp; \color{red}{2} &amp; \color{red}{1} &amp; \color{red}{0} &amp; \\ 
+\color{green}{w} &amp; \color{red}{\tiny{w - 1}} &amp; \color{red}{\ddots} &amp; \color{red}{2} &amp; \color{red}{1} &amp; \color{red}{0} &amp; \\ 
+\color{green}{w} &amp; \color{green}{w} &amp; \color{red}{\ddots} &amp; \color{red}{\ddots} &amp; \color{red}{2} &amp; \color{red}{1} &amp; \color{red}{0} &amp; \\ 
+\color{green}{w} &amp; \color{green}{w} &amp; \color{green}{\ddots} &amp; \color{red}{\ddots} &amp; \color{red}{\ddots} &amp; \color{red}{2} &amp; \color{red}{1} &amp; \color{red}{0} &amp; \\ 
+\color{green}{\ddots} &amp; \color{green}{w} &amp; \color{green}{\ddots} &amp; \color{green}{\ddots} &amp; \color{red}{\ddots} &amp; \color{red}{\ddots} &amp; \color{red}{2} &amp; \color{red}{1} &amp; \color{red}{0} &amp; \\ 
+\color{green}{\ddots} &amp; \color{green}{\ddots} &amp; \color{green}{\ddots} &amp; \color{green}{\ddots} &amp; \color{green}{\ddots} &amp; \color{red}{\ddots} &amp; \color{red}{\ddots} &amp; \color{red}{\ddots} &amp; \color{red}{\ddots} &amp; \color{red}{\ddots} &amp; \\ 
+\color{green}{\ddots} &amp; \color{green}{\ddots} &amp; \color{green}{\ddots} &amp; \color{green}{w} &amp; \color{green}{w} &amp; \color{green}{w} &amp; \color{red}{\tiny{w - 1}} &amp; \color{red}{\ddots} &amp; \color{red}{2} &amp; \color{red}{1} &amp; \color{red}{0} &amp; \\ 
+\color{green}{w} &amp; \color{green}{\ddots} &amp; \color{green}{\ddots} &amp; \color{green}{\ddots} &amp; \color{green}{w} &amp; \color{green}{w} &amp; \color{green}{w} &amp; \color{red}{\tiny{w - 1}} &amp; \color{red}{\ddots} &amp; \color{red}{2} &amp; \color{red}{1} &amp; \color{red}{0} &amp; \\ 
+\end{pmatrix}\end{equation}\]
+
+<p>We can notice the locality can still be preserved within the window.
+In conclusion, we can find a relation between <strong>eq(3)</strong>, <strong>eq(4)</strong> and <strong>eq(1)</strong></p>
+
+<p>\(eq(3) = \text{LeakyReLU}(eq(1))\) and \(eq(4) = \text{ReLU}(eq(1))\)</p>
+
+<h3 id="computation-cost">Computation Cost</h3>
+
+<p>The concept of incorporating sliding windows into the input sequence is not new today and has been widely used in Attention Bias, like T5-bias, and relative position embedding. Yet, integrating a sliding window with RoPE can increase computation costs. Regarding <strong>eq(3)</strong> and <strong>eq(4)</strong>, since the values in each matrix row don’t increase linearly, RoPE needs to encode twice: one for positions within the window and another for those outside. These encodings are then combined together as ReRoPE.</p>
+
+<p>To be specific, we compute attention scores with RoPE position encoding within the window:</p>
+
+\[a_{i,j}^{(1)} = (R^i q_i)^T(R^j k_j) = q_i^T R^{j-i} k_j\]
+
+<p>\(R\) is the RoPE rotation matrix, we omit the attention scale factor and softmax for concise. 
+Then we compute attention scores outside the window, whose interval between numbers is \(1/k\). We denote this equation as Leaky ReRoPE:</p>
+
+\[a_{i,j}^{(2)} = (R^{(i-w)/k+w} q_i)^T(R^{j/k} k_j) = q_i^T R^{(j-i+w)/k - w} k_j\]
+
+<p>When \(k \to \infty\), the equation is simpler:</p>
+
+\[a_{i,j}^{(2)} = (R^{w} q_i)^T k_j = q_i^T R^{w} k_j\]
+
+<p>Let’s combine them together:</p>
+
+\[\begin{equation}
+    a_{i,j}=
+    \begin{cases}
+      a^{(1)}_{i,j}, &amp;  i -j &lt; w\\
+      a^{(2)}_{i,j}, &amp; i -j \ge w
+    \end{cases}
+  \end{equation}\]
+
+<p>According to the equations, we can notice both ReRoPE and Leaky ReRoPE inevitably require calculating the Attention matrix twice. If you have a more efficient implementation, please feel free to contact me. Moreover, this Attention matrix cannot directly be optimized with the current flash attention implementation, leading to more computational cost.</p>
+
+<p>On the other hand, the non-linear relative positioning means that during autoregressive decoding, only the RoPE keys within the window can be cached. As the sequence length increases, keys that were once inside the window shift outside, and they need to be recomputed and appended with the cached keys for decoding tokens beyond the maximum sequence length. This process amplifies computation cost during inference. In token-by-token decoding, the query sequence length after the input prompt is merely \(1\). Unless the prompt exceeds the maximum sequence length, only the keys need to be recalculated.</p>
+
+\[\begin{equation}a_{i,j} = \left\{\begin{aligned} 
+&amp;\boldsymbol{q}_i^{\top}\left(\boldsymbol{\mathcal{R}}^{\max(j-i,-w)}\boldsymbol{k}_j\right), \quad(\text{ReRoPE})\\[8pt] 
+&amp;\boldsymbol{q}_i^{\top}\left(\boldsymbol{\mathcal{R}}^{\max(j-i,(j-i+w)/k-w)}\boldsymbol{k}_j\right), \quad(\text{Leaky ReRoPE}) 
+\end{aligned}\right.\end{equation}\]
+
+<p>However, using ReRoPE/Leaky ReRoPE  in LLMs is computationally intensive. While it enables LLMs to process longer extended contexts, the input length during inference often exceeds the pretrained maximum sequence length. This results in significant latency, making it challenging for real-time applications.</p>
+
+<p>What if we train with ReRoPE/Leaky ReRoPE but infer using standard RoPE? ReRoPE/Leaky ReRoPE serves as an extrapolation method for the ideal goal: “Train Short, Test Long”. Training an LLM with ReRoPE/Leaky ReRoPE certainly demands more time; however, this slowdown during training is acceptable when compared to the potential drop in inference speed.</p>
+
+<p>To be specific, when a model is trained with RoPE and its context length is extrapolated using LeakyReRoPE, the interval outside the window is  \(1\) during training and \(\dfrac{1}{k} &lt; 1\) during inference. When swapping the embedding strategy, the model is trained with an interval greater than  \(1\) but infers with an interval of \(1\). This means that, during inference, LeakyReRoPE behaves like RoPE. We refer to this approach as InvLeaky ReRoPE (Inverse Leaky ReRoPE). <strong>Table 5</strong> demonstrates the effectiveness of this strategy. Since the embedding behaves like RoPE at inference, optimization techniques like FlashAttenion can be seamlessly integrated. After experimenting the different hyperparameters, we propose the empirical optimal parameter rule:</p>
+
+<p>expanding scale:</p>
+
+\[b = \dfrac{\text{expanded\_len}}{\text{max\_seq\_len}}\]
+
+<p>number interval outside window:</p>
+
+\[k=\dfrac{1}{2 b}\]
+
+<p>window size:</p>
+
+\[w = \dfrac{\text{max\_seq\_len}}{4}\]
+
+<p>In <strong>Table 5</strong>, the model has 100M parameters, with a training length of 512. The training time for every 1,000 steps grows from \(330\) seconds to \(350\) seconds, an increase less than \(10\%\). Since the model is a hybrid of Transformer and GAU (Gated Attention Unit), with single-head attention in HAU. As for a multi-head attention LLM, the time increase could be more significant, possibly up to \(50\%\), but it is still acceptable.</p>
+
+<h3 id="ablation-experiments">Ablation Experiments</h3>
+<p>We follow the same experiment setup as in <a href="https://normxu.github.io/Rethinking-Rotary-Position-Embedding/">part 1</a> on an 100M <a href="https://arxiv.org/abs/2202.10447">GAU</a> model. The result is shown below.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>context length</th>
+      <th>512(trained)</th>
+      <th>4096 (repeated text)</th>
+      <th>4096 (non-repeated text)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Baseline
+<br>
+Baseline-\(\log n\)</td>
+      <td>49.41%
+<br>
+49.40%</td>
+      <td>24.17%
+<br>
+24.60%</td>
+      <td>23.16%
+<br>
+24.02%</td>
+    </tr>
+    
+    <tr>
+      <td>PI-RoPE
+<br>
+PI-RoPE-\(\log n\)</td>
+      <td>49.41%
+<br>
+49.40%</td>
+      <td>15.04%
+<br>
+14.99%</td>
+      <td>13.54%
+<br>
+16.51%</td>
+    </tr>
+    
+    <tr>
+      <td>NTK-RoPE
+<br>
+NTK-RoPE-\(\log n\)</td>
+      <td>49.41%
+<br>
+49.40%</td>
+      <td>51.28%
+<br>
+61.71%</td>
+      <td>39.27%
+<br>
+43.75%</td>
+    </tr>
+    
+    <tr>
+      <td>NTK-RoPE-fixed
+<br>
+NTK-RoPE-\(\log n^{*}\)-fixed
+<br>
+NTK-RoPE-\(\log n\)-fixed
+<br>
+NTK-RoPE-mixed
+<br>
+NTK-RoPE-\(\log n^{*}\)-mixed
+<br>
+NTK-RoPE-\(\log n\)-mixed</td>
+      <td>49.41%
+<br>
+49.41%
+<br>
+49.40%
+<br>
+49.41%
+<br>
+49.41%
+<br>
+49.40%</td>
+      <td>51.86%
+<br>
+55.94%
+<br>
+62.85%
+<br>
+53.09%
+<br>
+59.11%
+<br>
+68.91%</td>
+      <td>39.61%
+<br>
+41.11%
+<br>
+44.14%
+<br>
+40.12%
+<br>
+42.38%
+<br>
+45.41%</td>
+    </tr>
+    
+    
+    
+    
+    
+    <tr>
+      <td>ReRoPE-w256
+<br>
+ReRoPE-w256-\(\log n^{*}\)
+<br>
+ReRoPE-w256-\(\log n\)</td>
+      <td>49.41%
+<br>
+49.41%
+<br>
+49.40%</td>
+      <td>77.90%
+<br>
+82.40%
+<br>
+<strong><em><u>85.12%</u></em></strong>
+</td>
+      <td>48.48%
+<br>
+48.85%
+<br>
+<strong><em><u>49.07%</u></em></strong>
+</td>
+    </tr>
+    
+    
+  </tbody>
+</table>
+
+<p><strong>Table 1</strong>: the average accuracy of predicting next token to match the ground-truth next token given previous context. The experiment is based on a hybrid Transformer-GAU (Gated Attention Unit) model with a size of 100M parameters. \(\log n\) indicates we add the scale factor \(\log n\) at pretraining stage; \(\log n^{*}\) denotes we apply the scale factor \(\log n\) is applied to the attention matrix only for text exceeding the max sequence length, without any pretraining ; \(w256\) denotes \(w=256\)</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>context length</th>
+      <th>512(trained)</th>
+      <th>4096 (repeated text)</th>
+      <th>4096 (non-repeated text)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>ReRoPE-w64
+<br>
+ReRoPE-w64-\(\log n^{*}\)
+<br>
+ReRoPE-w64-\(\log n\)</td>
+      <td>49.41%
+<br>
+49.41%
+<br>
+49.40%</td>
+      <td>69.39%
+<br>
+78.58%
+<br>
+84.38%</td>
+      <td>45.19%
+<br>
+47.42%
+<br>
+48.14%</td>
+    </tr>
+    
+    
+    <tr>
+      <td>ReRoPE-w128
+<br>
+ReRoPE-w128-\(\log n^{*}\)
+<br>
+ReRoPE-w128-\(\log n\)</td>
+      <td>49.41%
+<br>
+49.41%
+<br>
+49.40%</td>
+      <td>76.11%
+<br>
+82.28%
+<br>
+<strong><em><u>85.47%</u></em></strong>
+</td>
+      <td>47.82%
+<br>
+48.78%
+<br>
+48.87%</td>
+    </tr>
+    
+    
+    <tr>
+      <td>ReRoPE-w256
+<br>
+ReRoPE-w256-\(\log n^{*}\)
+<br>
+ReRoPE-w256-\(\log n\)</td>
+      <td>49.41%
+<br>
+49.41%
+<br>
+49.40%</td>
+      <td>77.90%
+<br>
+82.40%
+<br>
+85.12%</td>
+      <td>48.48%
+<br>
+48.85%
+<br>
+<strong><em><u>49.07%</u></em></strong>
+</td>
+    </tr>
+    
+    
+    <tr>
+      <td>ReRoPE-w384
+<br>
+ReRoPE-w384-\(\log n^{*}\)
+<br>
+ReRoPE-w384-\(\log n\)</td>
+      <td>49.41%
+<br>
+49.41%
+<br>
+49.40%</td>
+      <td>70.72%
+<br>
+76.42%
+<br>
+83.24%</td>
+      <td>48.15%
+<br>
+48.31%
+<br>
+48.62%</td>
+    </tr>
+    
+    
+    <tr>
+      <td>ReRoPE-w512
+<br>
+ReRoPE-w512-\(\log n^{*}\)
+<br>
+ReRoPE-w512-\(\log n\)</td>
+      <td>49.41%
+<br>
+49.41%
+<br>
+49.40%</td>
+      <td>7.09%
+<br>
+7.08%
+<br>
+15.84%</td>
+      <td>8.25%
+<br>
+8.25%
+<br>
+10.83%</td>
+    </tr>
+    
+    
+  </tbody>
+</table>
+
+<p><strong>Table 2</strong>: Ablation on window size of ReRoPE; experiment setting is the same as <strong>Table 1</strong></p>
+
+<p>From <strong>Table 2</strong>, we can learn \(w\) is robust to the performance; the optimal <strong>w</strong> is \(1/4\) to \(1/2\) of the pretraining max sequence length.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>context length</th>
+      <th>512(trained)</th>
+      <th>4096 (repeated text)</th>
+      <th>4096 (non-repeated text)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>ReRoPE-w128-\(\log n\)
+<br>
+Leaky-ReRoPE-w128-k64-\(\log n\)
+<br>
+Leaky-ReRoPE-w128-k32-\(\log n\)
+<br>
+Leaky-ReRoPE-w128-k16-\(\log n\)
+<br>
+Leaky-ReRoPE-w128-k8-\(\log n\)</td>
+      <td>49.40%
+<br>
+49.40%
+<br>
+49.40%
+<br>
+49.40%
+<br>
+49.40%</td>
+      <td>
+<strong><em><u>85.47%</u></em></strong>
+<br>
+85.29%
+<br>
+85.31%
+<br>
+85.15%
+<br>
+80.00%</td>
+      <td>48.87%
+<br>
+48.96%
+<br>
+49.03%
+<br>
+<strong><em>49.10%</em></strong>
+<br>
+48.11%</td>
+    </tr>
+    
+    
+    
+    
+    <tr>
+      <td>ReRoPE-w256-\(\log n\)
+<br>
+Leaky-ReRoPE-w256-k64-\(\log n\)
+<br>
+Leaky-ReRoPE-w256-k32-\(\log n\)
+<br>
+Leaky-ReRoPE-w256-k16-\(\log n\)
+<br>
+Leaky-ReRoPE-w256-k8-\(\log n\)</td>
+      <td>49.40%
+<br>
+49.40%
+<br>
+49.40%
+<br>
+49.40%
+<br>
+49.40%</td>
+      <td>85.12%
+<br>
+84.60%
+<br>
+84.30%
+<br>
+83.59%
+<br>
+69.80%</td>
+      <td>49.07%
+<br>
+49.03%
+<br>
+48.97%
+<br>
+48.87%
+<br>
+45.72%</td>
+    </tr>
+    
+    
+    
+    
+  </tbody>
+</table>
+
+<p><strong>Table 3</strong>: Ablation on interval \(k\) of Leaky ReRoPE and ReRoPE; experiment setting is the same as <strong>Table 1</strong></p>
+
+<p>From <strong>Table 3</strong>: Fine-tuned Leaky ReRoPE, as a generalization of ReRoPE, might slightly surpass ReRoPE’s performance, though the gains are minimal. When setting \(k\) to a finite value, there’s an inherent limitation on the maximum length it can manage. Since predicting the length LLM will generate in advance is impossible, we usually set a large value for \(k\). However, even with a sufficiently large \(k\), a siginificant long input could severely degrade performance due to position encoding surpassing the trained length. While ReRoPE doesn’t have such an issue. In practical applications, fine-tuned Leaky ReRoPE may not be as universally adaptable as ReRoPE.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>context length</th>
+      <th>4096(trained)</th>
+      <th>8192</th>
+      <th>16384</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>RoPE</td>
+      <td>1.4967</td>
+      <td>8.8615</td>
+      <td>—</td>
+    </tr>
+    <tr>
+      <td>NTK-RoPE</td>
+      <td>1.6081</td>
+      <td>1.5417</td>
+      <td>1.5163</td>
+    </tr>
+    <tr>
+      <td>ReRoPE</td>
+      <td>1.4996</td>
+      <td>1.4267</td>
+      <td>1.4001</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>Table 4</strong>: Experiments on LLaMa-2-13B, the value represent loss; smaller is better.</p>
+
+<p>ReRoPE effectively achieves near-optimal results, aligning with our intuition that “longer context results in lower loss”, given that an extended context should benefit LLM comprehension ability. Furthermore, I evaluated the chat capabilities of the LLAMA2-13b model, open-source by <a href="https://huggingface.co/OpenBuddy">OpenBuddy</a>, and found its performance satisfying with an input length up to 20k tokens.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>context length</th>
+      <th>512(trained)</th>
+      <th>4096 (repeated text)</th>
+      <th>4096 (non-repeated text)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Baseline
+<br>
+Baseline-\(\log n\)</td>
+      <td>49.41%
+<br>
+49.40%</td>
+      <td>24.17%
+<br>
+24.60%</td>
+      <td>23.16%
+<br>
+24.02%</td>
+    </tr>
+    
+    <tr>
+      <td>NTK-RoPE-fixed
+<br>
+NTK-RoPE-\(\log n^{*}\)-fixed
+<br>
+NTK-RoPE-\(\log n\)-fixed</td>
+      <td>49.41%
+<br>
+49.41%
+<br>
+49.40%</td>
+      <td>51.86%
+<br>
+55.94%
+<br>
+62.85%</td>
+      <td>39.61%
+<br>
+41.11%
+<br>
+44.14%</td>
+    </tr>
+    
+    
+    <tr>
+      <td>NTK-RoPE-mixed
+<br>
+NTK-RoPE-\(\log n^{*}\)-mixed
+<br>
+NTK-RoPE-\(\log n\)-mixed</td>
+      <td>49.41%
+<br>
+49.41%
+<br>
+49.40%</td>
+      <td>53.09%
+<br>
+59.11%
+<br>
+68.91%</td>
+      <td>40.12%
+<br>
+42.38%
+<br>
+45.41%</td>
+    </tr>
+    
+    
+    <tr>
+      <td>ReRoPE-w256
+<br>
+ReRoPE-w256-\(\log n^{*}\)
+<br>
+ReRoPE-w256-\(\log n\)</td>
+      <td>49.41%
+<br>
+49.41%
+<br>
+49.40%</td>
+      <td>77.90%
+<br>
+82.40%
+<br>
+<strong><em><u>85.12%</u></em></strong>
+</td>
+      <td>48.48%
+<br>
+48.85%
+<br>
+<strong><em><u>49.07%</u></em></strong>
+</td>
+    </tr>
+    
+    
+    <tr>
+      <td>InvLeaky ReRoPE-w128-\(\log n\)
+<br>
+InvLeaky ReRoPE-w128-b8-\(\log n\)</td>
+      <td>49.38%
+<br>
+49.62%</td>
+      <td>82.25%
+<br>
+81.15%</td>
+      <td>48.32%
+<br>
+48.85%</td>
+    </tr>
+    
+  </tbody>
+</table>
+
+<p><strong>Table 5</strong>: Experiment setting is the same as <strong>Table 1</strong>； b8: replace the RoPE base from \(10000\) to \(80000\); InvLeaky ReRoPE is inferior to ReRoPE, but still promising compared to vanilla NTK-RoPE</p>
+
+<p>The ReRoPE and Leaky ReRoPE codes can be found here. Feel free to play with it.</p>
+
+<blockquote>
+  <p><strong>Github: <a href="https://github.com/bojone/rerope">https://github.com/bojone/rerope</a></strong></p>
+</blockquote>
+
+      </div>
+  </div>
+  
+</article>
+
+
+
+<footer>
+  <div><b style="color: #f45;">All Generation Tasks are Denoising Tasks.</b></div>
+  <nav><a href="mailto:nxu8@outlook.com"><svg aria-label="Mail" class="icon"><use xlink:href="/assets/fontawesome/icons.svg#envelope"></use></svg></a><a href="https://github.com/NormXU"><svg aria-label="Github" class="icon"><use xlink:href="/assets/fontawesome/icons.svg#github"></use></svg></a></nav>
+
+</footer>
+
+
+</head>
+</html>

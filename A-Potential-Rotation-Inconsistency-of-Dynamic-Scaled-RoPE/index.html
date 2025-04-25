@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>A Potential Rotation Inconsistency of Dynamic Scaled RoPE | まいどぅー</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Norm Inui">
+<meta name="generator" content="Jekyll v4.2.2">
+<link rel="canonical" href="/A-Potential-Rotation-Inconsistency-of-Dynamic-Scaled-RoPE/">
+
+<link rel="stylesheet" href="/assets/css/frame.css">
+
+<link rel="alternate" href="/feed.xml" type="application/atom+xml" title="まいどぅー">
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script defer src="/assets/katex/katex.min.js"></script>
+<script defer src="/assets/katex/contrib/auto-render.min.js" onload="renderMathInElement(document.body)"></script>
+
+
+
+
+
+
+
+<header>
+  <a href="/" class="title">まいどぅー</a>
+  <nav><a href="/">Home</a><a href="/about/">Nuo Xu</a></nav>
+
+</header>
+
+<article><script src="https://unpkg.com/vanilla-back-to-top@7.2.1/dist/vanilla-back-to-top.min.js"></script>
+<script>addBackToTop({
+  diameter: 56,
+  backgroundColor: 'rgb(255, 82, 82)',
+  textColor: '#fff'})
+</script><header>
+  <h1><a href="/A-Potential-Rotation-Inconsistency-of-Dynamic-Scaled-RoPE/">A Potential Rotation Inconsistency of Dynamic Scaled RoPE</a></h1>
+<time datetime="2023-08-08T00:00:00+00:00">August 08, 2023</time>
+</header>
+
+  <div class="entry">
+      <div id="markdown-content">
+          <h3 id="tldr">TL;DR</h3>
+
+<ul>
+  <li>The huggingface implements DynamicNTK RoPE with a potential inconsistency problem in rotation base between keys</li>
+  <li>Current perplexity evaluation cannot faithfully reflect whether the inconsistency problem can harm the perplexity.</li>
+  <li>The inconsistency in DynamicNTK RoPE can be fixed with <code class="language-plaintext highlighter-rouge">use_cache=False</code>, at the cost of speed.</li>
+</ul>
+
+<hr>
+
+<p>Weeks ago, <a href="https://www.reddit.com/user/emozilla">u/emozilla</a> proposed an improvement on NTK-Aware RoPE in this <a href="https://www.reddit.com/r/LocalLLaMA/comments/14mrgpr/dynamically_scaled_rope_further_increases/?utm_source=share&utm_medium=web2x&context=3">post</a>, later named DynamicNTKScalingRotaryEmbedding.</p>
+
+<p>The main idea behind Dynamic NTK is to use a scaling factor relative to the present decoding sequence length to improve the base functionality， which means that if we represent the base of NTKRoPE as:</p>
+
+\[\theta_j = (\alpha^{dim/dim-2} \times 10000)^{-2j/dim}\]
+
+<p>\(\alpha\) is the scale of the max sequence length we extend by interpolation w.r.t. the pretrained max sequence length.</p>
+
+<p>Then the Dynamic NTK is to scale up the \(\alpha\) as:</p>
+
+\[\alpha_{\text{dynamicNTK}} = \alpha * \dfrac{\text{max\_seq + scale * (seq - max\_seq)}}{ \text{max\_seq}}\]
+
+<p>\(\text{max\_seq}\) is max sequence length of pretrained model, for example, for LLaMA-1-7B, \(\text{ max\_seq } = 2048\); \(\text{seq}\) is the current sequence length;</p>
+
+<p>According to the equation, we can see that as the sequence length keeps growing, the scaling factor continues to increase as well, which means the larger the base, the slower the rotation speed along all dimensions.</p>
+
+<p>However, here is a possible rotation inconsistency problem that could result in a relative position mismatch between the key and query as the sequence length growing.</p>
+
+      </div>
+      <div id="table-of-contents">
+          
+      </div>
+      <div id="markdown-content">
+          
+<h3 id="inconsistency-problem">Inconsistency Problem</h3>
+
+<p>Let’s denote:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">key_states</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">k_proj</span><span class="p">(</span><span class="n">hidden_states</span><span class="p">)</span>
+<span class="n">value_states</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">v_proj</span><span class="p">(</span><span class="n">hidden_states</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>when the decoder tries to generate the 100th token, \(\text{seq}=100\) and the <code class="language-plaintext highlighter-rouge">key_states</code> at the index \(j\) is rotated based on a base</p>
+
+\[\alpha_1 = \alpha * \dfrac{\text{max\_seq} + \text{scale} * (100 - \text{max\_seq)}}{\text{max\_seq}}\]
+
+<p>Similarly, for the 200th token, \(\text{seq}=200\) and the <code class="language-plaintext highlighter-rouge">key_states</code> at index \(j\) is rotated based on a base</p>
+
+\[\alpha_2 = \alpha * \dfrac{\text{max\_seq} + \text{scale} * (200 - \text{max\_seq)}}{\text{max\_seq}}\]
+
+<p>Here we can clearly see that these two \(\alpha\) are different.</p>
+
+<p>Since we use key-value caches to speed up generation, the multiplication between the key and the query can be written as:</p>
+
+\[\begin{equation} \text{Q}\text{K}^ T =  [r(k_0, \alpha_0), r(k_1, \alpha_1), r(k_2, \alpha_2)] * r(q, \alpha_2) \end{equation}\]
+
+<p>\(r(k, \alpha)\): apply RoPE on the key with a rotation base \(\alpha\)</p>
+
+<p>Here, we can clearly see there is an inconsistent rotation base between the keys and queries.</p>
+
+<p>From my understanding, a consistent rotation between keys and queries should be like this:</p>
+
+<p>Firstly,</p>
+
+\[\begin{equation} \text{Q}\text{K}^ T=  [r(k_0, \alpha_1), r(k_1, \alpha_1)] * r(q, \alpha_1) \end{equation}\]
+
+<p>when seq length increases</p>
+
+\[\begin{equation} \text{Q}\text{K}^ T =  [r(k_0, \alpha_2), r(k_1, \alpha_2), r(k_2, \alpha_2)] * r(q, \alpha_2) \end{equation}\]
+
+<p>The relative position introduced by RoPE between all keys and queries in <strong>eq3</strong> looks more reasonable when compared to <strong>eq1</strong>.</p>
+
+<p>I believe that, from a mathematical perspective, keeping consistency in the rotation base could potentially enhance the language model’s ability to learn relative positions more effectively. My intuition suggests that this consistency might offer advantages in capturing relative position information.</p>
+
+<h3 id="the-gap-between-perplexity-evaluation-and-generation">The Gap between Perplexity Evaluation and Generation</h3>
+
+<p>There is actually a gap between how we compute perplexity and how the LLM actually generates tokens.</p>
+
+<p>During the decoding process in every layer of decoders, the <code class="language-plaintext highlighter-rouge">key_states</code> and <code class="language-plaintext highlighter-rouge">query_states</code> are computed from the hidden features. Then, they are rotated based on a fixed <code class="language-plaintext highlighter-rouge">seq_len</code>. However, in the decoding phase, LLM usually reuses previous cached keys which are rotated based on factors related to <code class="language-plaintext highlighter-rouge">seq_len</code> to save memory. As the <code class="language-plaintext highlighter-rouge">seq_Len</code> keeps increasing, inconsistency arises between keys and queries.</p>
+
+<p>Therefore, our current evaluation methods are unable to accurately reflect whether such inconsistency in Dynamic NTK RoPE can harm perplexity or not. In other words, the way how we currently compute perplexity is more like we keep the rotation base consistent.</p>
+
+<p>To mitigate such a gap between perplexity evaluation and inference, I modified the codes about applying the rotary embedding on keys and queries in this <a href="https://github.com/NormXU/Consistent-DynamicNTKRoPE">repo</a> and do simple experiments on Llama1-7B.</p>
+
+<p>After modification, the perplexity is computed like this:</p>
+
+<p><img src="https://github.com/NormXU/Consistent-DynamicNTKRoPE/blob/main/doc/inconsistent.png?raw=true" alt="inconsistent"></p>
+
+<p><strong>\(K(\alpha(x))\) means, the key is rotated by a rotation matrix whose base is a function of \(n\)</strong></p>
+
+<p>Here are some results:</p>
+
+<p><img src="https://github.com/NormXU/Consistent-DynamicNTKRoPE/blob/main/doc/ppl.png?raw=true" alt="ppl"></p>
+
+<p><strong>Figure 1</strong>, Perplexity value on Llama1-7B, a 2k max sequence length model, values above 12.0 are cut off for concise; Vanilla: RoPE w/o any interpolation; NTK: DynamicNTK when scale=1; Consistent DynamicNTK: keep rotation base between keys consistent, current huggingface implementations; Inconsistent DynamicNTK: keep rotation base between keys inconsistent w.r.t context length;</p>
+
+<p>We can see from Figure 1 that when keeping the rotation base between keys inconsistent w.r.t context length, the perplexity significantly increases, indicating DynamicNTK harms the performances. This finding might initially seem counterintuitive.</p>
+
+<p>However, as the sequence length continues to grow, we can notice a gradual reduction in perplexity for inconsistent Dynamic NTKScale RoPE. Interestingly, the inconsistent Dynamic NTKScale RoPE outperforms the NTKScale RoPE in terms of perplexity when the sequence length exceeds \(5,000\).</p>
+
+<p>This may suggest why we tend to ignore the inconsistency in the rotation because it does benefit a longer context beyond a certain sequence length. Please check <strong>Table 1</strong> for more detailed ppl value.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Lenth</th>
+      <th>Consistent Dynamic NTKScale PPL</th>
+      <th>Inconsistent Dynamic NTKScale PPL</th>
+      <th>NTKScale PPL</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>2800</td>
+      <td>4.285102386474609</td>
+      <td>10.203343925476075</td>
+      <td>4.301338438987732</td>
+    </tr>
+    <tr>
+      <td>3600</td>
+      <td>4.371902356147766</td>
+      <td>9.213108296394347</td>
+      <td>5.401671919822693</td>
+    </tr>
+    <tr>
+      <td>5600</td>
+      <td>4.536222472190857</td>
+      <td>8.04413757801056</td>
+      <td>10.291163015365601</td>
+    </tr>
+    <tr>
+      <td>7200</td>
+      <td>4.7303602981567385</td>
+      <td>7.674421100616455</td>
+      <td>15.359781618118285</td>
+    </tr>
+    <tr>
+      <td>8000</td>
+      <td>4.932255864143372</td>
+      <td>7.7100021314620975</td>
+      <td>15.884212293624877</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>Table 1:</strong> PPL Value of Different NTKScale Methods</p>
+
+<h3 id="latency-of-consistent-vs-inconsistent-dynamic-scaling">Latency of consistent vs inconsistent dynamic scaling</h3>
+
+<p>The main difference between <a href="https://github.com/NormXU/Consistent-DynamicNTKRoPE/blob/main/scale_rope/consistent_rope_for_llama_patch.py#L53-L64">my implementations</a> and huggingface’s is as follows:</p>
+
+<p>In the former approach, all keys are cached before RoPE is applied to a length-increasing key_states list. The latter one applies RoPE only to a single key_state. Therefore, we just need to confirm whether applying RoPE on a length-increasing key_states list will take more time than applying it to a single key_state.</p>
+
+<p>Here is the exec time of <code class="language-plaintext highlighter-rouge">apply_rotary_pos_emb</code> in consistent DynamicNTKScale RoPE on LLaMA-7B (32 layers)</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>seq_length</th>
+      <th>exec time (ms)</th>
+      <th>seq_length</th>
+      <th>exec time (ms)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>16</td>
+      <td>56.32</td>
+      <td>528</td>
+      <td>206.08</td>
+    </tr>
+    <tr>
+      <td>32</td>
+      <td>44.48</td>
+      <td>544</td>
+      <td>194.88</td>
+    </tr>
+    <tr>
+      <td>48</td>
+      <td>39.68</td>
+      <td>560</td>
+      <td>197.44</td>
+    </tr>
+    <tr>
+      <td>64</td>
+      <td>30.72</td>
+      <td>576</td>
+      <td>215.36</td>
+    </tr>
+    <tr>
+      <td>80</td>
+      <td>43.84</td>
+      <td>592</td>
+      <td>207.04</td>
+    </tr>
+    <tr>
+      <td>96</td>
+      <td>25.28</td>
+      <td>608</td>
+      <td>211.52</td>
+    </tr>
+    <tr>
+      <td>112</td>
+      <td>26.24</td>
+      <td>624</td>
+      <td>220.16</td>
+    </tr>
+    <tr>
+      <td>128</td>
+      <td>24.32</td>
+      <td>640</td>
+      <td>227.84</td>
+    </tr>
+    <tr>
+      <td>144</td>
+      <td>35.2</td>
+      <td>656</td>
+      <td>245.76</td>
+    </tr>
+    <tr>
+      <td>160</td>
+      <td>26.88</td>
+      <td>672</td>
+      <td>238.4</td>
+    </tr>
+    <tr>
+      <td>176</td>
+      <td>71.68</td>
+      <td>688</td>
+      <td>248.64</td>
+    </tr>
+    <tr>
+      <td>192</td>
+      <td>65.6</td>
+      <td>704</td>
+      <td>246.72</td>
+    </tr>
+    <tr>
+      <td>208</td>
+      <td>95.04</td>
+      <td>720</td>
+      <td>270.08</td>
+    </tr>
+    <tr>
+      <td>432</td>
+      <td>161.28</td>
+      <td>944</td>
+      <td>356.48</td>
+    </tr>
+    <tr>
+      <td>448</td>
+      <td>164.16</td>
+      <td>960</td>
+      <td>367.36</td>
+    </tr>
+    <tr>
+      <td>464</td>
+      <td>172.8</td>
+      <td>976</td>
+      <td>354.56</td>
+    </tr>
+    <tr>
+      <td>480</td>
+      <td>177.92</td>
+      <td>992</td>
+      <td>365.12</td>
+    </tr>
+    <tr>
+      <td>496</td>
+      <td>178.88</td>
+      <td>1008</td>
+      <td>407.68</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>You can find the exec time eval script <a href="https://github.com/NormXU/Consistent-DynamicNTKRoPE/blob/main/eval_exec_time.py">here</a>: 
+According to the table above: The throughput of consistent is impaired compared to that of dynamic’s.</p>
+
+<h3 id="limitation">Limitation</h3>
+
+<p>In fact, I haven’t found any practical downstream tasks where the consistent RoPE can bring significant performance improvement. The only advantage convinces me to replace it is its potential to achieve better perplexity scores on very long contexts. However, considering that it trades consistency with speed, it is less necessary to correct this inconsistency in the RoPE. Speed does matter more than correctness :)</p>
+
+<p>Still, my experiments have some limitations. I only test it on one dataset with limited samples. I hope my finds can be helpful to you. If there is any mistake in my codes or experiments, I’ll appreciate it if you could kindly point it out. Please feel free to raise an issue in the repo as well.</p>
+
+      </div>
+  </div>
+  
+</article>
+
+
+
+<footer>
+  <div><b style="color: #f45;">All Generation Tasks are Denoising Tasks.</b></div>
+  <nav><a href="mailto:nxu8@outlook.com"><svg aria-label="Mail" class="icon"><use xlink:href="/assets/fontawesome/icons.svg#envelope"></use></svg></a><a href="https://github.com/NormXU"><svg aria-label="Github" class="icon"><use xlink:href="/assets/fontawesome/icons.svg#github"></use></svg></a></nav>
+
+</footer>
+
+
+</head>
+</html>

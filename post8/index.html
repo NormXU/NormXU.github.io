@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Your SDXL is a Slow Learner | まいどぅー</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Norm Inui">
+<meta name="generator" content="Jekyll v4.2.2">
+<link rel="canonical" href="/post8/">
+
+<link rel="stylesheet" href="/assets/css/frame.css">
+
+<link rel="alternate" href="/feed.xml" type="application/atom+xml" title="まいどぅー">
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script defer src="/assets/katex/katex.min.js"></script>
+<script defer src="/assets/katex/contrib/auto-render.min.js" onload="renderMathInElement(document.body)"></script>
+
+
+
+
+
+
+
+<header>
+  <a href="/" class="title">まいどぅー</a>
+  <nav><a href="/">Home</a><a href="/about/">Nuo Xu</a></nav>
+
+</header>
+
+<article><script src="https://unpkg.com/vanilla-back-to-top@7.2.1/dist/vanilla-back-to-top.min.js"></script>
+<script>addBackToTop({
+  diameter: 56,
+  backgroundColor: 'rgb(255, 82, 82)',
+  textColor: '#fff'})
+</script><header>
+  <h1><a href="/post8/">Your SDXL is a Slow Learner</a></h1>
+<time datetime="2024-01-20T00:00:00+00:00">January 20, 2024</time>
+</header>
+
+  <div class="entry">
+      <div id="markdown-content">
+          <h3 id="tl-dr">TL; DR</h3>
+
+<ul>
+  <li>
+    <p>Fine-tuning SDXL UNET with high-quality datasets can enhance the AES score of generated images, but there is a limitation to this improvement. Specifically, you can easily upgrade the AES score of SDXL-base, which is initially aesthetically evaluated as 6.0, to reach a score of 6.7. However, a further enhancement in the AES score becomes significantly limited, even tuning on a high-quality dataset whose average AES score exceed 7.5 with many steps.</p>
+  </li>
+  <li>
+    <p>High-quality fine-tuning can negatively affect text fidelity.</p>
+  </li>
+  <li>
+    <p>Fine-tuning UNET without incorporating high-level noise latent features can enhance text fidelity in trade with a slight decrease in aesthetic quality</p>
+  </li>
+  <li>
+    <p>A self-reward SDXL-DPO pipeline can both benefit text fidelity and aesthetic quality</p>
+  </li>
+</ul>
+
+<h2 id="background">Background</h2>
+
+<h3 id="high-quality-fine-tuning">high-quality fine-tuning</h3>
+
+<p>It is widely known that fine-tuning SDXL using a carefully curated set of aesthetically pleasing data can significantly enhance the quality of SDXL’s output. In the <a href="https://ai.meta.com/research/publications/emu-enhancing-image-generation-models-using-photogenic-needles-in-a-haystack/">EMU</a> paper, the authors assert that quality tuning can effectively enhance the pretrained base model, similar to how we do supervised fine-tuning with a Language Model (LLM).</p>
+
+<p>The EMU paper has provided a good fine-tuning recipe for aesthetic alignment as follows:</p>
+
+<ul>
+  <li>
+    <p>2k highly visually appealing images</p>
+  </li>
+  <li>
+    <p>a small batch size of 64</p>
+  </li>
+  <li>
+    <p>noise-offset is set to 0.1</p>
+  </li>
+  <li>
+    <p>no more than 15K iterations regardless of loss decreasing</p>
+  </li>
+</ul>
+
+<p>However, it’s worth noting that the EMU paper hid certain crucial details regarding this recipe. For instance, it doesn’t show us any samples from the 2,000 images to let us know how appealing these images are, the choice of the optimizer, and the criteria for determining when to early stop the fine-tuning process.</p>
+
+<h3 id="sdxl-dpo">SDXL-DPO</h3>
+
+<p>If you download a highly-rated checkpoint from Civitai and use it to create an image, you’ll likely find it  a bit tricky to generate an image that can follow detailed textual descriptions. This issue is likely because these checkpoints are overfitted on a curated dataset. Considering the fact that it is really hard to find when to early stop the training, the checkpoints are easily overfitted and harm the text fidelity.</p>
+
+<p>To address such an issue, a promising solution is to push the diffusion models towards high text fidelity with <a href="https://arxiv.org/abs/2311.12908">Diffusion-DPO</a>. Diffusion-DPO enhances the training target for SDXL besides MES loss of predicting noises by incorporating a rewarding loss without the need for an online rewarding model. However, the efficacy of DPO in fixing text fidelity largely depends on the quality of the preference data pairs. What’s worse, it is hard to find any reliable metrics to determine whether SDXL-DPO can fix the text fidelity without sacrificing aesthetic quality.</p>
+
+<h3 id="self-rewarding">Self-Rewarding</h3>
+
+<p>Recently, in <a href="https://arxiv.org/abs/2401.10020">this</a> paper, Meta researchers showed that using an iteratively updated model, which generates its own rewards during training, can significantly enhance the instruction following ability when compared to a frozen reward model during SFT. What’s particularly surprising is that by fine-tuning Llama 2 70B through only three iterations of this self-rewarding approach, they achieved a model that outperforms several closed-source LLMs, including Claude 2, Gemini Pro, and even GPT-4 0613. This finding has inspired me to incorporate this concept into the SDXL-DPO pipeline to explore the potential benefits for image generation.</p>
+
+<h2 id="method">Method</h2>
+
+<p>Following the idea of Self-Rewarding, I change the SDXL-DPO pipeline by introducing a slowly updated reference UENT based on EMA.</p>
+
+<p><img src="https://raw.githubusercontent.com/NormXU/NormXU.github.io/main/_data/resources/blog/8/pipeline.png" alt="rewarding_pipeline">
+<strong>Figure 1.</strong>  A Self-Reward SDXL pipeline with EMA updated reference UNET; \(x^w\) and \(x^l\) represents a preferred image and a non-preferred image with the same text prompt. \(x^w_t\), \(x^l_t\) means adding noises to \(x^w\) and \(x^l\) at a random timestep \(t\) respectively;</p>
+
+<h2 id="experiments">Experiments</h2>
+
+<p>Let’s start with a fine-tuned proprietary SDXL-base as our baseline. I gathered 20 carefully selected prompts from <a href="https://prompthero.com/">PromptHero</a>, which are quite challenging for SDXL-base to generate visually pleasing images with only one-shot, as our benchmark. Each of these prompts was used to create 4 images using the same random settings and was refined with SDXL-refiner. Then, I employed <a href="https://github.com/christophschuhmann/improved-aesthetic-predictor">LAION-Aesthetics V2</a> to calculate the average aesthetic scores for a total of 80 generated images. This evaluation helps us determine whether the checkpoints learns to yield more visually pleasing images after fine-tuning.</p>
+
+<p>The high-curated dataset \(D\) was filtered from 4M MidJourney v5 dataset. Since the raw image prompts are not natural language, I regenerated captions for each image using LLaVA-v1.5-13B. Various filters, such as OCR, SigLIP, and an aesthetic evaluator, were applied to curate the data. As a result, I obtained a 2k text-image pairs, with an average aesthetic score of <strong><mark>7.62</mark></strong>.</p>
+
+<p>The experiment are conducted with 8 x A800, batch_size = 64, using deepzeros-2</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>id</th>
+      <th>avg aes score</th>
+      <th>note</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>baseline</td>
+      <td>6.7</td>
+      <td>a fine-proprietary SDXL checkpoint fine-tuned from SDXL-base</td>
+    </tr>
+    <tr>
+      <td>trail 1</td>
+      <td>6.7413</td>
+      <td>the best aes score picked from all fine-tuned checkpoints in 10 epochs</td>
+    </tr>
+    <tr>
+      <td>trail 2</td>
+      <td>6.7515</td>
+      <td>the best aes score picked from all fine-tuned checkpoints in 50 epochs</td>
+    </tr>
+    <tr>
+      <td>trail 3</td>
+      <td>6.7420</td>
+      <td>continual DPO fine-tuned from the last saved checkpoint (epoch 10 step 300) in trail 1</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>Table 1:</strong> Experiments of fine-tuning a proprietary SDXL checkpoint whose generated images can achive average aesthetic score of 6.7 under our benchmark; Please check appendix for more training configuration details.</p>
+
+<p>It’s worth noting that even if the curated dataset was intentionally fine-tuned for 50 epochs and has an average aesthetic score exceeding 7.5, the baseline checkpoint is  still hard to overfit on the dataset and the AES score is only increased from 6.7 to 6.75.</p>
+
+<h2 id="showcase">ShowCase</h2>
+
+<p>The following analysis is based on a cherry-picked example to visualize how different training strategies can directly impact the generated results. To further validate these findings, additional trials are necessary. I leave this task for me in the future or those who are interested in digging it further.</p>
+
+<p><img src="https://raw.githubusercontent.com/NormXU/NormXU.github.io/main/_data/resources/blog/8/showcase.png" alt="rewarding_pipeline">
+<strong>Figure 2.</strong> <strong>A comparison of generated results under different training settings following Table 1</strong>. All images are generated with the same configurations. Please check appendix for more config details.</p>
+
+<p>According to Figure 2, we can observe that:</p>
+
+<ul>
+  <li>
+    <p><strong>(a)</strong> Baseline; it tends to generate images in watercolor style. The light and contrast is unrealistic. The right-side image in (a) fails to include “the cape of the world” mentioned in the prompt;</p>
+  </li>
+  <li>
+    <p><strong>(b)</strong> Trail 1, fine-tuned from baseline with 2k high-quality dataset, can generate more aesthetic images, especially the lighting;</p>
+  </li>
+  <li>
+    <p><strong>(c)</strong> Trail 2, fine-tuned with the same configuration as Trail 1 but more steps, ignores the “cape”, yet it retains the lighting and art-style as Trail 1;</p>
+  </li>
+  <li>
+    <p><strong>(d)</strong> The image on the right closely resembles the baseline, particularly the background clouds. It seems to blend the watercolor and realism. The model also successfully draws the “Cape”, which suggests that DPO could restore the text fidelity that may have been broken during high-quality fine-tuning in previous steps.</p>
+  </li>
+</ul>
+
+<h3 id="appendix">Appendix</h3>
+
+<p>training recipe for trail 1 and trail 2</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">grad_accumulate</span><span class="pi">:</span> <span class="m">4</span>
+<span class="na">grad_clip</span><span class="pi">:</span> <span class="m">5.0</span>
+
+<span class="c1"># optimizer config</span>
+<span class="na">weight_decay</span><span class="pi">:</span> <span class="m">0.01</span>
+<span class="na">optimizer_type</span><span class="pi">:</span> <span class="s2">"</span><span class="s">adamw"</span>
+<span class="na">lr</span><span class="pi">:</span> <span class="s">1e-6</span> 
+<span class="na">adam_beta1</span><span class="pi">:</span> <span class="m">0.9</span>
+<span class="na">adam_beta2</span><span class="pi">:</span> <span class="m">0.999</span>
+<span class="na">adam_weight_decay</span><span class="pi">:</span> <span class="s">1e-2</span>
+<span class="na">adam_epsilon</span><span class="pi">:</span> <span class="s">1e-8</span>
+
+<span class="na">scheduler</span><span class="pi">:</span>
+    <span class="na">scheduler_type</span><span class="pi">:</span> <span class="s2">"</span><span class="s">cosine"</span>
+    <span class="na">warmup_steps</span><span class="pi">:</span> <span class="m">200</span>
+
+<span class="na">noise_offset</span><span class="pi">:</span> <span class="m">0.0357</span>
+<span class="na">input_perturbation</span><span class="pi">:</span> <span class="m">0.0</span>
+</code></pre></div></div>
+
+<p><strong>Generation config for Figure 2</strong></p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">prompt</span><span class="pi">:</span> <span class="s">An old man waiting for the end of his life at the cape of the world</span>
+
+<span class="na">inference</span><span class="pi">:</span> <span class="s">fp16</span>
+<span class="na">resolution</span><span class="pi">:</span> <span class="m">1024</span>
+<span class="na">gs</span><span class="pi">:</span> <span class="m">5.0</span>
+<span class="na">sampling_method</span><span class="pi">:</span> <span class="s">DPMkarras</span>
+<span class="na">random_seed</span><span class="pi">:</span> <span class="m">100</span>
+</code></pre></div></div>
+
+      </div>
+      <div id="table-of-contents">
+          
+      </div>
+      <div id="markdown-content">
+          
+      </div>
+  </div>
+  
+</article>
+
+
+
+<footer>
+  <div><b style="color: #f45;">All Generation Tasks are Denoising Tasks.</b></div>
+  <nav><a href="mailto:nxu8@outlook.com"><svg aria-label="Mail" class="icon"><use xlink:href="/assets/fontawesome/icons.svg#envelope"></use></svg></a><a href="https://github.com/NormXU"><svg aria-label="Github" class="icon"><use xlink:href="/assets/fontawesome/icons.svg#github"></use></svg></a></nav>
+
+</footer>
+
+
+</head>
+</html>

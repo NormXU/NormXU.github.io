@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Build a Codebase from Scratch 🚧 (WIP) | まいどぅー</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Norm Inui">
+<meta name="generator" content="Jekyll v4.2.2">
+<link rel="canonical" href="/codebase-post9/">
+
+<link rel="stylesheet" href="/assets/css/frame.css">
+
+<link rel="alternate" href="/feed.xml" type="application/atom+xml" title="まいどぅー">
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script defer src="/assets/katex/katex.min.js"></script>
+<script defer src="/assets/katex/contrib/auto-render.min.js" onload="renderMathInElement(document.body)"></script>
+
+
+
+
+
+
+
+<header>
+  <a href="/" class="title">まいどぅー</a>
+  <nav><a href="/">Home</a><a href="/about/">Nuo Xu</a></nav>
+
+</header>
+
+<article><script src="https://unpkg.com/vanilla-back-to-top@7.2.1/dist/vanilla-back-to-top.min.js"></script>
+<script>addBackToTop({
+  diameter: 56,
+  backgroundColor: 'rgb(255, 82, 82)',
+  textColor: '#fff'})
+</script><header>
+  <h1><a href="/codebase-post9/">Build a Codebase from Scratch 🚧 (WIP)</a></h1>
+<time datetime="2024-04-21T00:00:00+00:00">April 21, 2024</time>
+</header>
+
+  <div class="entry">
+      <div id="markdown-content">
+          <h3 class="no_toc"> TL; DR</h3>
+
+<p>When starting a new project, I often ponder which codebase would be the best foundation. While the open-source community offers numerous impressive repositories, they often cater to specific demos and may not prioritize training or inference efficiency.</p>
+
+<p>As a result, I’ve chosen to construct my codebase by drawing inspiration from several awesome open-source projects.</p>
+
+
+      </div>
+      <div id="table-of-contents">
+          <ul id="toc" class="section-nav">
+<li class="toc-entry toc-h1">
+<a href="#part1-dataset-and-data-stream">Part1. Dataset and Data Stream</a>
+<ul>
+<li class="toc-entry toc-h2">
+<a href="#parallel">Parallel</a>
+<ul>
+<li class="toc-entry toc-h4"><a href="#data-parallel">Data Parallel</a></li>
+<li class="toc-entry toc-h4"><a href="#tensor-parallel">Tensor Parallel</a></li>
+<li class="toc-entry toc-h4"><a href="#pipeline-parallel">Pipeline Parallel</a></li>
+<li class="toc-entry toc-h4"><a href="#context-parallel">Context Parallel</a></li>
+<li class="toc-entry toc-h4"><a href="#virtual-pipeline-parallel">Virtual Pipeline Parallel</a></li>
+</ul>
+</li>
+<li class="toc-entry toc-h2">
+<a href="#dataloader">Dataloader</a>
+<ul>
+<li class="toc-entry toc-h3"><a href="#serialization">Serialization</a></li>
+<li class="toc-entry toc-h3"><a href="#pytree">pytree</a></li>
+<li class="toc-entry toc-h3"><a href="#sampler">Sampler</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+      </div>
+      <div id="markdown-content">
+          <!--more-->
+
+<p>The codebase should be designed with the following key characteristics:</p>
+
+<ul>
+  <li>
+    <p><strong>Scalable:</strong> Supporting TP/DP/MP/PP</p>
+  </li>
+  <li>
+    <p><strong>Reproducibility:</strong> Ensuring that results can be replicated precisely using the same configuration file.</p>
+  </li>
+  <li>
+    <p><strong>Extensibility:</strong> Can easily integrate operators or modules from other codebases, such as Megatron-LM.</p>
+  </li>
+</ul>
+
+<hr>
+
+<h1 id="part1-dataset-and-data-stream">Part1. Dataset and Data Stream</h1>
+
+<h2 id="parallel">Parallel</h2>
+
+<p>MgLM has a very comprehensive <a href="https://github.com/NVIDIA/Megatron-LM/blob/ccfeda47cb5ca10ee3c4efd9b78c6bb15c2cd3d2/megatron/core/parallel_state.py#L310">documentations</a> about TP/CP/DP/MP.</p>
+
+<p>The initialize_model_parallel function mentioned 3 use cases:</p>
+
+<p>Let’s say we have a total of 16 GPUs denoted by g0 … g15</p>
+
+<h4 id="data-parallel"><strong>Data Parallel</strong></h4>
+
+<p>When DP=8, we arrange groups like:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[g0, g2]
+[g1, g3]
+[g4, g6]
+[g5, g7]
+[g8, g10]
+[g9, g11]
+[g12, g14]
+[g13, g15]
+</code></pre></div></div>
+
+<p>The arrangement indicates an alternating pattern where consecutive groups skip one GPU before pairing with the next. This pattern can be explained by two primary factors:</p>
+
+<ol>
+  <li>
+    <p>In many multi-GPU setups, GPUs are interconnected in a way that adjacent GPUs (like g0 and g1) might share certain system resources (e.g., memory bandwidth, PCIe lanes). By pairing GPUs that are not directly adjacent (e.g., g0 and g2), it might be possible to optimize the usage of these shared resources, potentially reducing bottlenecks that occur when adjacent GPUs are used simultaneously for similar tasks.</p>
+  </li>
+  <li>
+    <p>Alternating GPUs ensures a more uniform distribution of computational load across different parts of the GPU cluster.</p>
+  </li>
+</ol>
+
+<h4 id="tensor-parallel"><strong>Tensor Parallel</strong></h4>
+
+<p>When TP=8:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[g0, g1]
+[g2, g3]
+[g4, g5]
+[g6, g7]
+[g8, g9]
+[g10, g11]
+[g12, g13]
+[g14, g15]
+</code></pre></div></div>
+
+<p>While tensor model-parallel groups have a more straightforward and intuitive pattern.</p>
+
+<p>Tensor model parallelism involves splitting the model itself across multiple GPUs. Each GPU handles a part of the model’s computations. This is particularly useful for very large models that might not fit into the memory of a single GPU.</p>
+
+<p>Adjacent GPUs often have faster or more direct communication paths between them. This can be due to their physical proximity on the motherboard or their direct connection via high-speed links like NVLink (in NVIDIA GPUs). Therefore, for tensor parallel groups, we arrange them using adjacent order.</p>
+
+<h4 id="pipeline-parallel"><strong>Pipeline Parallel</strong></h4>
+
+<p>When PP=4:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[g0, g4, g8, g12]
+[g1, g5, g9, g13]
+[g2, g6, g10, g14]
+[g3, g7, g11, g15]
+</code></pre></div></div>
+
+<p>We arrange GPUs into 4  groups, ensuring that within each group, GPUs are not placed adjacent to one another. The reasons behind this practice are the same as the 8 data parallel groups.</p>
+
+<h4 id="context-parallel"><strong>Context Parallel</strong></h4>
+
+<p>It is a very interesting concept but lacks documentation. As for transformer-based models, the sequence length could be very long and a large sequence may not fit entirely within the memory of a single GPU, context parallelism is here used to split the input sequence length across multiple GPUs. However, unlike simpler data or model parallelism, context parallelism requires frequent communication among GPUs to share parts of the input sequence they are processing, because that is how the attention mechanism works.</p>
+
+<p>This is critical because each part of the GPU cluster only sees a portion of the input, but computations (like calculating attention scores) require knowledge of the full input array. Therefore, a good practice of Context Group is composed of corresponding GPUs from other tensor parallel groups that handle different segments of the same sequence, which means each context parallel group contains one GPU from each tensor parallel group, ensuring that all segments of the sequence can be combined and communicated across the GPUs as needed.</p>
+
+<p>For instance,</p>
+
+<p><strong>Total GPUs</strong>: 8 (g0 to g7)
+<strong>Context Parallel Size</strong>: 4</p>
+
+<p><strong>Tensor Parallel Groups</strong>: Since context parallel size is 4, let’s assume we have 2 tensor parallel groups containing 4 GPUs each. Specifically, the tensor parallel groups are arranged as follows:</p>
+
+<ul>
+  <li>Group A: <code class="language-plaintext highlighter-rouge">[g0, g1]</code>
+</li>
+  <li>Group B: <code class="language-plaintext highlighter-rouge">[g2, g3]</code>
+</li>
+  <li>Group C: <code class="language-plaintext highlighter-rouge">[g4, g5]</code>
+</li>
+  <li>Group D: <code class="language-plaintext highlighter-rouge">[g6, g7]</code>
+</li>
+</ul>
+
+<p>However, they are divided into 4 groups for context parallelism, each handling different segments of the data. Each context parallel group needs to contain one GPU from each tensor parallel group that corresponds to handling a portion of the sequence:</p>
+
+<p><strong>Context Parallel</strong></p>
+
+<ul>
+  <li>
+<strong>Group 1</strong>: Comprised of the first GPU from each tensor parallel group
+<code class="language-plaintext highlighter-rouge">[g0, g2, g4, g6]</code>
+</li>
+  <li>
+<strong>Group 2</strong>: Comprised of the second GPU from each tensor parallel group:
+<code class="language-plaintext highlighter-rouge">[g1, g3, g5, g7]</code>
+</li>
+</ul>
+
+<p>This setup ensures that for any given part of the input sequence, there is one GPU from each of the four context parallel groups that can communicate with GPUs from the other context parallel groups to exchange information about different parts of the sequence.</p>
+
+<p>Each context parallel group can communicate within itself (g0 with g2, g4, g6, and so on) to share and gather information from the different segments of the data that each GPU processes.</p>
+
+<h4 id="virtual-pipeline-parallel"><strong>Virtual Pipeline Parallel</strong></h4>
+
+<p>If <strong>tensor_model_parallel_size is 1</strong>, <strong>pipeline_model_parallel_size is 4</strong>, <strong>virtual_pipeline_model_parallel_size is 2</strong>, and there are 16 transformer layers in the model, the model will be split into 8 stages with two layers each and each GPU would get 2 stages as such (layer number starting with 1):</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>        GPU 0: [1, 2] [9, 10]
+        GPU 1: [3, 4] [11, 12]
+        GPU 2: [5, 6] [13, 14]
+        GPU 3: [7, 8] [15, 16]
+</code></pre></div></div>
+
+<p>Why do we need VP?
+In standard pipeline parallelism, each GPU executes a fixed set of model layers and then remains idle while waiting for the next batch of data to process. This idle time arises because of dependencies between stages and the sequential nature of execution. Virtual pipeline model parallelism reduces this idle time by interleaving different segments of the workload across GPUs. This way, when one segment is waiting on data dependencies, another segment can be processed, thus keeping the GPUs busier.
+Another reason is to reduce Bubble Time: Pipeline parallelism often suffers from “bubbles” or idle times, particularly when data is being passed between stages or during synchronization points. Virtual pipeline model parallelism can minimize these bubbles by ensuring that different stages are ready to execute as soon as they receive their inputs, thereby reducing the wait times that typically occur between stages.</p>
+
+<h2 id="dataloader">Dataloader</h2>
+
+<p>The dataset class should only handle data retrieval and define the  <code class="language-plaintext highlighter-rouge">__getitem__</code> method for various data formats, without being aware of any specific data or transformations required by the downstream tasks.</p>
+
+<p>For instance, when utilizing the ImageNet dataset for downstream tasks such as classification and object detection, the required data formats vary significantly. For classification tasks, the expected format is (image_path, label), whereas for contrastive learning, it’s (image_path, box coordinates).</p>
+
+<p>To prepare the data format that a task wants, I strongly suggest using MapDataset, a PyTorch hook-like style to post-process the data stream.</p>
+
+<p>There are two types of dataset objects, a <a href="https://huggingface.co/docs/datasets/v2.19.0/en/package_reference/main_classes#datasets.Dataset">Dataset</a> and an <a href="https://huggingface.co/docs/datasets/v2.19.0/en/package_reference/main_classes#datasets.IterableDataset">IterableDataset</a>. Whichever type of dataset you choose to use or create depends on the size of the dataset. In general, an <code class="language-plaintext highlighter-rouge">IterableDataset</code> is ideal for big datasets (think hundreds of GBs!) due to its lazy behavior and speed advantages.</p>
+
+<p>As for <code class="language-plaintext highlighter-rouge">IterableDataset</code>, you can access it using a <code class="language-plaintext highlighter-rouge">for</code> loop to load the data progressively as you iterate over the dataset. This way, only a small fraction of examples is loaded in memory, and you don’t write anything on disk.</p>
+
+<p>If your dataset grows very large, since regular Dataset objects are based on Arrow for random access to the rows, its indices mapping will become 10x slower. This is because there is an extra step to get the row index to read using the indices mapping, and most importantly, you aren’t reading contiguous chunks of data anymore. While an <code class="language-plaintext highlighter-rouge">IterableDataset</code> leverages its fast approximate shuffling method. It only shuffles the shards order and adds a shuffle buffer to your dataset, which keeps the speed of your dataset optimal.</p>
+
+<p>Currently, iterable-style datasets are incompatible with customized samplers in <code class="language-plaintext highlighter-rouge">torch.utils.data.DataLoader</code>.  Pytorch Dataloader always expects a map-style dataset. That is why we usually pass a sampler inside an iterable-style dataset for initialization. Specifically, please check the code gists in <a href="https://github.com/facebookresearch/detectron2/blob/a2e43eab54d28ffbd59f5e9b4e3193b82faeb70f/detectron2/data/common.py#L221">detectron2</a>.</p>
+
+<h3 id="serialization">Serialization</h3>
+
+<p><a href="https://ppwwyyxx.com/blog/2022/Demystify-RAM-Usage-in-Multiprocess-DataLoader/">This</a> blog provides a very clear explanation of why dataset serialization is necessary and how to do dataset serialization effectively.</p>
+
+<p>Please check the code gist from <a href="https://github.com/facebookresearch/detectron2/blob/a2e43eab54d28ffbd59f5e9b4e3193b82faeb70f/detectron2/data/common.py#L114">detectron2</a> for more details.</p>
+
+<p><code class="language-plaintext highlighter-rouge">_TorchSerializedList</code> is defined to serialize each object in the list using Python’s <code class="language-plaintext highlighter-rouge">pickle</code> module. It converts the object into a binary format (<code class="language-plaintext highlighter-rouge">pickle.dumps</code>) and then converts the binary data into a numpy array of unsigned 8-bit integers(<code class="language-plaintext highlighter-rouge">np.frombuffer</code>). All serialized byte arrays are concatenated into a single numpy array and then converted into a PyTorch tensor (<code class="language-plaintext highlighter-rouge">self._lst</code>).</p>
+
+<p>To better access data segment by index, the class also calculates the byte length of each serialized object and stores these lengths in another numpy array.</p>
+
+<h3 id="pytree">pytree</h3>
+
+<p>Pytree was initially introduced within Jax. You can find a comprehensive discussion about pytree on HackerNews <a href="https://news.ycombinator.com/item?id=36029368">here</a>. PyTorch developers may find this feature highly useful, and decide to integrate it in a recent release. Now, we can use it straightforward inside pytorch, without any third-party packages:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">torch.utils</span> <span class="kn">import</span> <span class="n">_pytree</span> <span class="k">as</span> <span class="n">pytree</span>
+
+<span class="n">return_dict</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">"pixel_tensors"</span><span class="p">:</span> <span class="n">torch</span><span class="p">.</span><span class="n">rand</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">224</span><span class="p">,</span> <span class="mi">224</span><span class="p">)),</span>
+    <span class="s">"labels"</span><span class="p">:</span> <span class="n">torch</span><span class="p">.</span><span class="n">tensor</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
+    <span class="s">"txt"</span><span class="p">:</span> <span class="s">"a dummy example"</span>
+<span class="p">}</span>
+
+<span class="n">return_dict</span> <span class="o">=</span> <span class="n">pytree</span><span class="p">.</span><span class="n">tree_map_only</span><span class="p">(</span><span class="n">torch</span><span class="p">.</span><span class="n">Tensor</span><span class="p">,</span> 
+                     <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">.</span><span class="n">cuda</span><span class="p">(</span><span class="n">non_blocking</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span> <span class="n">return_dict</span><span class="p">)</span>
+
+<span class="c1"># all tensors in return_dict are moved to cuda device
+</span></code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">pytree.tree_map_only</code> is used to selectively apply operations to only those objects within a nested structure that are PyTorch tensors. This is quite helpful where you might have complex data structures containing a mix of tensors, lists, dictionaries, etc., and you want to process only the tensors.  Start using pytree today, your training codes will receive the following benefits for free!</p>
+
+<p><strong>Efficiency and Convenience:</strong> Manually checking the type of each element in a nested structure and applying a function to it can be cumbersome and error-prone, especially for deeply nested or complex structures. <code class="language-plaintext highlighter-rouge">pytree.tree_map_only</code> abstracts this logic, making the code cleaner and more efficient.</p>
+
+<p><strong>Data Preparation for Distributed Computing:</strong> The specific use case involves preparing tensor data for efficient serialization and transfer in a distributed computing environment. Using <code class="language-plaintext highlighter-rouge">tree_map_only</code> allows for a straightforward, generalized way to ensure all tensor data is correctly processed for this environment, without altering the overall structure or non-tensor elements of the data being processed.</p>
+
+<h3 id="sampler">Sampler</h3>
+
+<p>Detectron2 has a good <a href="https://github.com/facebookresearch/detectron2/blob/5c380fdfc62b0124204155d6be3b1016e3dadb2d/detectron2/data/samplers/distributed_sampler.py#L15">implementations</a> of TrainingSampler.</p>
+
+<p>In training, we only care about the “infinite stream” of training data. Therefore, the training sampler is designed to generate an infinite stream of indices and all workers cooperate to correctly shuffle the indices and sample different indices. Ensure that each rank can access different data. This could always lead to a silent bug for training and really hard to be found. Please pay attention when you build your Sampler.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">shuffle</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="bp">True</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span><span class="p">):</span>
+    <span class="p">...</span>
+    <span class="bp">self</span><span class="p">.</span><span class="n">_rank</span> <span class="o">=</span> <span class="n">dist</span><span class="p">.</span><span class="n">get_rank</span><span class="p">()</span>
+    <span class="bp">self</span><span class="p">.</span><span class="n">_world_size</span> <span class="o">=</span> <span class="n">dist</span><span class="p">.</span><span class="n">get_world_size</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">_rank</span>
+    <span class="k">yield</span> <span class="k">from</span> <span class="n">itertools</span><span class="p">.</span><span class="n">islice</span><span class="p">(</span><span class="n">_infinite_indices</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">self</span><span class="p">.</span><span class="n">_world_size</span><span class="p">)</span>
+</code></pre></div></div>
+
+      </div>
+  </div>
+  
+</article>
+
+
+
+<footer>
+  <div><b style="color: #f45;">All Generation Tasks are Denoising Tasks.</b></div>
+  <nav><a href="mailto:nxu8@outlook.com"><svg aria-label="Mail" class="icon"><use xlink:href="/assets/fontawesome/icons.svg#envelope"></use></svg></a><a href="https://github.com/NormXU"><svg aria-label="Github" class="icon"><use xlink:href="/assets/fontawesome/icons.svg#github"></use></svg></a></nav>
+
+</footer>
+
+
+</head>
+</html>

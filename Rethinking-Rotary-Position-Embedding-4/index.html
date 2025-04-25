@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>The Input Context Length Problem Seems to be Solved | まいどぅー</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Norm Inui">
+<meta name="generator" content="Jekyll v4.2.2">
+<link rel="canonical" href="/Rethinking-Rotary-Position-Embedding-4/">
+
+<link rel="stylesheet" href="/assets/css/frame.css">
+
+<link rel="alternate" href="/feed.xml" type="application/atom+xml" title="まいどぅー">
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script defer src="/assets/katex/katex.min.js"></script>
+<script defer src="/assets/katex/contrib/auto-render.min.js" onload="renderMathInElement(document.body)"></script>
+
+
+
+
+
+
+
+<header>
+  <a href="/" class="title">まいどぅー</a>
+  <nav><a href="/">Home</a><a href="/about/">Nuo Xu</a></nav>
+
+</header>
+
+<article><script src="https://unpkg.com/vanilla-back-to-top@7.2.1/dist/vanilla-back-to-top.min.js"></script>
+<script>addBackToTop({
+  diameter: 56,
+  backgroundColor: 'rgb(255, 82, 82)',
+  textColor: '#fff'})
+</script><header>
+  <h1><a href="/Rethinking-Rotary-Position-Embedding-4/">The Input Context Length Problem Seems to be Solved</a></h1>
+<time datetime="2023-11-16T00:00:00+00:00">November 16, 2023</time>
+</header>
+
+  <div class="entry">
+      <div id="markdown-content">
+          <hr>
+
+<h2 id="how-yarn-solves-the-out-of-bound-problem">How YaRN Solves The “Out-of-Bound” Problem</h2>
+
+<p>In <a href="https://arxiv.org/pdf/2309.00071.pdf">YaRN</a> paper, the author mentioned a flaw in current NTK-RoPE:</p>
+
+<blockquote>
+  <p>Due to the “out-of-bound” values, the theoretical scale factor \(s\) does not accurately describe the true
+context extension scale. In practice, the scale value \(s\) has to be set higher than the expected scale for
+a given context length extension.</p>
+</blockquote>
+
+<p>To understand how the “out-of-bound” influences the extension scale, we first recall how NTK-aware interpolation works.</p>
+
+<p>For RoPE, the \(\theta_{d} = b^{-\frac{2d}{\|D\|}}\), where we usually set \(b = 10000\), \(\|D\|\) is the dimension of each head.</p>
+
+<p>we define \(\lambda_{d}\) as the wavelength of the RoPE embedding at d-th hidden dimension (Here, \(v\) represents the unit wave speed. In this blog, We assume \(v=1\) and we will refer to the period of a wave as its wavelength for simplicity.):</p>
+
+\[\begin{equation}\lambda_{d}=\frac{2\pi}{\theta_{d}}=2\pi b^{\frac{2d}{\|D\|}} \end{equation}\]
+
+<p>From <strong>eq1</strong> that, we can see that as \(d\) increases, the \(\lambda_{d}\) will also increase: The higher the dimension, the longer the wavelength.</p>
+
+<p>NTK-RoPE expects the longest wavelength to be interpolated so that it can hold more position ids.</p>
+
+\[\begin{equation} \lambda{max}=  2\pi b^{\frac{2d}{\|D\|}} |_{ d=\frac{\|D\|}{2} - 1} \end{equation}\]
+
+<p>we want to expand the context length \(\lambda{max}\) by scaling up \(b\) to \(b^{\prime}\):</p>
+
+\[\begin{equation} \lambda^{\prime}{max} = s \lambda{max} = 2\pi s \cdot b^{\frac{2d}{\|D\|}} |_{ d=\frac{\|D\|}{2} - 1} = 2\pi b^{\prime \frac{2d}{\|D\|}} |_{ d=\frac{\|D\|}{2} - 1} \end{equation}\]
+
+<p>where \(s\) is the expected scale for a given context length extension.</p>
+
+<p>Therefore, we can derive that:</p>
+
+\[b^{\prime}=b\cdot s^{\frac{\|D\|}{\|D\|-2}}\]
+
+<p>Now, we recompute the expanded wavelength \(\lambda^{\prime}_d\) with the \(b^{\prime}\)</p>
+
+\[\lambda^{\prime}_d = 2\pi (b\cdot s^{\frac{\|D\|}{\|D\|-2}})^{\frac{2d}{\|D\|}}\]
+
+<p>the expanded wavelength w.r.t the original wavelength along all dimensions is</p>
+
+\[\mathrm{scale} = \lambda^{\prime}_d / \lambda_d = s^{\frac{2d}{\|D\|-2}}\]
+
+<p>Attention, this is where “out-of-bound” problem happens. Only the last dimension \(d=\frac{\|D\|}{2} - 1\) can expand the wavelength by \(s\).
+Dimensions lower than \(d=\frac{\|D\|}{2} - 1\) only scale up its wavelength less than \(s\)</p>
+
+<p>For RoPE-based LLMs pre-trained with context length \(T_{\mathrm{train}}\), there exists a \(d_{\mathrm{extra}}\) dimension that for dimensions smaller than it, their corresponding periodic wavelengths are sufficiently trained.</p>
+
+\[\begin{split}
+T_{n}=2\pi\cdot b^{\frac{2n}{\|D\|}}\leq T_{\mathrm{train}},\mathrm{for}\,n=0,\cdot\cdot\cdot,d_{\mathrm{extra}}/2-1 \\
+T_{n}=2\pi\cdot b^{\frac{2n}{\|D\|}}&gt;T_{\mathrm{train}},\mathrm{for}\,n=d_{\mathrm{extra}}/2,\cdot\cdot\cdot,\|D\|/2-1
+\end{split}\]
+
+<p>According to <a href="https://arxiv.org/abs/2310.05209">Liu, Xiaoran, et al., 2023</a></p>
+
+<blockquote>
+  <p>For LLaMA2(Touvron et al., 2023b), the critical dimension \(d_{\mathrm{extra}}\) is 92. This implies that only the
+first 92 dimensions of the qt, ks vectors of LLaMA2 have seen the complete positional information
+during the pre-training phase and are adequately trained. In other words, the last 36 dimensions lack
+sufficient training, contributing to the extrapolation challenges seen in RoPE-based LLMs (Chen
+et al., 2023; Han et al., 2023). The critical dimension plays a key role in enhancing extrapolation.</p>
+</blockquote>
+
+<p>Therefore, only those dimensions whose wavelength are trained at least one complete period can be extrapolated.</p>
+
+<p><img src="https://raw.githubusercontent.com/NormXU/NormXU.github.io/main/_data/resources/blog/2/wavelength.jpeg" alt="wavelength"></p>
+
+<p><strong>Figure 1</strong>. The visualized relationship among the period, training Length, and extrapolation, the periods of dimensions
+past the critical dimension (in red) stretch beyond the training context; credited to <a href="https://arxiv.org/abs/2310.05209">Liu, Xiaoran, et al., 2023</a></p>
+
+<p>Now back to NTKRoPE, we’ve concluded that <strong>only</strong> the last dimension \(d=\frac{\|D\|}{2} - 1\) can expand the wavelength by \(s\), even it doesn’t complete a full rotation (\(2\pi\)). In other words, suppose we have a model pretrained with 512 context length, we want to
+expand it to 1024, each head dimension is 64, then only the \(\mathrm{dim}=31\) can ensure all interpolated position ids are just located within the wavelength that are sufficiently trained. Dimensions larger than \(d_{extra}\), however, do not complete a full rotation, and some of their position IDs are located outside the sufficiently trained wavelength, which we denote these position IDs as “out-of-bound” for that dimension. 
+The farther the dimension deviates from the critical dimension \(d_{extra}\), the more interpolated “out-of-bound” position IDs the dimension have outside the range of its partially trained wavelengths.</p>
+
+<p>What’s even worse, if the period of the signal is longer than the truncation length (max context length for LLM pretraining) in time domain, it means that the signal may not complete a full cycle within the max context. This time domain truncation is equivalent to multiplying the original signal by a rectangular window. In the frequency domain, this is equivalent to convolving the original signal’s spectrum with a sinc function. The sinc function has the property that its main lobe is concentrated at the major frequency, while the side lobes extend outward. Therefore, the energy originally concentrated at a major frequency will spread out to nearby frequencies, a phenomenon known as <strong>spectral leakage.</strong> Because the energy of the major frequency spreads out to surrounding frequencies, the signal’s energy is “dispersed” across a wider frequency range. This means the dimension beyond \(d_{extra}\) has a low SNR compared to those within the \(d_{extra}\), which makes those dimension even less training.</p>
+
+<p>One possible way to mitigate the “out-of-bound” values is slightly increase the scale value so that more dimensions can ensure the interpolated position ids to locate within the critical dimension.</p>
+
+<p>OR</p>
+
+<p>we do what <a href="https://arxiv.org/abs/2308.12950">CodeLLaMA</a> does: scale up the rotation base to <strong>1M</strong>.</p>
+
+<p>In conclusion, why could YaRN be the best choice to expand the context?</p>
+
+<p>It is because it fixes the “Out-of-Bound” Problem in a less elegant but more effective way. In YaRN, we manually define upper and lower frequency bounds. These bounds can vary depending on the specific model in use. When dealing with frequencies below the lower bound, we do interpolation. Conversely, for frequencies beyond the upper bound, we apply extrapolation. For frequencies falling within the range between the lower and upper bounds, we apply a combination of both interpolation and extrapolation.</p>
+
+<p>As long as we can find the sweet point low-bound frequency, the “Out-of-Bound” Problem will be effectively solved.</p>
+
+<h2 id="how-mistral-solves-the-long-context-problem">How Mistral solves the long context problem</h2>
+
+<p>Mistral first introduced the sliding window in their <a href="https://mistral.ai/news/announcing-mistral-7b/">blog</a>. They claim the sliding window attention mechanism can both save compute cost and expand the context length by stacking layers of transformers.</p>
+
+<p><img src="https://raw.githubusercontent.com/NormXU/NormXU.github.io/main/_data/resources/blog/2/sw_mistral.png" alt="SWA"><br>
+<strong>Figure 2</strong>. Sliding Window Mechanism (SWM); At each attention layer, information can move forward by W tokens at most: after two attention layers, information can move forward by 2W tokens, etc.</p>
+
+<p>At first glance, it seems that Figure 2 is trying to show me that there exists a layer-wise shifting sliding window that can propogate token information to the next layer so that the context input can be extrapolated very long. However, Figure 2 is just to explain how information propagates along the depth of the network.</p>
+
+<p>The main idea of the sliding window mechanism is to restrict each token to only attend to other tokens within a fixed-size window W. Nevertheless, the propagation of information through the network does not solely rely on the size of the attention window, it also relies on the stacking of multiple attention layers, more like an indirectly access.</p>
+
+<p>For example, we have a sequence of tokens <strong>[A, B, C, D, E, F, G, H]</strong>, and let’s say oursliding window (W) is 3 tokens wide</p>
+
+<p>The output of <strong>Layer 1</strong>:</p>
+
+<p>Token \(\hat{A}\) integrates information from [A, B, C].<br>
+Token  \(\hat{B}\) integrates information from [A, B, C, D].<br>
+Token  \(\hat{C}\) integrates information from [A, B, C, D, E].</p>
+
+<p><strong>Layer 2:</strong>
+when token \(\hat{A}\) in the second layer attends to token \(\hat{B}\), it’s indirectly also getting information about token D, and when it attends to token \(\hat{C}\), it’s getting information about tokens D and E.</p>
+
+<p>This means token A in layer 2 has a “reach” that extends itself to token E, even though it can only directly attend to [A, B, C].</p>
+
+<p>As for a decoder-only model, the  SWM is more straightforward, as tokens can only attend to previous tokens in an auto-regression way.</p>
+
+<p>The output of <strong>Layer 1</strong>:<br>
+Token \(\hat{A}\) integrates information from <strong>only</strong> A.<br>
+Token  \(\hat{B}\) integrates from A, B.<br>
+Token  \(\hat{C}\) integrates from A, B, C<br>
+and so on.</p>
+
+<p>After Mixtral-8x7B is released recently, people supersingly find that MoE can magically extend the context length without any interpolation / extrapolation tricks we used in DynamicNTKRoPE, YaRN, etc.</p>
+
+<p><img src="https://raw.githubusercontent.com/NormXU/NormXU.github.io/main/_data/resources/blog/2/mixtral.jpg" alt="Mixtral">
+<strong>Figure 3</strong>. Perplexity evaluation; Mixtral (SMoE) works quite effectively even without the need for any fine-tuning. Moreover, it’s worth noting that disabling sliding window attention can actually enhance model’s the long context ability.</p>
+
+<p>I have to say Figure 3 is hilarious. It shows that extending the context length is only a byproduct of MoE models, yet it still outperforms YaRN-Mistral, which I once bellieve to be the most promising way for manipulating RoPE to expand the context length.</p>
+
+<p>Why it works?</p>
+
+<p>I think it is because every expert is assigned only part of a long token sequence. Imagine there are eight experts simultaneously reading a 1000-token article, with each person assigned a portion of those 1000 tokens. Afterwards, they collaborate to integrate their individual understandings, and that’s how the expansion occurs.</p>
+
+<h3 id="one-more-thing-updated-on-feb-2024">One More Thing (updated on Feb, 2024)</h3>
+
+<p>Before <a href="https://github.com/gkamradt/LLMTest_NeedleInAHaystack">Needle-in-a-Haystack</a> test comes out, researchers often use perplexity (negative log-likelihood of the next token) for evaluation. But is it really a reliable metric? Does low loss always mean high retrival performance on long context? The answer is: <strong>NO</strong></p>
+
+<p><a href="https://arxiv.org/pdf/2402.10171">Chen, Mark, et al.</a> shows us in the paper:</p>
+
+<blockquote>
+  <p>similar test loss could result in substantially different behavior when performing precise retrieval</p>
+</blockquote>
+
+<p>If you ask me how to expand the LLM context length in Feb, 2024, I will answer you:</p>
+
+<p><mark>Only data matters. </mark></p>
+
+<p>In a word, by continual pretraining with a carefully domain-mixed dataset, and increasing the RoPE base without any modifications such as YaRN, it’s possible to achieve a longer context length than what was initially pre-trained.</p>
+
+<p>Hence, there’s no necessity for further modifications to RoPE. Simply build a carefully curated dataset, inflate your models into MoE, and continue pre-training. These are all steps that’s required to extend the LLM context length. Besides, I think using ‘activate the LLM context length’ to describe the process sounds more reasonable, given that LLMs have already acquired this capability during its pretraining stage.</p>
+
+<p>Just like what <a href="https://arxiv.org/abs/2402.10171">Fu, Yao, et al.</a> claims</p>
+
+<blockquote>
+  <p>We hypothesize that the capability to utilize information at  arbitrary locations within long context length is (mostly) already acquired during pretraining, even for models pretrained on substantially shorter 4K contexts.</p>
+</blockquote>
+
+<h3 id="reference">Reference</h3>
+
+<ul>
+  <li>
+    <p><a href="https://github.com/jquesnelle/yarn/tree/master">YaRN: Efficient Context Window Extension of Large Language Models</a></p>
+  </li>
+  <li>
+    <p><a href="https://arxiv.org/abs/2310.05209">Liu, Xiaoran, et al., 2023</a></p>
+  </li>
+  <li>
+    <p><a href="https://arxiv.org/abs/2308.12950">CodeLLaMA</a></p>
+  </li>
+  <li>
+    <p><a href="https://twitter.com/theemozilla/status/1735351012699849164?s=46&t=poxa0AsGDnYfo1XBLblf4Q">@theemozilla</a></p>
+  </li>
+  <li>
+    <p><a href="https://mistral.ai/news/announcing-mistral-7b/">Mistral-7B</a></p>
+  </li>
+  <li>
+    <p><a href="https://arxiv.org/pdf/2402.10171">Chen, Mark, et al.</a></p>
+  </li>
+  <li>
+    <p><a href="https://arxiv.org/abs/2402.10171">Fu, Yao, et al.</a></p>
+  </li>
+</ul>
+
+      </div>
+      <div id="table-of-contents">
+          
+      </div>
+      <div id="markdown-content">
+          
+      </div>
+  </div>
+  
+</article>
+
+
+
+<footer>
+  <div><b style="color: #f45;">All Generation Tasks are Denoising Tasks.</b></div>
+  <nav><a href="mailto:nxu8@outlook.com"><svg aria-label="Mail" class="icon"><use xlink:href="/assets/fontawesome/icons.svg#envelope"></use></svg></a><a href="https://github.com/NormXU"><svg aria-label="Github" class="icon"><use xlink:href="/assets/fontawesome/icons.svg#github"></use></svg></a></nav>
+
+</footer>
+
+
+</head>
+</html>

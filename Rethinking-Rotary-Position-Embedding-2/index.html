@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Expand the Context Length with RoPE, Part 2 -- Further Research about β-Based Encoding | まいどぅー</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Norm Inui">
+<meta name="generator" content="Jekyll v4.2.2">
+<link rel="canonical" href="/Rethinking-Rotary-Position-Embedding-2/">
+
+<link rel="stylesheet" href="/assets/css/frame.css">
+
+<link rel="alternate" href="/feed.xml" type="application/atom+xml" title="まいどぅー">
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script defer src="/assets/katex/katex.min.js"></script>
+<script defer src="/assets/katex/contrib/auto-render.min.js" onload="renderMathInElement(document.body)"></script>
+
+
+
+
+
+
+
+<header>
+  <a href="/" class="title">まいどぅー</a>
+  <nav><a href="/">Home</a><a href="/about/">Nuo Xu</a></nav>
+
+</header>
+
+<article><script src="https://unpkg.com/vanilla-back-to-top@7.2.1/dist/vanilla-back-to-top.min.js"></script>
+<script>addBackToTop({
+  diameter: 56,
+  backgroundColor: 'rgb(255, 82, 82)',
+  textColor: '#fff'})
+</script><header>
+  <h1><a href="/Rethinking-Rotary-Position-Embedding-2/">Expand the Context Length with RoPE, Part 2 -- Further Research about β-Based Encoding</a></h1>
+<time datetime="2023-08-13T00:00:00+00:00">August 13, 2023</time>
+</header>
+
+  <div class="entry">
+      <div id="markdown-content">
+          <blockquote>
+  <p>Translated from the <a href="https://kexue.fm/archives/9706">post</a>, originally written in Chinese by Su, Jianlin</p>
+
+  <p>Translated by Norm Inui</p>
+</blockquote>
+
+<h3 id="tl-dr">TL; DR</h3>
+
+<ul>
+  <li>NTK-Scale RoPE has flaw</li>
+  <li>Introduce a mixture-of-based encoding method, which can significantly enhance LLM performance beyond its pretraining max length, without the need for fine-tuning</li>
+  <li>Introduce a scale factor \(\log n\) for attention calculation, which can be incorporated either during the pretraining phase or directly applied to an off-the-shell LLM</li>
+</ul>
+<hr>
+
+<p>In <a href="https://normxu.github.io/Rethinking-Rotary-Position-Embedding/">part 1</a>, we interpret RoPE using a β-based encoding and demonstrated why NTK-aware Scaled RoPE can extend the context length without the need for fine-tuning. Viewing position encoding through the lens of β-based encoding indeed offers me some fresh insights and inspiration.</p>
+
+<h3 id="modification-to-ntk">Modification to NTK</h3>
+<p>Suppose we encode integer \(n\) in the \(\beta\)-base, and \(m\) is the digit of the representation counting from the right.</p>
+
+\[\begin{equation} \lfloor\dfrac{n}{\beta^{m-1}}\rfloor \mod \beta \end{equation}\]
+
+<p>If we represent it as a RoPE vector:</p>
+
+\[\begin{equation} p_n = [\text{cos}\theta_1, \text{sin}\theta_1, \text{cos}\theta_2, \text{sin}\theta_2, …, \text{cos}\theta_{d/2}, \text{sin}\theta_{d/2}] \end{equation}\]
+
+<p>where \(\theta_m = \dfrac{n}{\beta^{m-1}}\), \(\beta= 10000^{2/d}\)</p>
+
+<p>We have successfully demonstrated that the NTK Scale RoPE exhibits extrapolation in the high-frequency dimension (for a large value of m), whereas it shows interpolation in the low-frequency dimension (for a small value of m). Since a densely interpolated dimension can harm the Language Model’s (LLM) to accurately compare relative positions, the NTK Scale RoPE successfully mitigates the comparison confusion posed by extrapolation from a base conversion perspective, and ensure each dimension is not too crowded. This approach significantly benefits LLMs that rely on relative positional cues to understand context, enabling them to effectively expand their contextual understanding over pretrained max sequence length without fine-tuning.</p>
+
+<blockquote>
+  <p>from translator: If you feel confused about how NTK Scale RoPE combines both interpolation and extrapolation together, I strongly suggest you read the <a href="https://normxu.github.io/Rethinking-Rotary-Position-Embedding/">part 1</a></p>
+</blockquote>
+
+<p>Now let’s review <strong>eq2</strong>, notice that cos and sin share the same rotation frequency, which means RoPE encodes n with a base of \(\beta\) into \(d/2\) digits. If we want to extend the context length by \(k\), the intuitive idea is to scale the \(\beta\) to \(\beta \lambda\), then:</p>
+
+\[\lambda^{d/2}=k \Rightarrow \lambda=k^{2/d}\]
+
+<p>Then, the RoPE becomes:</p>
+
+\[\begin{equation} p_n = [\text{cos}\theta_1, \text{sin}\theta_1, \text{cos}\theta_2, \text{sin}\theta_2, …, \text{cos}\theta_{d/2}, \text{sin}\theta_{d/2}] \end{equation}\]
+
+<p>where \(\theta_m = \dfrac{n}{(\beta\lambda)^{m-1}}\), \(\beta= 10000^{2/d}\), \(\lambda=k^{2/d}\)</p>
+
+<p>This is how we implement NTK-RoPE.</p>
+
+<p>However, back to <strong>eq1</strong>, we can see that if we want to encode \(n\) with a base of \(\beta \lambda\), the <strong>eq1</strong> should be:</p>
+
+\[\begin{equation} \lfloor\dfrac{n}{(\beta\lambda)^{m-1}}\rfloor \mod (\beta\lambda) \end{equation}\]
+
+<p>Therefore, our derivation from <strong>eq2</strong> to <strong>eq3</strong> has flaws, besides replacing the \(\dfrac{n}{\beta^{m-1}}\) with \(\dfrac{n}{(\beta\lambda)^{m-1}}\), the \(\text{mod}\) needs to scale up its period by \(\lambda\) as well, then the corrected Scaled RoPE should be:</p>
+
+\[\begin{equation} p_n = [\text{cos}\theta_1, \text{sin}\theta_1, \text{cos}\theta_2, \text{sin}\theta_2, …, \text{cos}\theta_{d/2}, \text{sin}\theta_{d/2}] \end{equation}\]
+
+<p>where \(\theta_m = \dfrac{n}{\lambda(\beta\lambda)^{m-1}}\), \(\beta= 10000^{2/d}\), \(\lambda=k^{2/d}\)</p>
+
+<p>In the following context, we denote <strong>eq3</strong> as <strong>NTK-RoPE-old</strong>, and <strong>eq5</strong> as <strong>NTK-RoPE-fixed</strong>.</p>
+
+      </div>
+      <div id="table-of-contents">
+          
+      </div>
+      <div id="markdown-content">
+          
+<h3 id="why-a-mixture-of-base-is-necessary">Why a mixture of base is necessary</h3>
+
+<p>If we can encode an integer in \(\beta\) base, how about generalizing to a mixed-based encoding where each digit is encoded in a different base? Just like the time system we daily use, 60 seconds make up 1 minute, 60 minutes equal 1 hour, 24 hours is 1 day, and 7 days amount to 1 week. Here, the numbers 60, 60, 24, and 7 can be regarded as different encoding bases. In essence, any timestamp can be encoded into seconds, minutes, hours, days, and weeks with the mixed-based system.
+Counted from right to left, the first digit is encoded in \(\beta_1\), the second digit is in \(\beta_2\), and the third is in \(\beta_3\), …. The \(m\)th digit of an integer \(n\) can then be represented as:</p>
+
+\[\begin{equation} \lfloor\dfrac{n}{\beta^{1}\beta^{1}...\beta^{m-1}}\rfloor \mod \beta_m \end{equation}\]
+
+<p>Since RoPE is a relative position encoding, it can be viewed as a specific instance of the Toeplitz matrix, which looks like this (given our discussion mainly focuses on language models, the top-right part of the matrix is trimmed to fit the page).</p>
+
+\[\begin{pmatrix}
+0 \\
+1 &amp; 0 &amp;  \\
+2 &amp; 1 &amp; 0 \\
+3 &amp; 2 &amp; 1  &amp; 0\\ 
+4 &amp; 3 &amp; 2 &amp; 1 &amp; 0\\
+5 &amp; 4 &amp; 3 &amp; 2 &amp; 1 &amp; 0\\
+6 &amp; 5 &amp; 4 &amp; 3 &amp; 2 &amp; 1 &amp; 0\\
+
+\end{pmatrix}\]
+
+<p>Upon the matrix, it is evident that the distribution of relative position encoding is not uniform! The 0 is the most frequent, followed by 1, 2, and so on. In other words, as \(n\) grows larger, its appearance becomes less frequent. This suggests that, as a form of \(\beta\)-base encoding, the higher bits of RoPE might be under-trained. This implies that the generalization capability of the higher bits might be inferior to the lower bits. As mentioned, NTK-RoPE mitigated the confusion introduced by extrapolation across all bits uniformly. However, if our hypothesis holds, this strategy might not be optimal. Lower bits can be more robust than higher bits and can hold a larger data range than the higher bits. Inspired by the timestamp encoding system, we should redesign RoPE with a mix-based encoding system.</p>
+<h3 id="encoding-with-a-mixture-of-bases">Encoding with a mixture of bases</h3>
+<p>To be specific, we extend the context length by \(k\) with a mixture of bases, \(\beta_1\), \(\beta_2\), \(...\), \(\beta_{d/2}\), where \(\beta_m = \beta\lambda_m\)</p>
+
+<p>Thus, <strong>eq4</strong> shold be be written as:</p>
+
+\[\begin{equation} \lfloor\dfrac{n}{\beta^{m-1}(\lambda_1\lambda_2…\lambda_{m-1})}\rfloor \mod (\beta\lambda_m) \end{equation}\]
+
+<p>where \(\theta_m = \dfrac{n}{\beta^{m-1}(\lambda_1\lambda_2…\lambda_m)}\), \(\beta = 10000^{2/d}\)</p>
+
+<p>According to the goal to ensure lower digits hold a larger range of data and to extend the context length by a scale factor \(k\), <strong>eq 7</strong> is subject to the conditions</p>
+
+<p>\(\lambda_1\lambda_2…\lambda_m = k\) and  \(\lambda_1 \ge \lambda_2 \ge … \ge \lambda_{d/2} \ge 1\)</p>
+
+<p>Given these two conditions, one possible solution is:</p>
+
+<p>\(\lambda_1\lambda_2…\lambda_m = \text{exp}(am^b)\),  where \(a \ge 0\), \(b \le 1\)</p>
+
+<blockquote>
+  <p>from translator: The original post doesn’t cover any proof of this statement, please check Appendix for the proof I derive</p>
+</blockquote>
+
+<p>When \(b=1\),  \(\lambda_1 = \lambda_2 = … = \lambda_{d/2} &gt; 1\), we denote as “NTK-RoPE-fixed”;</p>
+
+<p>when \(b=0\), \(\lambda_1 = \lambda_2 = … = \lambda_{d/2} = 1\), this exactly meets the definition of “Positional Interpolation (PI)”</p>
+
+<p>Given one of the constrains we mention above:</p>
+
+\[\lambda_1 \lambda_2 … \lambda_{d/2} =k\]
+
+<p>We can derive:</p>
+
+\[a(\dfrac{d}{2})^b = \log k\]
+
+<p>\(b=0.625\) is an empirical value that can achieve optimal performance in an expanded long context; (Optimal values may vary across models, feel free to tune it), and we denoted this method as NTK-RoPE-mixed.</p>
+
+<h2 id="experiment">Experiment</h2>
+<p>We follow the same experiment setup as in part 1 and compare the NTK-RoPE-mixed and NTK-RoPE-fixed in an extended context.</p>
+
+<p><strong>Table 1</strong></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>context length</th>
+      <th>512(trained)</th>
+      <th>4096 (repeated text)</th>
+      <th>4096 (non-repeated text)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Baseline
+<br>
+Baseline-\(\log n\)</td>
+      <td>49.41%
+<br>
+49.40%</td>
+      <td>24.17%
+<br>
+24.60%</td>
+      <td>23.16%
+<br>
+24.02%</td>
+    </tr>
+    
+    <tr>
+      <td>PI-RoPE
+<br>
+PI-RoPE-\(\log n\)</td>
+      <td>49.41%
+<br>
+49.40%</td>
+      <td>15.04%
+<br>
+14.99%</td>
+      <td>13.54%
+<br>
+16.51%</td>
+    </tr>
+    
+    <tr>
+      <td>NTK-RoPE
+<br>
+NTK-RoPE-\(\log n\)</td>
+      <td>49.41%
+<br>
+49.40%</td>
+      <td>51.28%
+<br>
+61.71%</td>
+      <td>39.27%
+<br>
+43.75%</td>
+    </tr>
+    
+    <tr>
+      <td>NTK-RoPE-fixed
+<br>
+NTK-RoPE-\(\log n\)-fixed
+<br>
+NTK-RoPE-mixed
+<br>
+NTK-RoPE-\(\log n\)-mixed</td>
+      <td>49.41%
+<br>
+49.40%
+<br>
+49.41%
+<br>
+49.40%</td>
+      <td>51.86%
+<br>
+62.85%
+<br>
+53.09%
+<br>
+<strong><em><u>68.91%</u></em></strong>
+</td>
+      <td>39.61%
+<br>
+44.14%
+<br>
+40.12%
+<br>
+<strong><em><u>45.41%</u></em></strong>
+</td>
+    </tr>
+    
+    
+    
+  </tbody>
+</table>
+
+<p>From the <strong>Table 1</strong>, we can clearly see when compared to the “NTK-RoPE-old” and “NTK-RoPE-fixed,” the mixture-of-base “NTK-RoPE-mixed” shows a significant accuracy improvement without fine-tuning. This effectively provides a ‘free lunch’ approach to enhance LLM performance in a longer context. In addition, the table shows the scale factor \(\log n\) can benefit as well. But this trick requires \(\log n\) to be inserted into attention during the pre-training phase, unaffordable and expensive.</p>
+
+<p>Can models like LLaMA leverage this technique without the need for pre-training? Based on my experiments, a compromised way is to apply the \(\log n\) factor only to the attention beyond the pretraining length:</p>
+
+<p>\(\max(1, \log_{\text{maxlen}}n)\) , where \(\text{maxlen}\)  is the max sequence length during pretraining phase​;</p>
+
+<p>For LLaMA-1, it is \(2048\), and for LLaMA-2, it is \(4096\); we can scale the attention of an off-the-shelf model on text that exceeds its \(\text{maxlen}\)</p>
+
+<blockquote>
+  <p>from translator: it is simple to implement this log trick in LLaMA self-attention, see Appendix for more details.</p>
+</blockquote>
+
+<table>
+  <thead>
+    <tr>
+      <th>context length</th>
+      <th>512(trained)</th>
+      <th>4096 (repeated text)</th>
+      <th>4096 (non-repeated text)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>NTK-RoPE-fixed</td>
+      <td>49.41%</td>
+      <td>51.86%</td>
+      <td>39.61%</td>
+    </tr>
+    <tr>
+      <td>NTK-RoPE-\(\log n^*\)-fixed</td>
+      <td>49.41%</td>
+      <td>55.94%</td>
+      <td>41.11%</td>
+    </tr>
+    <tr>
+      <td>NTK-RoPE-mixed</td>
+      <td>49.41%</td>
+      <td>53.09%</td>
+      <td>40.12%</td>
+    </tr>
+    <tr>
+      <td>NTK-RoPE-\(\log n^*\)-mixed</td>
+      <td>49.41%</td>
+      <td><strong><em><u>59.11%</u></em></strong></td>
+      <td><strong><em><u>42.38%</u></em></strong></td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>Table 2:</strong> \(\log n^{*}\) denotes we apply the scale factor \(\log n\) is applied to the attention matrix only for text exceeding the max sequence length, without any pretraining</p>
+
+<p>We can see from <strong>Table 2</strong>, \(\log n\) can still enhance performance even without adding it at pretraining phase.  In conclusion, if you are ready to start a pretraining, I suggest you consider incorporated this trick in your network; If you don’t want to train at all, this trick can also benefit performance on long context.</p>
+
+<hr>
+
+<h3 id="appendix">Appendix</h3>
+
+<h4 id="1-proof">1. Proof</h4>
+<blockquote>
+  <p>Suppose \(\lambda_1\lambda_2…\lambda_m = \text{exp}(am^b)\)</p>
+
+  <p>We claim that : When \(a \ge 0\), \(b \le 1\), then \(\lambda_1 \ge \lambda_2 \ge … \ge \lambda_{d/2} \ge 1\)</p>
+</blockquote>
+
+<p><strong>Proof</strong>:
+According to the statement,</p>
+
+<p>when \(m=1\):  \(\lambda_1 = \text{exp}(a)\),</p>
+
+<p>when \(m&gt;1\):</p>
+
+\[\begin{split}
+\lambda_m &amp;= \dfrac{\text{exp}(am^b)}{\text{exp}(a(m-1)^b)} \\
+&amp;=\text{exp}(a[m^b-(m-1)^b])
+\end{split}\]
+
+<p>Therefore, when \(a \ge 0\), we have \(\lambda_m \ge \text{exp}(0) = 1\)</p>
+
+<p>Similarly, if the assumption is true, we can derive:</p>
+
+\[\lambda_m =\text{exp}(a[m^b-(m-1)^b])\]
+
+\[\lambda_{m+1} =\text{exp}(a[(m+1)^b-m^b])\]
+
+<p>Since \(\text{exp}()\) is a monotonically increasing function, suppose \(\lambda_m \ge \lambda_{m+1}\)</p>
+
+<p>According to <a href="http://hyperphysics.phy-astr.gsu.edu/hbase/alg3.html">Binomial Theorem</a>, we can derive:</p>
+
+\[\begin{split}
+\text{exp}(a[m^b - (m-1)^b]) &amp;\ge \text{exp}(a[(m+1)^b - m^b)])\\
+\Rightarrow m^b - (m-1)^b &amp;\ge (m+1)^b - m^b\\
+2m^b &amp;\ge(m+1)^b + (m-1)^b\\
+2m^b &amp;\ge (m^b+bm^{b-1} + \dfrac{b(b-1)}{2}m^{b-2 }+ \dfrac{b(b-1)(b-2)}{6}m^{b-3 }...) + (m^b - bm^{b-1}+\dfrac{b(b-1)}{2}m^{b-2 }- \dfrac{b(b-1)(b-2)}{6}m^{b-3 } ...)\\
+2m^b &amp;\ge 2m^b + 2 (\dfrac{b(b-1)}{2}m^{b-2} + \dfrac{b(b-1)(b-2)(b-3)}{24}m^{b-4} + ...)\\
+2m^b &amp;\ge 2m^b + 2\sum_{k=2,4,6...}\dfrac{b!}{(b-k)!k!}m^{b-k}\\
+\end{split}\]
+
+<p>Thus, only when \(b \le 1\),  \(\sum_{k=2,4,6...} \dfrac{b!}{(b-k)!k!}m^{b-k} \le 0\)</p>
+
+<p>In conclusion, we can conclude the assumption stays true.</p>
+
+<h4 id="2-minor-changes-in-llamaattention">2. Minor changes in LlamaAttention</h4>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">LlamaAttention</span><span class="p">(</span><span class="n">nn</span><span class="p">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">LlamaConfig</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">().</span><span class="n">__init__</span><span class="p">()</span>
+        <span class="p">...</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">max_position_embeddings</span> <span class="o">=</span> <span class="n">config</span><span class="p">.</span><span class="n">max_position_embeddings</span>
+        <span class="p">...</span>
+
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">hidden_states</span><span class="p">:</span> <span class="n">torch</span><span class="p">.</span><span class="n">Tensor</span><span class="p">,</span>
+            <span class="n">attention_mask</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="p">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span>
+            <span class="n">position_ids</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="p">.</span><span class="n">LongTensor</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span>
+            <span class="n">past_key_value</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="p">.</span><span class="n">Tensor</span><span class="p">]]</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span>
+            <span class="n">output_attentions</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="bp">False</span><span class="p">,</span>
+            <span class="n">use_cache</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="bp">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="p">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="p">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="p">.</span><span class="n">Tensor</span><span class="p">]]]:</span>
+        <span class="p">...</span>
+        <span class="n">bsz</span><span class="p">,</span> <span class="n">q_len</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">hidden_states</span><span class="p">.</span><span class="n">size</span><span class="p">()</span>
+        <span class="p">...</span>
+        <span class="n">query_states</span><span class="p">,</span> <span class="n">key_states</span> <span class="o">=</span> <span class="n">apply_rotary_pos_emb</span><span class="p">(</span><span class="n">query_states</span><span class="p">,</span> <span class="n">key_states</span><span class="p">,</span> <span class="n">cos</span><span class="p">,</span> <span class="n">sin</span><span class="p">,</span> <span class="n">position_ids</span><span class="p">)</span>
+        <span class="c1"># ---- + new code
+</span>        <span class="n">query_states</span> <span class="o">*=</span> <span class="p">((</span><span class="n">position_ids</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)[:,</span> <span class="bp">None</span><span class="p">,</span> <span class="p">:,</span> <span class="bp">None</span><span class="p">].</span><span class="n">log</span><span class="p">()</span> <span class="o">/</span> <span class="n">np</span><span class="p">.</span><span class="n">log</span><span class="p">(</span><span class="n">training_length</span><span class="p">)).</span><span class="n">clip</span><span class="p">(</span><span class="mi">1</span><span class="p">).</span><span class="n">to</span><span class="p">(</span><span class="n">query_states</span><span class="p">.</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="c1"># -------
+</span>        <span class="p">...</span>
+        <span class="c1"># repeat k/v heads if n_kv_heads &lt; n_heads
+</span>        <span class="n">key_states</span> <span class="o">=</span> <span class="n">repeat_kv</span><span class="p">(</span><span class="n">key_states</span><span class="p">,</span> <span class="bp">self</span><span class="p">.</span><span class="n">num_key_value_groups</span><span class="p">)</span>
+        <span class="n">value_states</span> <span class="o">=</span> <span class="n">repeat_kv</span><span class="p">(</span><span class="n">value_states</span><span class="p">,</span> <span class="bp">self</span><span class="p">.</span><span class="n">num_key_value_groups</span><span class="p">)</span>
+        <span class="n">attn_weights</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">query_states</span><span class="p">,</span> <span class="n">key_states</span><span class="p">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span> <span class="o">/</span> <span class="n">math</span><span class="p">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">head_dim</span><span class="p">)</span>
+        <span class="p">...</span>
+</code></pre></div></div>
+
+
+      </div>
+  </div>
+  
+</article>
+
+
+
+<footer>
+  <div><b style="color: #f45;">All Generation Tasks are Denoising Tasks.</b></div>
+  <nav><a href="mailto:nxu8@outlook.com"><svg aria-label="Mail" class="icon"><use xlink:href="/assets/fontawesome/icons.svg#envelope"></use></svg></a><a href="https://github.com/NormXU"><svg aria-label="Github" class="icon"><use xlink:href="/assets/fontawesome/icons.svg#github"></use></svg></a></nav>
+
+</footer>
+
+
+</head>
+</html>

@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>SD/SDXL Tricks beneath the Papers and Codes | まいどぅー</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Norm Inui">
+<meta name="generator" content="Jekyll v4.2.2">
+<link rel="canonical" href="/sd-tricks/">
+
+<link rel="stylesheet" href="/assets/css/frame.css">
+
+<link rel="alternate" href="/feed.xml" type="application/atom+xml" title="まいどぅー">
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script defer src="/assets/katex/katex.min.js"></script>
+<script defer src="/assets/katex/contrib/auto-render.min.js" onload="renderMathInElement(document.body)"></script>
+
+
+
+
+
+
+
+<header>
+  <a href="/" class="title">まいどぅー</a>
+  <nav><a href="/">Home</a><a href="/about/">Nuo Xu</a></nav>
+
+</header>
+
+<article><script src="https://unpkg.com/vanilla-back-to-top@7.2.1/dist/vanilla-back-to-top.min.js"></script>
+<script>addBackToTop({
+  diameter: 56,
+  backgroundColor: 'rgb(255, 82, 82)',
+  textColor: '#fff'})
+</script><header>
+  <h1><a href="/sd-tricks/">SD/SDXL Tricks beneath the Papers and Codes</a></h1>
+<time datetime="2023-09-16T00:00:00+00:00">September 16, 2023</time>
+</header>
+
+  <div class="entry">
+      <div id="markdown-content">
+          <h3 class="no_toc"> TL; DR</h3>
+
+<ul>
+  <li>Collect awesome tricks about SD/SDXL pipeline</li>
+</ul>
+
+
+      </div>
+      <div id="table-of-contents">
+          <ul id="toc" class="section-nav">
+<li class="toc-entry toc-h2"><a href="#sdxl-architecture">SDXL Architecture</a></li>
+<li class="toc-entry toc-h2"><a href="#reference-only-mode">Reference-only Mode</a></li>
+<li class="toc-entry toc-h2"><a href="#slider-lora">Slider LoRA</a></li>
+<li class="toc-entry toc-h2"><a href="#appendix">Appendix</a></li>
+</ul>
+      </div>
+      <div id="markdown-content">
+          <!--more-->
+
+<hr>
+
+<p>From the moment the SD/SDXL was unveiled, the pace of advancements in image generation never stops. Almost every day, the open-source community rolls out novel techniques that enhance the pipeline’s aesthetic appeal and versatility. Yet, many of these innovations lack detailed documentation or in-depth explanations. To learn these tricks, one has to spend hours reading through the source codes. To simplify this process for developers and provide a convenient reference, I’ve written this blog to collect the tricks that lie beneath the published and source codes.</p>
+<blockquote>
+  <p><strong>Artistic Respect and Recognition:</strong> All artworks referenced in this blog are attributed to their original creators. Images inspired by these artists’ unique styles are not permitted for commercial use. If you create an image by referring their art style, please kindly give credit by acknowledging the artist’s name.</p>
+</blockquote>
+
+<h2 id="sdxl-architecture">SDXL Architecture</h2>
+
+<p>In the SDXL <a href="https://arxiv.org/abs/2307.01952">paper</a>, the two encoders that SDXL introduces are explained as below:</p>
+
+<blockquote>
+  <p>We opt for a more powerful pre-trained text encoder that we use for text conditioning. Specifically, we use OpenCLIP ViT-bigG in combination with CLIP ViT-L, where we concatenate the penultimate text encoder outputs along the channel-axis. Besides using cross-attention layers to condition the model on the text-input, we follow and additionally condition the model on the pooled text embedding from the OpenCLIP model.</p>
+</blockquote>
+
+<p>To clarify how the two text encoders work together, here is a diagram I’ve made to illustrate the pipeline.</p>
+
+<p><img src="https://raw.githubusercontent.com/NormXU/NormXU.github.io/main/_data/resources/blog/1/sdxl_text_encoder.png" alt="SDXL_Text_Encoders"></p>
+
+<p>Figure 1. text encoder pipeline in SDXL; text_prompt 1 and text_prompt 2 are two prompts, which can be different; x0, y0, ∆x, ∆y, h, w are 6 spatial conditions newly introduced by SDXL</p>
+
+<p><img src="https://raw.githubusercontent.com/NormXU/NormXU.github.io/main/_data/resources/blog/1/sdxl_refiner.png" alt="SDXL_Refiner"></p>
+
+<p>Figure 2. SDXL Refiner pipeline; x0, y0, ∆x, ∆y, h, w, aes_score are spatial conditions and aesthetic score introduced to guide the image generation</p>
+
+<p>SDXL also has a refiner stage. Specifically, it is implemented as an img2img pipeline. While the paper may not explicitly mention it, it’s essential to note that the refinement stage takes aesthetic scores as a guiding factor besides the coordinates and image sizes. Specifically, a positive aesthetic score of 6.0 and a negative aesthetic score of 2.0 are used as the thresholds, which means that we expect the SDXL refiner will produce images with an average aesthetic score exceeding 6.0.</p>
+
+<p>It’s interesting to notice that the 768-dim hidden features from the smaller text encoder are directly concatenated to the 1280-dim hidden features of the larger text encoder. Note that <code class="language-plaintext highlighter-rouge">text_prompt_1</code> and <code class="language-plaintext highlighter-rouge">text_prompt_2</code> can be different. Given the intuition that higher dimensions can capture fine-grained features, some AI painters prefer to feed style descriptions into CLIP-ViT-L and prompts about body motion, clothes, or facial expressions into the other text encoder. Additionally, it’s worth noting that the pooled feature from the larger text encoder  acts as a bias to adjust the time embedding</p>
+
+<p>Below are the visualization about the SDXL/SDM UNet structure. These are two graphs I always come to check out</p>
+
+<p><img src="https://raw.githubusercontent.com/NormXU/NormXU.github.io/main/_data/resources/blog/1/sdxl_unet.png" width="600"><br>
+Figure 3. SDXL UNET structure</p>
+
+<p>Compared SDXL UNET with SDM UNET,</p>
+
+<p><img src="https://raw.githubusercontent.com/NormXU/NormXU.github.io/main/_data/resources/blog/1/sdm_unet.png" alt="SDM-Unet">
+Figure 4. Original SDM UNET structure; image credited to <a href="https://openreview.net/pdf?id=bOVydU0XKC">BK-SDM paper</a></p>
+
+<p>we can clearly see from Fig.3 and Fig.4 that the lowest latent dimension is set to 16 rather than 8. According to the paper, they remove the dimension 8 for computation efficiency. Moreover, they also omit the transformer block at the highest feature level, further saving the computation cost.</p>
+
+<h2 id="reference-only-mode">Reference-only Mode</h2>
+
+<p>Reference-only mode is one of my favorite features in the SD pipeline, which enables art style transfer from a reference image to a new image based on a given prompt, without training.</p>
+
+<p>It is first introduced by <a href="https://github.com/lllyasviel">lllyasviel</a> in <a href="https://github.com/Mikubill/sd-webui-controlnet/discussions/1280">this</a> discussion thread.</p>
+
+<p>Here is a showcase from this reference only.</p>
+
+<p><img src="https://raw.githubusercontent.com/NormXU/NormXU.github.io/main/_data/resources/blog/1/showcase.png" width="512"><br>
+Figure 5. A reference-only showcase;  <strong>Left:</strong> reference image credit to <a href="https://twitter.com/001_31_/media">@001_31_</a>; <strong>Right:</strong> generated image; We can clearly see the generated image “plagiarizes” the art style of the reference image like colors, lines and character face; please check the appendix for generation setting.</p>
+
+<p>The idea behind the <code class="language-plaintext highlighter-rouge">reference-only</code> is quite straightforward. It requires running the diffusion process twice. In the first round, the VAE encoder encodes the reference image into a latent feature, termed as \(x_{ref}\). This reference latent feature is then interpolated with a randomly initialized latent feature. We denote the noisy latent feature as \(x\).</p>
+
+<p><img src="https://raw.githubusercontent.com/NormXU/NormXU.github.io/main/_data/resources/blog/1/ref_only.png" alt="Reference_only">
+Figure 6. reference-only pipeline; ①: the first diffusion forward pass, ②: the second diffusion forward pass</p>
+
+<p>Suppose we are playing this <code class="language-plaintext highlighter-rouge">reference-only</code> mode with an SD1.5 checkpoint. As we know, SD1.5 has 16 TransformerBlocks across all UNet layers. Therefore, during the first diffusion forward pass, 16 hidden features are generated and stored in the memory band. Subsequently, we pass \(x\) to the second diffusion forward pass.</p>
+
+<p>The self-attention block uses the previously cached features from the corresponding Transformer Block layer in the prior diffusion as a reference clue. In other words, there are now “two” cross-attention blocks in the second diffusion forward pass. One is conditioned on the reference clues generated from \(x_{ref}\), while the other is conditioned on the text features.</p>
+
+<p>As for the self-attention part in the second diffusion forward pass,  There exist implementation variants that can yield different generation outcomes.</p>
+
+<p>In the following discussion, we denote the input features of the self-attention block as \(h_{in}\) within one TransformerBlock, and the resulting feature as \(h_{out}\). Typically, we apply the classifier-free method for text guiding, \(h_{in}, h_{out} \in \mathbb{R^{2 \times N \times dim}}\), where \(N\) is the number of elements in the latent feature, \(dim\) is the hidden feature dimension.</p>
+
+<p>Additionally, we denote the cached features from the same TransformerBlock generated in the first diffusion forward pass as \(h_{cond} \in \mathbb{R^{2 \times N \times dim}}\)</p>
+
+<h4 class="no_toc">  Reference-fine-grained </h4>
+<p>One implementation is only the conditioned latent features use the cached features as the cross-attention clue, while the unconditioned latent features compute cross-attention itself. The pseudo-code is provided below:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">attn_output_uc</span> <span class="o">=</span> <span class="n">attn</span><span class="p">(</span> <span class="n">h_in</span><span class="p">,</span>
+                       <span class="n">encoder_hidden_states</span><span class="o">=</span><span class="n">torch</span><span class="p">.</span><span class="n">cat</span><span class="p">([</span><span class="n">h_in</span><span class="p">,</span> <span class="n">h_cond</span><span class="p">]</span> <span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+
+<span class="n">attn_output_c</span> <span class="o">=</span>  <span class="n">attn</span><span class="p">(</span> <span class="n">h_in</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">encoder_hidden_states</span><span class="o">=</span><span class="n">h_in</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+<span class="n">h_out</span> <span class="o">=</span> <span class="n">style_fidelity</span> <span class="o">*</span> <span class="n">attn_output_c</span> <span class="o">+</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">style_fidelity</span><span class="p">)</span> <span class="o">*</span> <span class="n">attn_output_uc</span>
+</code></pre></div></div>
+
+<p>This is how huggingface implements. check the code <a href="https://github.com/huggingface/diffusers/blob/73bb97adfc3d0cb184c5fd66a1d5699c249a7fd8/examples/community/stable_diffusion_reference.py#L405">here</a>.
+I’d like to refer it as <code class="language-plaintext highlighter-rouge">reference-fine-grained</code></p>
+
+<h4 class="no_toc">  Reference-coarse</h4>
+<p>Another implementation processes both the unconditional and conditional latent features in the same way. I prefer to call it <code class="language-plaintext highlighter-rouge">reference-coarse</code></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">h_out</span> <span class="o">=</span> <span class="n">attn</span><span class="p">(</span> <span class="n">h_in</span><span class="p">,</span>
+              <span class="n">encoder_hidden_states</span><span class="o">=</span><span class="n">torch</span><span class="p">.</span><span class="n">cat</span><span class="p">([</span><span class="n">h_in</span><span class="p">,</span> <span class="n">h_cond</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+</code></pre></div></div>
+
+<h4 class="no_toc">  Reference-adain</h4>
+
+<p><code class="language-plaintext highlighter-rouge">reference_adain</code> is another mode proposed by <a href="https://github.com/lllyasviel">lllyasviel</a>, who drew inspiration from the paper, <a href="https://arxiv.org/abs/1703.06868">“Arbitrary Style Transfer in Real-time with Adaptive Instance Normalization”</a>. AdaIN, short for <em>Adaptive Instance Normalization</em>, works on a premise: when given content input \(x\) and style input \(y\), the style transfer can work by aligning the channel-wise mean and variance of \(x\) with those of \(y\).</p>
+
+<p>In the <code class="language-plaintext highlighter-rouge">reference_adain</code> mode, not only are the input hidden features sent to the Transformer Block, but the mean and variance of these features are also cached during the first diffusion forward. Additionally, the mean and variance of the output features of the ResNet Block in the UNet stage without a Transformer, are stored as well. During the second diffusion pass, these stored values are applied to adapt to respective hidden features from the same blocks.</p>
+
+<h4 class="no_toc">  Reference mode comparsion</h4>
+
+<p>The modes mentioned above can work together. Figure 6 compares the generation output in different reference modes.
+<img src="https://raw.githubusercontent.com/NormXU/NormXU.github.io/main/_data/resources/blog/1/reference-comparsion.png" alt="reference-comparsion">
+Figure 7; reference mode comparison. All images are generated with the same setting. For setting details, please check the appendix <strong>(a):</strong> a reference image credit to <a href="https://twitter.com/001_31_/media">@001_31_</a>; <strong>(b)</strong> reference-course; <strong>(c)</strong> reference-fine-grained; <strong>(d)</strong> reference-adain; <strong>(d)</strong> combine reference-course and reference-adain;</p>
+
+<p>From (b) and (c), we can see there are fine-grained added elements in (c) not present (b), such as the decorations on the character’s hat and the detailed hair strands; (d) shows that the reference image in <code class="language-plaintext highlighter-rouge">reference-adain</code> offers limited guiding to the final output. Notably, the colors of the character’s hair, background, and eyes are quite different from those in (a); From (b) and (e), we can find the <code class="language-plaintext highlighter-rouge">reference-adain</code> can help the generation closely align to the style of the reference image, such as the character’s face, hat, face angle, coloring style. Instead, <code class="language-plaintext highlighter-rouge">reference-course</code> enables the pipeline paint more freely, using the reference only as a loose guide.</p>
+
+<p>I recommend playing with these reference mode combinations to discover your favorite settings.</p>
+
+<h2 id="slider-lora">Slider LoRA</h2>
+
+<p>This innovative method offers the flexibility to seamlessly modify the body/concepts of your character, much like using a slider to customize your character in a video game. Moreover, it ensures character consistency without the need for cumbersome prompt engineering and random attempts. While the community hasn’t agreed on how to name it, some suggest “negative LoRA” as a counterpart of “negative embedding”. However, Since I first learned about it from <a href="https://note.com/emanon_14/n/neb46bac832f2">this</a> awesome post by <a href="https://twitter.com/Emanon_14">エマノン</a>, I’ve chosen to follow his terminology, dubbing the technique “Slider LoRA”.
+<img src="https://raw.githubusercontent.com/NormXU/NormXU.github.io/main/_data/resources/blog/1/slider_lora_headsz.png" alt="slider_lora">
+Figure 8; A showcase of slider LoRA, which can adjust the head size of the character with character consistency; credit to <a href="https://twitter.com/Emanon_14/status/1700746112112714236?ref_src=twsrc%5Etfw%7Ctwcamp%5Etweetembed%7Ctwterm%5E1700746112112714236%7Ctwgr%5E70c38d02b4fbc72c6baec078647a0744b0f4cb3c%7Ctwcon%5Es1_&ref_url=https%3A%2F%2Fnote.com%2Femanon_14%2Fn%2Fneb46bac832f2">@Emanon_14</a></p>
+
+<blockquote>
+  <p>エマノン さん’s post introduces how to create a Slider LoRA. For those who don’t read Japanese, I’ve summarized the key points from the original post below.</p>
+</blockquote>
+
+<p>エマノン さん proposes two approaches to making a slider LoRA based on コピー機学習法 (copy machine learning). 
+<img src="https://raw.githubusercontent.com/NormXU/NormXU.github.io/main/_data/resources/blog/1/slider_pipeline_2.png" width="700"> <br>
+Figure 9; First, merge a LoRA, which is overfitted to one reference image, into the base mode. Then, merge another LoRA, overfitted an image transformed from the previous one, into the merged model; credit to <a href="https://twitter.com/Emanon_14/status/1700746112112714236?ref_src=twsrc%5Etfw%7Ctwcamp%5Etweetembed%7Ctwterm%5E1700746112112714236%7Ctwgr%5E70c38d02b4fbc72c6baec078647a0744b0f4cb3c%7Ctwcon%5Es1_&ref_url=https%3A%2F%2Fnote.com%2Femanon_14%2Fn%2Fneb46bac832f2">@Emanon_14</a></p>
+
+<p><img src="https://raw.githubusercontent.com/NormXU/NormXU.github.io/main/_data/resources/blog/1/slider_pipeline_1.png" width="700"> <br>
+Figure 10; Merge LoRA A, which is trained to overfit one reference image, and LoRA B, which is trained to overfit another image, into the based model using different weights; credit to <a href="https://twitter.com/Emanon_14/status/1700746112112714236?ref_src=twsrc%5Etfw%7Ctwcamp%5Etweetembed%7Ctwterm%5E1700746112112714236%7Ctwgr%5E70c38d02b4fbc72c6baec078647a0744b0f4cb3c%7Ctwcon%5Es1_&ref_url=https%3A%2F%2Fnote.com%2Femanon_14%2Fn%2Fneb46bac832f2">@Emanon_14</a></p>
+
+<p>According to the post, copy machine learning is a parameter-efficiency training method. To be specific, it leverages LoRA on the transformers block in the UNet, then overfits it until the model can reconstruct the  training image with an empty prompt.</p>
+
+<p>In the following training pipeline, we take the second approach as an example</p>
+
+<h4 class="no_toc">Prepare the Training Dataset</h4>
+<p>The training data is organized in pairs. These paired datasets differ in specific angles, with each pair varying only in the concept that you want the LoRA slider can recognize. For example, here is a training pair only different in the head size of the character.</p>
+
+<p><img src="https://raw.githubusercontent.com/NormXU/NormXU.github.io/main/_data/resources/blog/1/slider_training_pair.png" width="512"> <br>
+Figure 11; credit to  <a href="https://twitter.com/Emanon_14/status/1700746112112714236?ref_src=twsrc%5Etfw%7Ctwcamp%5Etweetembed%7Ctwterm%5E1700746112112714236%7Ctwgr%5E70c38d02b4fbc72c6baec078647a0744b0f4cb3c%7Ctwcon%5Es1_&ref_url=https%3A%2F%2Fnote.com%2Femanon_14%2Fn%2Fneb46bac832f2">@Emanon_14</a>; Except for the head size of the two characters, the other components remain identical at the pixel level.</p>
+
+<h4 class="no_toc">Copy Machine Learning</h4>
+
+<p>Next, let’s train two UNet LoRAs, using images from each set, for about 1000 ~ 3000 steps.</p>
+
+<p>When the LoRA can replicate the original training image using an empty prompt, we can say the training is successful. Empirically, the optimal LoRA rank dimension is 4 ~ 16.</p>
+
+<h4 class="no_toc">Merge the LoRAs</h4>
+<p>Finally, it’s time to merge two LoRAs that memorize opposite concepts into one LoRA. This merging is realized by <a href="https://github.com/bmaltais/kohya_ss/blob/ed4e3b0239a40506de9a17e550e6cf2d0b867a4f/networks/svd_merge_lora.py">svd_merge_lora</a> method.</p>
+
+<p>The idea of svd_merge_lora is straightforward, It first merges two LoRA weights into the base model. Then, it leverages Singular Value Decomposition (SVD) on the merged weights to derive the final LoRA. Notably, the rank dimension of the final LoRA derived with SVD is usually double that of the initial LoRA weights.</p>
+
+<h2 id="appendix">Appendix</h2>
+
+<h4 class="no_toc"> 1. the generation setting of Figure 5 (reference-only showcase)</h4>
+
+<ul>
+  <li>
+<strong>prompt:</strong>  masterpiece,best quality, ultra highres, detailed illustration, portrait, detailed, girls, detailed frilled clothes, detailed beautiful skin, face focus</li>
+  <li>
+<strong>negative embedding:</strong> <a href="https://civitai.com/models/7808/easynegative">EasyNegative</a>, <a href="https://civitai.com/models/17083?modelVersionId=20170">bad-picture-chill</a>
+</li>
+  <li>
+<strong>sd1.5 checkpoint:</strong> A fine-tuned checkpoint based on SD1.5 with proprietary dataset</li>
+</ul>
+
+<h4 class="no_toc"> 2. the generation setting of Figure 7 (reference mode comparsion)</h4>
+
+<ul>
+  <li>
+<strong>prompt:</strong>  masterpiece, best quality, 1girl, medium hair, elf, pointy ears, loli, teen age, looking at viewer, :3</li>
+  <li>
+<strong>negative embedding:</strong> <a href="https://civitai.com/models/7808/easynegative">EasyNegative</a>, <a href="https://civitai.com/models/17083?modelVersionId=20170">bad-picture-chill</a>
+</li>
+  <li>
+<strong>sd1.5 checkpoint:</strong> A fine-tuned checkpoint based on SD1.5 with proprietary dataset</li>
+</ul>
+
+      </div>
+  </div>
+  
+</article>
+
+
+
+<footer>
+  <div><b style="color: #f45;">All Generation Tasks are Denoising Tasks.</b></div>
+  <nav><a href="mailto:nxu8@outlook.com"><svg aria-label="Mail" class="icon"><use xlink:href="/assets/fontawesome/icons.svg#envelope"></use></svg></a><a href="https://github.com/NormXU"><svg aria-label="Github" class="icon"><use xlink:href="/assets/fontawesome/icons.svg#github"></use></svg></a></nav>
+
+</footer>
+
+
+</head>
+</html>

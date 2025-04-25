@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>The Compatibility between CUDA, GPU, Base Image, and PyTorch | まいどぅー</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Norm Inui">
+<meta name="generator" content="Jekyll v4.2.2">
+<link rel="canonical" href="/compatibility/">
+
+<link rel="stylesheet" href="/assets/css/frame.css">
+
+<link rel="alternate" href="/feed.xml" type="application/atom+xml" title="まいどぅー">
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script defer src="/assets/katex/katex.min.js"></script>
+<script defer src="/assets/katex/contrib/auto-render.min.js" onload="renderMathInElement(document.body)"></script>
+
+
+
+
+
+
+
+<header>
+  <a href="/" class="title">まいどぅー</a>
+  <nav><a href="/">Home</a><a href="/about/">Nuo Xu</a></nav>
+
+</header>
+
+<article><script src="https://unpkg.com/vanilla-back-to-top@7.2.1/dist/vanilla-back-to-top.min.js"></script>
+<script>addBackToTop({
+  diameter: 56,
+  backgroundColor: 'rgb(255, 82, 82)',
+  textColor: '#fff'})
+</script><header>
+  <h1><a href="/compatibility/">The Compatibility between CUDA, GPU, Base Image, and PyTorch</a></h1>
+<time datetime="2023-08-30T00:00:00+00:00">August 30, 2023</time>
+</header>
+
+  <div class="entry">
+      <div id="markdown-content">
+          <h3 class="no_toc"> TL; DR</h3>
+
+<ul>
+  <li>
+<strong>Host CUDA VS Base Image CUDA</strong>: The CUDA verision within a runtime docker image has no relationship with the CUDA version on the host machie. The only thing we need to care about is whether the driver version on the host supports the base image’s CUDA runtime. Check the driver compatibility <a href="https://docs.nvidia.com/deploy/cuda-compatibility/#minor-version-compatibility">here</a>
+</li>
+  <li>
+<strong>PyTorch VS CUDA</strong>: PyTorch is compatible with one or a few specific CUDA versions, more precisely, CUDA runtime APIs. Check the compatible matrix <a href="https://github.com/pytorch/pytorch/blob/main/RELEASE.md#release-compatibility-matrix">here</a>
+</li>
+  <li>
+    <p><strong>CUDA VS GPU</strong>: Each GPU architecture is compatible with certain CUDA versions, more precisely, CUDA driver versions. Quick check <a href="https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/">here</a></p>
+  </li>
+  <li>
+<strong>PyTorch and GPU</strong>:  PyTorch only supports GPU specified in <code class="language-plaintext highlighter-rouge">TORCH_CUDA_ARCH_LIST</code> when compiled</li>
+</ul>
+
+
+      </div>
+      <div id="table-of-contents">
+          <ul id="toc" class="section-nav">
+<li class="toc-entry toc-h2">
+<a href="#basic-concepts">Basic Concepts</a>
+<ul>
+<li class="toc-entry toc-h3"><a href="#gpu-architecture">GPU Architecture</a></li>
+<li class="toc-entry toc-h3"><a href="#cuda-version">CUDA Version</a></li>
+<li class="toc-entry toc-h3"><a href="#pytorch-version">PyTorch Version</a></li>
+<li class="toc-entry toc-h3"><a href="#base-image">Base Image</a></li>
+</ul>
+</li>
+<li class="toc-entry toc-h2">
+<a href="#interrelation">Interrelation</a>
+<ul>
+<li class="toc-entry toc-h3"><a href="#cuda-and-base-image">CUDA and Base Image</a></li>
+<li class="toc-entry toc-h3"><a href="#pytorch-and-cuda">PyTorch and CUDA</a></li>
+<li class="toc-entry toc-h3"><a href="#cuda-and-gpu">CUDA and GPU</a></li>
+<li class="toc-entry toc-h3"><a href="#pytorch-and-gpu">PyTorch and GPU</a></li>
+</ul>
+</li>
+<li class="toc-entry toc-h2"><a href="#conclusion">Conclusion</a></li>
+<li class="toc-entry toc-h2">
+<a href="#one-more-thing">One More Thing</a>
+<ul>
+<li class="toc-entry toc-h3"><a href="#image-without-cuda-runtime">Image without CUDA runtime</a></li>
+<li class="toc-entry toc-h3"><a href="#image-with-cuda-runtime">Image with CUDA runtime</a></li>
+</ul>
+</li>
+</ul>
+      </div>
+      <div id="markdown-content">
+          <!--more-->
+
+<hr>
+
+<p>The relationship between the CUDA version, GPU architecture, and PyTorch version can be a bit complex but is crucial for the proper functioning of PyTorch-based deep learning tasks on a GPU.</p>
+
+<p>Suppose you’re planning to deploy your awesome service on an <strong>NVIDIA A100-PCIE-40Gb</strong> server with <strong>CUDA 11.2</strong> and <strong>Driver Version 460.32.03</strong>. You’ve built your service using <strong>PyTorch 1.12.1</strong>, and your Docker image is built based on an NVIDIA base image, specifically <a href="https://hub.docker.com/layers/andrewseidl/nvidia-cuda/10.2-base-ubuntu20.04/images/sha256-3d4e2bbbf5a85247db30cd3cc91ac4695dc0d093a1eead0933e0dbf09845d1b9?context=explore"><strong>nvidia-cuda:10.2-base-ubuntu20.04</strong></a>. How can you judge whether your service can run smoothly on the machine without iterative attempts?</p>
+
+<p>To clarify this complicated compatibility problem,  let’s take a quick recap of the key terminologies we mentioned above.</p>
+
+<h2 id="basic-concepts">Basic Concepts</h2>
+<h3 id="gpu-architecture">GPU Architecture</h3>
+
+<p>NVIDIA releases new generations of GPUs every year that are based on different architectures, such as Kepler, Maxwell, Pascal, Volta, Turing, Ampere, and up to Hopper as of 2023. These architectures have different capabilities and features, specified by their Compute Capability version (e.g., sm_35, sm_60, sm_80, etc.). “sm” stands for “streaming multiprocessor,” which is a key GPU component responsible for carrying out computations. The number following “sm” represents the architecture’s version. We denote it as GPU code in the following context.</p>
+
+<p>For example, “sm_70” which corresponds to the Tesla V100 GPU. When you specify a particular architecture with nvcc,  the compiler will optimize your code for that architecture. As a result, your compiled code may not be fully compatible with GPUs based on different architectures.</p>
+
+<p>You can find more detailed explanations in <a href="https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/">this</a> post.</p>
+
+<h3 id="cuda-version">CUDA Version</h3>
+
+<p>The terms “CUDA” and “CUDA Toolkits” often appear together. “CUDA XX.X” is shorten for the version of the CUDA Toolkits.It serves as an interface between the software (like PyTorch) and the hardware (like NVIDIA GPU).</p>
+
+<p>CUDA Toolkits include:</p>
+
+<ol>
+  <li>
+<strong>Libraries and Utilities</strong>: The CUDA Toolkit provides a collection of libraries and utilities that allow developers to build and profile CUDA-enabled applications, such as CuDNN.</li>
+  <li>
+<strong>CUDA Runtime API</strong>: The Toolkit includes the CUDA runtime, which provides the application programming interface (API) used for tasks like allocating memory on the GPU, transferring data between the CPU and GPU, and launching kernels (compute functions) on the GPU. CUDA runtime APIs are generally designed to be forward-compatible with newer drivers.</li>
+  <li>
+<strong>NVCC Compiler</strong>: The Toolkit includes the <code class="language-plaintext highlighter-rouge">nvcc</code> compiler for compiling CUDA code into GPU-executable code.</li>
+</ol>
+
+<h3 id="pytorch-version">PyTorch Version</h3>
+
+<p>PyTorch releases are often tightly bound to specific CUDA versions for compatibility and performance reasons.</p>
+
+<h3 id="base-image">Base Image</h3>
+
+<p>Copied from NVIDIA docker <a href="https://hub.docker.com/r/nvidia/cuda">homepage</a>:</p>
+
+<blockquote>
+  <p>base: Includes the CUDA runtime (cudart)</p>
+
+  <p>runtime: Builds on the base and includes the <a href="https://developer.nvidia.com/gpu-accelerated-libraries">CUDA math libraries</a>, and <a href="https://developer.nvidia.com/nccl">NCCL</a>. A runtime image that also includes <a href="https://developer.nvidia.com/cudnn">cuDNN</a> is available.</p>
+
+  <p>devel: Builds on the runtime and includes headers, development tools for building CUDA images. These images are particularly useful for multi-stage builds.</p>
+</blockquote>
+
+<h2 id="interrelation">Interrelation</h2>
+
+<h3 id="cuda-and-base-image">CUDA and Base Image</h3>
+
+<p>The base image only contains the minimum required dependencies to deploy a pre-built CUDA application.  Importantly, there’s no requirement for the CUDA version in the base image to match the CUDA version on the host machine.</p>
+
+<p>Back to our deployment case</p>
+
+<ul>
+  <li>our service is built based on <code class="language-plaintext highlighter-rouge">nvidia-cuda:10.2-base-ubuntu20.04</code> image</li>
+  <li>The host machine has a CUDA driver that supports up to CUDA 11.2</li>
+</ul>
+
+<p>In this setup, the service built with <code class="language-plaintext highlighter-rouge">nvidia-cuda:10.2-base-ubuntu20.04</code> image doesn’t mean there installs a driver which supports CUDA 10.2 inside the image; instead, it relies on the host’s driver which can support up to CUDA 11.7.</p>
+
+<p>Therefore, the service container will use the CUDA 10.2 runtime API, and because the host driver (supporting up to CUDA 11.2) is forward-compatible with older CUDA runtime versions, the application should run without any issues.</p>
+
+<p>Therefore, the only one critical point you need to consider is that</p>
+
+<p><b><font color="red">Whether the driver version on the host supports the base image's CUDA runtime</font></b></p>
+
+<p>The CUDA runtime version inside the container must be less than or equal to the CUDA driver version on the host system, or else you might encounter compatibility issues and the service will fail to start with an error message as:</p>
+
+<blockquote>
+  <p>CUDA driver version is insufficient for CUDA runtime version</p>
+</blockquote>
+
+<p>A version-compatible matrix between the CUDA and driver can be found <a href="https://docs.nvidia.com/deploy/cuda-compatibility/#minor-version-compatibility">here</a>.</p>
+
+<p>Besides, there is still one consideration you should never miss. According to the line 16 in the <a href="https://hub.docker.com/layers/andrewseidl/nvidia-cuda/10.2-base-ubuntu20.04/images/sha256-3d4e2bbbf5a85247db30cd3cc91ac4695dc0d093a1eead0933e0dbf09845d1b9?context=explore">dockerfile</a> of <code class="language-plaintext highlighter-rouge">nvidia-cuda:10.2-base-ubuntu20.04</code></p>
+
+<blockquote>
+  <p>ENV NVIDIA_REQUIRE_CUDA=cuda&gt;=10.2</p>
+</blockquote>
+
+<p>The base image requires a minimum CUDA version of the host.</p>
+
+<p>Up till now,</p>
+
+<ul>
+  <li>
+    <p><strong>host has CUDA11.2 &gt;= 10.2. the base image is compatible with host</strong> ✅</p>
+  </li>
+  <li>
+    <p><strong>host driver 460.32.03 meets the minimum requirements of CUDA 10.2</strong> ✅</p>
+  </li>
+</ul>
+
+<h3 id="pytorch-and-cuda">PyTorch and CUDA</h3>
+
+<p>PyTorch versions is compatible  with one or a few specific CUDA versions, or more precisely, with corresponding CUDA runtime API versions. Using an incompatible version might lead to errors or sub-optimal performance.</p>
+
+<p>Following is the Release Compatibility Matrix for PyTorch, copied from <a href="https://github.com/pytorch/pytorch/blob/main/RELEASE.md#release-compatibility-matrix">here</a>:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>PyTorch version</th>
+      <th>Stable CUDA</th>
+      <th>Experimental CUDA</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>2.1</td>
+      <td>CUDA 11.8, CUDNN 8.7.0.84</td>
+      <td>CUDA 12.1, CUDNN 8.9.2.26</td>
+    </tr>
+    <tr>
+      <td>2.0</td>
+      <td>CUDA 11.7, CUDNN 8.5.0.96</td>
+      <td>CUDA 11.8, CUDNN 8.7.0.84</td>
+    </tr>
+    <tr>
+      <td>1.13</td>
+      <td>CUDA 11.6, CUDNN 8.3.2.44</td>
+      <td>CUDA 11.7, CUDNN 8.5.0.96</td>
+    </tr>
+    <tr>
+      <td>1.12</td>
+      <td>CUDA 11.3, CUDNN 8.3.2.44</td>
+      <td>CUDA 11.6, CUDNN 8.3.2.44</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>The official PyTorch <a href="https://pytorch.org/get-started/previous-versions/#v1121">webpage</a> provides three examples of CUDA version that are compatible with PyTorch 1.12, ranging from CUDA 10.2 to CUDA 11.6. Therefore, PyTorch 1.12.1 in our scenario passes the compatible test.</p>
+
+<p>So far so good, we have:</p>
+
+<ul>
+  <li>
+<strong>PyTorch1.12 is compatible with CUDA 11.2</strong> ✅</li>
+</ul>
+
+<h3 id="cuda-and-gpu">CUDA and GPU</h3>
+
+<p>Each GPU architectures is compatible with certain CUDA versions, or more precisely, CUDA driver versions. As for Ampere, the compatibility is shown as below, copied from <a href="https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/">this</a> post:</p>
+
+<blockquote>
+  <p><strong>Ampere (CUDA 11.1 and later)</strong></p>
+
+  <ul>
+    <li>
+<strong>SM80 or <code class="language-plaintext highlighter-rouge">SM_80, compute_80</code></strong> –
+ NVIDIA <a href="https://amzn.to/3GqeDrq">A100</a> (the name “Tesla” has been dropped – GA100), NVIDIA DGX-A100</li>
+    <li>
+      <p><strong>SM86 or <code class="language-plaintext highlighter-rouge">SM_86, compute_86</code></strong> – (from <a href="https://docs.nvidia.com/cuda/ptx-compiler-api/index.html">CUDA 11.1 onwards</a>)
+ Tesla GA10x cards, RTX Ampere – RTX 3080, GA102 – RTX 3090, RTX A2000, A3000, <a href="https://www.amazon.com/PNY-NVIDIA-Quadro-A6000-Graphics/dp/B08NWGS4X1?msclkid=45987a9faa0411ec98c321cb30a0780e&linkCode=ll1&tag=arnonshimoni-20&linkId=ccac0fed7c3cac61b4373d7dac6e7136&language=en_US&ref_=as_li_ss_tl">RTX A4000</a>, A5000, <a href="https://www.amazon.com/PNY-VCNRTXA6000-PB-NVIDIA-RTX-A6000/dp/B09BDH8VZV?crid=3QY8KCKXO3FB8&keywords=rtx+a6000&amp;qid=1647969665&amp;sprefix=rtx+a6000%2Caps%2C174&amp;sr=8-1&amp;linkCode=ll1&amp;tag=arnonshimoni-20&amp;linkId=d292ba4d995d2b034a27441321668ffb&amp;language=en_US&amp;ref_=as_li_ss_tl">A6000</a>, NVIDIA A40, GA106 – <a href="https://www.amazon.com/gp/product/B08W8DGK3X/ref=as_li_qf_asin_il_tl?ie=UTF8&tag=arnonshimoni-20&creative=9325&linkCode=as2&creativeASIN=B08W8DGK3X&linkId=5cb5bc6a11eb10aab6a98ad3f6c00cb9">RTX 3060</a>, GA104 – RTX 3070, GA107 – RTX 3050, RTX A10, RTX A16, RTX A40, A2 Tensor Core GPU</p>
+    </li>
+    <li>
+<strong>SM87 or <code class="language-plaintext highlighter-rouge">SM_87, compute_87</code></strong> – (from <a href="https://docs.nvidia.com/cuda/ptx-compiler-api/index.html">CUDA 11.4 onwards</a>, introduced with PTX ISA 7.4 / Driver r470 and newer) – for Jetson AGX Orin and Drive AGX Orin only</li>
+  </ul>
+</blockquote>
+
+<p>We therefore draw the conclusion:</p>
+
+<ul>
+  <li>
+<strong>NVIDIA A100-PCIE-40Gb is compatible with CUDA 11.2</strong> ✅</li>
+</ul>
+
+<h3 id="pytorch-and-gpu">PyTorch and GPU</h3>
+<p>A particular version of PyTorch will be compatible only with the set of GPUs whose compatible CUDA versions overlap with the CUDA versions that PyTorch supports.</p>
+
+<p>PyTorch libraries can be compiled from source codes into two forms, binary <em>cubin</em> objects and forward-compatible <em>PTX</em> assembly for each kernel. Both cubin and PTX are generated for a certain target compute capability. A cubin generated for a certain compute capability is supported to run on any GPU with the same major revision and same or higher minor revision of compute capability. For example, a cubin generated for compute capability 7.0 is supported to run on a GPU with compute capability 7.5, however a cubin generated for compute capability 7.5 is <em>not</em> supported to run on a GPU with compute capability 7.0, and a cubin generated with compute capability 7.x is <em>not</em> supported to run on a GPU with compute capability 8.x.</p>
+
+<p>When the developers of PyTorch release a new version, they include a flag, <code class="language-plaintext highlighter-rouge">TORCH_CUDA_ARCH_LIST</code>, in the <a href="https://github.com/pytorch/pytorch/blob/78810d78e82f8e18dbc1c049a2b92e559ab567b2/setup.py#L134">setup.py</a>. In this flag, they can specify which CUDA architecture to build for, such as <code class="language-plaintext highlighter-rouge">TORCH_CUDA_ARCH_LIST="3.5 5.2 6.0 6.1 7.0+PTX 8.0"</code>. Remember numbers in <code class="language-plaintext highlighter-rouge">TORCH_CUDA_ARCH_LIST</code> are not CUDA versions, these numbers refers to the NVIDIA GPU architectures, such as 7.5 for the Turing architecture and 8.x for the Ampere architecture.</p>
+
+<p>Here is a helpful table for reference, credit to <a href="https://stackoverflow.com/questions/68496906/pytorch-installation-for-different-cuda-architectures/74962874#74962874">dagelf</a></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>nvcc tag</th>
+      <th>TORCH_CUDA_ARCH_LIST</th>
+      <th>GPU Arch</th>
+      <th>Year</th>
+      <th>eg. GPU</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>sm_50, sm_52 and sm_53</td>
+      <td>5.0 5.1 5.3</td>
+      <td>
+<a href="https://en.wikipedia.org/wiki/Maxwell_(microarchitecture)">Maxwell</a> support</td>
+      <td>2014</td>
+      <td>GTX 9xx</td>
+    </tr>
+    <tr>
+      <td>sm_60, sm_61, and sm_62</td>
+      <td>6.0 6.1 6.2</td>
+      <td>
+<a href="https://en.wikipedia.org/wiki/Pascal_(microarchitecture)">Pascal</a> support</td>
+      <td>2016</td>
+      <td>10xx, Pxxx</td>
+    </tr>
+    <tr>
+      <td>sm_70 and sm_72</td>
+      <td>7.0 7.2</td>
+      <td>
+<a href="https://en.wikipedia.org/wiki/Volta_(microarchitecture)">Volta</a> support</td>
+      <td>2017</td>
+      <td>Titan V</td>
+    </tr>
+    <tr>
+      <td>sm_75</td>
+      <td>7.5</td>
+      <td>
+<a href="https://en.wikipedia.org/wiki/Turing_(microarchitecture)">Turing</a> support</td>
+      <td>2018</td>
+      <td>most 20xx</td>
+    </tr>
+    <tr>
+      <td>sm_80, sm_86 and sm_87</td>
+      <td>8.0 8.6 8.7</td>
+      <td>
+<a href="https://en.wikipedia.org/wiki/Ampere_(microarchitecture)">Ampere</a> support</td>
+      <td>2020</td>
+      <td>RTX 30xx, Axx[xx]</td>
+    </tr>
+    <tr>
+      <td>sm_89</td>
+      <td>8.9</td>
+      <td>
+<a href="https://en.wikipedia.org/wiki/Ada_Lovelace_(microarchitecture)">Ada</a> support</td>
+      <td>2022</td>
+      <td>RTX xxxx</td>
+    </tr>
+    <tr>
+      <td>sm_90, sm_90a</td>
+      <td>9.0 9.0a</td>
+      <td>
+<a href="https://en.wikipedia.org/wiki/Hopper_(microarchitecture)">Hopper</a> support</td>
+      <td>2022</td>
+      <td>H100</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Back to our scenarios, we need check whether PyTorch 1.12.1 can be compatible with NVIDIA Ampere GPU</p>
+
+<p>The quickest step towards judging the capability is to check if the application binary already contains compatible GPU code. As long as PyTorch libraries are built to include GPU arch&gt;=8.0or PTX form or both in  in  <code class="language-plaintext highlighter-rouge">TORCH_CUDA_ARCH_LIST</code>, they should work smoothly with the NVIDIA Ampere GPU architecture.</p>
+
+<p>If the PyTorch libraries you are using is either compiled with corresponding <code class="language-plaintext highlighter-rouge">TORCH_CUDA_ARCH_LIST</code>, nor compiled in PTX, you can find an error like:</p>
+
+<blockquote>
+  <p>A100-PCIE-40Gb with CUDA capability sm_80 is not compatible with current PyTorch installation</p>
+
+  <p>The current PyTorch install supports CUDA capabilities sm_37 sm_50 sm_60 sm_70</p>
+</blockquote>
+
+<p>Back to our scenarios, this time, the combability test fails.</p>
+
+<ul>
+  <li>
+<strong>Pytorch 1.12.1 fails to be compatible with  NVIDIA A100-PCIE-40Gb</strong> ❌</li>
+</ul>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>Now we can certainly know if the service which is built with <strong>PyTorch 1.12.1</strong>, and based on <strong>nvidia-cuda:10.2-base-ubuntu20.04</strong>, is compatible with an <strong>NVIDIA A100-PCIE-40Gb</strong> machine with <strong>CUDA 11.2</strong> and <strong>Driver Version 460.32.03</strong>.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Compatibility</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CUDA and Base Image</td>
+      <td>✅</td>
+    </tr>
+    <tr>
+      <td>PyTorch and GPU</td>
+      <td>❌</td>
+    </tr>
+    <tr>
+      <td>PyTorch and CUDA</td>
+      <td>✅</td>
+    </tr>
+    <tr>
+      <td>CUDA and GPU</td>
+      <td>✅</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>The answer is <u><b>NO</b></u>. Then, how do we fix it?</p>
+
+<p>Since current PyTorch fails to be compatible with A100, we might want to upgrade to PyTorch 1.13.1 or even later version. Besisdes, since PyTorch 1.13.1 needs CUDA runtime api &gt;= 11.6, we also need to upgrade the base image with a runtime &gt;= 11.6. To be compatible with the CUDA runtime, you may also want to upgrade the host CUDA driver to the latest, like Driver Version: 525.116.03 which supports up to CUDA 11.7, but this is not necessary, since according to NVIDIA <a href="https://docs.nvidia.com/deploy/cuda-compatibility/#default-to-minor-version">compatibility document</a>.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>CUDA Toolkit</th>
+      <th><strong>Linux x86_64 Minimum Required Driver Versio</strong></th>
+      <th>Note</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CUDA 11.x</td>
+      <td>\(\ge\) 450.80.02*</td>
+      <td>CUDA 11.0 was released with an earlier driver version, but by upgrading to Tesla Recommended Drivers 450.80.02 (Linux) / 452.39 (Windows) as indicated, <u>minor version compatibility is possible across the CUDA 11.x family of toolkits</u>.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>One good recipe is as below:</p>
+
+<p><strong>host:</strong> NVIDIA A100-PCIE-40Gb, No driver update is necessary, but I prefer to keep it updated to the latest version.</p>
+
+<p><strong>service:</strong> PyTorch: 1.13.1, base-image: <a href="https://hub.docker.com/layers/nvidia/cuda/11.7.1-base-ubuntu20.04/images/sha256-335148f1f4b11529269e668ff3ac57667e5f21458d7f461fd70d667699cf7819?context=explore">nvidia/cuda:11.7.1-base-ubuntu20.04</a></p>
+
+<p>The compatitibilty matrix now passes all checks.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Compatibility</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CUDA and Base Image</td>
+      <td>✅</td>
+    </tr>
+    <tr>
+      <td>PyTorch and GPU</td>
+      <td>✅</td>
+    </tr>
+    <tr>
+      <td>PyTorch and CUDA</td>
+      <td>✅</td>
+    </tr>
+    <tr>
+      <td>CUDA and GPU</td>
+      <td>✅</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="one-more-thing">One More Thing</h2>
+
+<p><strong>Q:</strong>  I initiate a container with a image without any CUDA runtime installed inside. Then, after I execute <code class="language-plaintext highlighter-rouge">docker run --gpus all  &lt;image_name&gt;</code>, I access the container and find all CUDA-related files on the host system, including CUDA runtime api. My assumption is that <code class="language-plaintext highlighter-rouge">--gpus all</code> will map all CUDA Toolkits to the CPU image, and thereby turn it to a CUDA runtime image. However, this assumption seems wrong for a container initilized from a CUDA 10.2 runtime base image in the same way, since all applications inside such a container still use CUDA 10.2 runtime API, suggesting that the host system’s CUDA runtime isn’t being mapped into the container. What the hell is going on?</p>
+
+<p><strong>A:</strong> When you run a Docker container with the <code class="language-plaintext highlighter-rouge">--gpus all</code> flag, you enable that container to access the host’s GPUs. However, this does not mean that all CUDA-related files and libraries from the host are automatically mapped into the container. What happens under the hood may differ based on whether the Docker image itself contains CUDA runtime libraries or not.</p>
+
+<h3 id="image-without-cuda-runtime">Image without CUDA runtime</h3>
+
+<p>When you start a container based on an image that doesn’t contain any CUDA runtime libraries, and you use <code class="language-plaintext highlighter-rouge">--gpus all</code>, you might observe that certain CUDA functionalities are available in the container. This is often because NVIDIA’s Docker runtime (nvidia-docker) ensures that the minimum necessary libraries and binaries related to the GPU are mounted into the container, including the compatible CUDA driver libraries.</p>
+
+<h3 id="image-with-cuda-runtime">Image with CUDA runtime</h3>
+
+<p>If you start a container from an image that already has a specific CUDA runtime version (say, CUDA 10.2), the container will use that version for its operations. NVIDIA’s Docker runtime (nvidia-docker) generally won’t override the CUDA libraries in a container that already has them. The container is designed to be a standalone, consistent environment, and one of the benefits of using containers is that they package the application along with its dependencies, ensuring that it runs the same way regardless of where it’s deployed.</p>
+
+<h3 class="no_toc"> Reference </h3>
+
+<ul>
+  <li><a href="https://docs.nvidia.com/cuda/ampere-compatibility-guide/index.html#building-applications-with-ampere-support">NVIDIA Ampere GPU Architecture Compatibility Guide for CUDA Applications</a></li>
+  <li><a href="https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/">Matching CUDA arch and CUDA gencode for various NVIDIA architectures</a></li>
+  <li><a href="https://pytorch.org/get-started/previous-versions/">Install previous versions of Pytorch under different CUDA machine</a></li>
+  <li><a href="https://docs.nvidia.com/deploy/cuda-compatibility/#minor-version-compatibility">CUDA Compatibility Matrix from NVIDIA official documentations</a></li>
+</ul>
+
+      </div>
+  </div>
+  
+</article>
+
+
+
+<footer>
+  <div><b style="color: #f45;">All Generation Tasks are Denoising Tasks.</b></div>
+  <nav><a href="mailto:nxu8@outlook.com"><svg aria-label="Mail" class="icon"><use xlink:href="/assets/fontawesome/icons.svg#envelope"></use></svg></a><a href="https://github.com/NormXU"><svg aria-label="Github" class="icon"><use xlink:href="/assets/fontawesome/icons.svg#github"></use></svg></a></nav>
+
+</footer>
+
+
+</head>
+</html>
