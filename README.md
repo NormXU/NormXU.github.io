@@ -173,7 +173,16 @@ layout: page
 
     <section class="section">
       <h2>Recent Works</h2>
-      <div class="grid">
+      <div class="grid"> 
+        <article class="card">
+          <h3 class="work-title">MMDuet2: Enhancing Proactive Interaction of Video MLLMs with Multi-Turn Reinforcement Learning</h3>
+          <div class="work-meta">Yueqian Wang, Songxiang Liu, Disong Wang, <strong>Nuo Xu</strong>, Guanglu Wan, Huishuai Zhang, Dongyan Zhao, <em>arXiv:2512.06810</em> (2025)</div>
+          <div class="link-row">
+            <a class="link" href="https://github.com/yellow-binary-tree/mmduet2" target="_blank" rel="noopener">GitHub</a>
+            <a class="link" href="https://arxiv.org/abs/2512.06810" target="_blank" rel="noopener">Paper</a>
+          </div>
+        </article>
+
         <article class="card">
           <h3 class="work-title">LongCat-Flash-Omni Technical Report</h3>
           <div class="work-meta">Team, Meituan LongCat, <em>arXiv:2511.00279</em> (2025)</div>
