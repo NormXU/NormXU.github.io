@@ -143,6 +143,8 @@ layout: page
       <p>Recent News: Building a multimodal Omni-Model @ Meituan LongCat Team.</p>
       <div class="actions">
         <a class="btn secondary" href="https://github.com/NormXU" target="_blank" rel="noopener">𐄷 GitHub</a>
+        <a class="btn secondary" href="https://scholar.google.com/citations?user=XVQB1f0AAAAJ&hl=en" target="_blank" rel="noopener">🎓 Google Scholar</a>
+        <a class="btn secondary" href="mailto:nxu8@outlook.com">✉ Email</a>
       </div>
     </section>
 
